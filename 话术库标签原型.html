@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CDP - 话术库 - 标签功能原型</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; color: #333; font-size: 14px; }
+
+/* 顶部导航 */
+.top-nav { background: #001529; color: #fff; height: 48px; display: flex; align-items: center; padding: 0 24px; font-size: 15px; }
+.top-nav span { opacity: 0.65; margin-right: 8px; }
+.top-nav strong { font-weight: 500; }
+
+/* 布局 */
+.layout { display: flex; height: calc(100vh - 48px); }
+
+/* 左侧导航 */
+.sidebar { width: 200px; background: #001529; padding-top: 8px; flex-shrink: 0; }
+.sidebar .menu-item { padding: 10px 24px; color: rgba(255,255,255,0.65); cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.sidebar .menu-item:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.sidebar .menu-item.active { color: #fff; background: #1890ff; }
+.sidebar .menu-group { padding: 12px 24px 6px; color: rgba(255,255,255,0.35); font-size: 12px; text-transform: uppercase; }
+
+/* 主内容 */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* 页面头部 */
+.page-header { background: #fff; padding: 16px 24px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; }
+.page-header h2 { font-size: 18px; font-weight: 600; }
+
+/* Tab 栏 */
+.tabs { background: #fff; padding: 0 24px; border-bottom: 1px solid #e8e8e8; display: flex; gap: 0; }
+.tab { padding: 12px 16px; cursor: pointer; border-bottom: 2px solid transparent; color: #666; font-size: 14px; }
+.tab:hover { color: #1890ff; }
+.tab.active { color: #1890ff; border-bottom-color: #1890ff; font-weight: 500; }
+
+/* 内容区域 */
+.content { flex: 1; overflow-y: auto; }
+
+/* 话术库页面 */
+.script-page { display: flex; height: 100%; }
+.group-panel { width: 220px; background: #fff; border-right: 1px solid #e8e8e8; padding: 16px; overflow-y: auto; flex-shrink: 0; }
+.group-panel h4 { font-size: 14px; margin-bottom: 12px; color: #333; }
+.group-item { padding: 8px 12px; cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #555; }
+.group-item:hover { background: #e6f7ff; }
+.group-item.active { background: #e6f7ff; color: #1890ff; font-weight: 500; }
+.group-item .count { color: #999; font-size: 12px; }
+.group-children { padding-left: 16px; }
+
+.list-panel { flex: 1; padding: 16px 24px; overflow-y: auto; }
+
+/* 筛选栏 */
+.filter-bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filter-bar input[type="text"] { padding: 6px 12px; border: 1px solid #d9d9d9; border-radius: 4px; width: 220px; font-size: 13px; outline: none; }
+.filter-bar input[type="text"]:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+.filter-bar select { padding: 6px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; outline: none; background: #fff; }
+
+/* 标签筛选器 */
+.tag-filter { position: relative; }
+.tag-filter-trigger { padding: 5px 12px; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #555; background: #fff; min-width: 120px; }
+.tag-filter-trigger:hover { border-color: #1890ff; }
+.tag-filter-trigger .arrow { font-size: 10px; margin-left: auto; }
+.tag-filter-dropdown { position: absolute; top: 100%; left: 0; margin-top: 4px; background: #fff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.12); z-index: 100; width: 240px; max-height: 280px; display: none; }
+.tag-filter-dropdown.show { display: block; }
+.tag-filter-dropdown .search-box { padding: 8px; border-bottom: 1px solid #f0f0f0; }
+.tag-filter-dropdown .search-box input { width: 100%; padding: 5px 8px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; outline: none; }
+.tag-filter-dropdown .tag-options { max-height: 200px; overflow-y: auto; padding: 4px 0; }
+.tag-option { padding: 6px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.tag-option:hover { background: #f5f5f5; }
+.tag-option input[type="checkbox"] { accent-color: #1890ff; }
+.selected-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-left: 4px; }
+
+/* 按钮 */
+.btn { padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; border: 1px solid #d9d9d9; background: #fff; color: #333; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.btn:hover { border-color: #1890ff; color: #1890ff; }
+.btn-primary { background: #1890ff; color: #fff; border-color: #1890ff; }
+.btn-primary:hover { background: #40a9ff; border-color: #40a9ff; color: #fff; }
+.btn-danger { color: #ff4d4f; border-color: #ff4d4f; }
+.btn-danger:hover { background: #fff1f0; }
+.btn-sm { padding: 3px 10px; font-size: 12px; }
+.btn-link { border: none; background: none; color: #1890ff; padding: 0; cursor: pointer; font-size: 13px; }
+.btn-link:hover { color: #40a9ff; }
+.btn-link-danger { border: none; background: none; color: #ff4d4f; padding: 0; cursor: pointer; font-size: 13px; }
+
+/* 表格 */
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 4px; overflow: hidden; }
+th { background: #fafafa; padding: 12px 16px; text-align: left; font-weight: 500; font-size: 13px; color: #555; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 13px; vertical-align: middle; }
+tr:hover td { background: #fafafa; }
+
+/* 标签样式 */
+.tag { display: inline-flex; align-items: center; padding: 2px 8px; background: #f0f5ff; color: #1890ff; border: 1px solid #91caff; border-radius: 4px; font-size: 12px; margin: 2px; white-space: nowrap; gap: 4px; }
+.tag .tag-close { cursor: pointer; font-size: 14px; line-height: 1; opacity: 0.6; }
+.tag .tag-close:hover { opacity: 1; }
+.tag-green { background: #f6ffed; color: #52c41a; border-color: #b7eb8f; }
+.tag-orange { background: #fff7e6; color: #fa8c16; border-color: #ffd591; }
+.tag-purple { background: #f9f0ff; color: #722ed1; border-color: #d3adf7; }
+.tag-red { background: #fff1f0; color: #f5222d; border-color: #ffa39e; }
+.tag-cyan { background: #e6fffb; color: #13c2c2; border-color: #87e8de; }
+.tag-pink { background: #fff0f6; color: #eb2f96; border-color: #ffadd2; }
+
+/* 颜色选择器 */
+.color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-option { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s; }
+.color-option:hover { transform: scale(1.15); }
+.color-option.selected { border-color: #333; box-shadow: 0 0 0 2px rgba(0,0,0,0.1); }
+
+/* 弹窗 */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: none; justify-content: center; align-items: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 8px; width: 560px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.modal-header { padding: 16px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close { cursor: pointer; font-size: 20px; color: #999; background: none; border: none; line-height: 1; }
+.modal-close:hover { color: #333; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 12px 24px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 8px; }
+
+/* 表单 */
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: #333; font-weight: 500; }
+.form-group label .required { color: #ff4d4f; margin-right: 2px; }
+.form-group input[type="text"], .form-group textarea, .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; outline: none; font-family: inherit; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-hint { font-size: 12px; color: #999; margin-top: 4px; }
+.form-error { font-size: 12px; color: #ff4d4f; margin-top: 4px; }
+
+/* 标签输入器 */
+.tag-input-wrapper { border: 1px solid #d9d9d9; border-radius: 4px; padding: 4px 8px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-height: 36px; cursor: text; position: relative; }
+.tag-input-wrapper:focus-within { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+.tag-input-wrapper input { border: none; outline: none; flex: 1; min-width: 80px; font-size: 13px; padding: 2px 0; }
+.tag-suggestions { position: absolute; top: 100%; left: -1px; right: -1px; background: #fff; border: 1px solid #d9d9d9; border-top: none; border-radius: 0 0 4px 4px; z-index: 10; max-height: 160px; overflow-y: auto; display: none; }
+.tag-suggestions.show { display: block; }
+.tag-suggestion-item { padding: 8px 12px; cursor: pointer; font-size: 13px; display: flex; justify-content: space-between; }
+.tag-suggestion-item:hover { background: #e6f7ff; }
+.tag-suggestion-item .hint { color: #999; font-size: 12px; }
+
+/* 确认弹窗 */
+.confirm-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 2000; display: none; justify-content: center; align-items: center; }
+.confirm-overlay.show { display: flex; }
+.confirm-box { background: #fff; border-radius: 8px; padding: 24px; width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.confirm-box .icon { font-size: 22px; margin-bottom: 12px; }
+.confirm-box .title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.confirm-box .desc { font-size: 13px; color: #666; margin-bottom: 20px; }
+.confirm-box .actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Toast */
+.toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #fff; border: 1px solid #b7eb8f; color: #52c41a; padding: 10px 24px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 3000; display: none; font-size: 14px; }
+.toast.show { display: block; }
+.toast.error { border-color: #ffa39e; color: #ff4d4f; }
+
+/* 分页 */
+.pagination { display: flex; justify-content: flex-end; align-items: center; padding: 16px 0; gap: 8px; }
+.pagination .page-item { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.pagination .page-item:hover { border-color: #1890ff; color: #1890ff; }
+.pagination .page-item.active { background: #1890ff; color: #fff; border-color: #1890ff; }
+.pagination .total { font-size: 13px; color: #666; margin-right: 8px; }
+
+/* 空状态 */
+.empty-state { text-align: center; padding: 60px 20px; color: #999; }
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state p { font-size: 14px; }
+
+/* 标签管理页面 */
+.tag-mgmt { padding: 24px; }
+.tag-mgmt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.tag-mgmt-header .left { display: flex; gap: 12px; align-items: center; }
+
+/* 话术内容预览 */
+.script-content { max-width: 300px; }
+.script-content .text-preview { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #666; font-size: 12px; line-height: 1.6; }
+
+/* 隐藏页面 */
+.page { display: none; }
+.page.active { display: flex; }
+.page-full.active { display: block; }
+
+/* 操作列 */
+.actions-cell { display: flex; gap: 12px; align-items: center; }
+
+/* 批量操作栏 */
+.batch-bar {
+  display: none; align-items: center; gap: 12px;
+  padding: 8px 16px; background: #e6f7ff; border: 1px solid #91d5ff;
+  border-radius: 4px; margin-bottom: 12px; font-size: 13px;
+}
+.batch-bar.show { display: flex; }
+.batch-bar .selected-count { color: #1890ff; font-weight: 600; }
+.batch-bar .btn { font-size: 12px; }
+/* 复选框 */
+.cb-col { width: 36px; text-align: center; }
+.cb-col input[type="checkbox"] { accent-color: #1890ff; cursor: pointer; width: 15px; height: 15px; }
+/* 标签筛选下拉里的dot */
+.tag-option .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+/* 批量弹窗里的标签列表 */
+.batch-tag-list { display: flex; gap: 6px; flex-wrap: wrap; max-height: 200px; overflow-y: auto; }
+.batch-tag-item {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 4px; font-size: 12px;
+  cursor: pointer; user-select: none; transition: all .15s;
+  border: 1px solid #e8e8e8; background: #fafafa; color: #666;
+}
+.batch-tag-item:hover { border-color: #91d5ff; }
+.batch-tag-item.selected { border-color: #1890ff; color: #1890ff; background: #e6f7ff; }
+.batch-tag-item .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="top-nav">
+  <span>CDP 客户数据营销中台</span>
+  <strong>&gt; 内容中心 &gt; 话术库</strong>
+</div>
+
+<div class="layout">
+  <!-- 左侧菜单 -->
+  <div class="sidebar">
+    <div class="menu-group">内容中心</div>
+    <div class="menu-item active" onclick="switchPage('scripts')">📋 话术库</div>
+    <div class="menu-group">其他模块</div>
+    <div class="menu-item">📦 素材库</div>
+    <div class="menu-item">📊 数据中心</div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main">
+    <!-- ============ 话术库页面 ============ -->
+    <div id="page-scripts" class="page active">
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="page-header">
+          <h2>话术库</h2>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="openNewScriptModal()">+ 新建话术</button>
+            <button class="btn" onclick="switchPage('tags')">🏷️ 标签管理</button>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active">企业话术库</div>
+          <div class="tab">个人话术库</div>
+        </div>
+        <div class="script-page" style="flex:1;overflow:hidden;">
+          <!-- 分组面板 -->
+          <div class="group-panel">
+            <h4>话术分组</h4>
+            <div class="group-item active" onclick="selectGroup(this)">
+              <span>全部分组</span><span class="count">86</span>
+            </div>
+            <div class="group-item" onclick="selectGroup(this)">
+              <span>📁 产品介绍</span><span class="count">23</span>
+            </div>
+            <div class="group-children">
+              <div class="group-item" onclick="selectGroup(this)">
+                <span>公寓介绍</span><span class="count">12</span>
+              </div>
+              <div class="group-item" onclick="selectGroup(this)">
+                <span>服务介绍</span><span class="count">11</span>
+              </div>
+            </div>
+            <div class="group-item" onclick="selectGroup(this)">
+              <span>📁 报价与优惠</span><span class="count">18</span>
+            </div>
+            <div class="group-children">
+              <div class="group-item" onclick="selectGroup(this)">
+                <span>价格咨询</span><span class="count">10</span>
+              </div>
+              <div class="group-item" onclick="selectGroup(this)">
+                <span>优惠活动</span><span class="count">8</span>
+              </div>
+            </div>
+            <div class="group-item" onclick="selectGroup(this)">
+              <span>📁 异议处理</span><span class="count">15</span>
+            </div>
+            <div class="group-item" onclick="selectGroup(this)">
+              <span>📁 逼单技巧</span><span class="count">12</span>
+            </div>
+            <div class="group-item" onclick="selectGroup(this)">
+              <span>📁 售后服务</span><span class="count">8</span>
+            </div>
+            <div class="group-item" onclick="selectGroup(this)">
+              <span>📁 节日问候</span><span class="count">10</span>
+            </div>
+          </div>
+
+          <!-- 列表区域 -->
+          <div class="list-panel">
+            <div class="filter-bar">
+              <input type="text" placeholder="搜索话术标题 / 内容" />
+
+              <!-- 标签筛选（新增） -->
+              <div class="tag-filter" id="tagFilter">
+                <div class="tag-filter-trigger" onclick="toggleTagFilter()">
+                  <span>🏷️ 标签筛选</span>
+                  <span class="arrow">▼</span>
+                </div>
+                <div class="tag-filter-dropdown" id="tagFilterDropdown">
+                  <div class="search-box">
+                    <input type="text" placeholder="搜索标签..." oninput="filterTagOptions(this.value)" />
+                  </div>
+                  <div class="tag-options" id="tagOptions">
+                    <label class="tag-option"><input type="checkbox" value="高转化" onchange="updateTagFilter()"> 高转化</label>
+                    <label class="tag-option"><input type="checkbox" value="新人必用" onchange="updateTagFilter()"> 新人必用</label>
+                    <label class="tag-option"><input type="checkbox" value="618活动" onchange="updateTagFilter()"> 618活动</label>
+                    <label class="tag-option"><input type="checkbox" value="价格敏感" onchange="updateTagFilter()"> 价格敏感</label>
+                    <label class="tag-option"><input type="checkbox" value="学生群体" onchange="updateTagFilter()"> 学生群体</label>
+                    <label class="tag-option"><input type="checkbox" value="逼单" onchange="updateTagFilter()"> 逼单</label>
+                    <label class="tag-option"><input type="checkbox" value="异议处理" onchange="updateTagFilter()"> 异议处理</label>
+                    <label class="tag-option"><input type="checkbox" value="首次咨询" onchange="updateTagFilter()"> 首次咨询</label>
+                  </div>
+                </div>
+              </div>
+
+              <select>
+                <option>创建时间</option>
+                <option>本周</option>
+                <option>本月</option>
+              </select>
+            </div>
+
+            <!-- 已选标签展示 -->
+            <div id="selectedTagsBar" style="margin-bottom:12px;display:none;">
+              <span style="font-size:12px;color:#999;margin-right:8px;">已选标签：</span>
+              <div id="selectedTagsList" style="display:inline-flex;gap:4px;flex-wrap:wrap;"></div>
+              <button class="btn-link" style="margin-left:8px;font-size:12px;" onclick="clearTagFilter()">清空</button>
+            </div>
+
+            <!-- 批量操作栏 -->
+            <div class="batch-bar" id="batchBar">
+              <span>已选 <span class="selected-count" id="batchCount">0</span> 条</span>
+              <button class="btn btn-sm" onclick="openBatchAddTag()">批量打标签</button>
+              <button class="btn btn-sm btn-danger" onclick="openBatchRemoveTag()">批量移除标签</button>
+              <button class="btn-link" style="font-size:12px;margin-left:auto;" onclick="clearBatchSelect()">取消选择</button>
+            </div>
+
+            <!-- 表格 -->
+            <table>
+              <thead>
+                <tr>
+                  <th class="cb-col"><input type="checkbox" id="selectAllCb" onchange="toggleSelectAll(this)" /></th>
+                  <th style="width:28%">话术内容</th>
+                  <th>标题</th>
+                  <th>标签</th>
+                  <th>发送次数 ↓</th>
+                  <th>创建人</th>
+                  <th>创建时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="cb-col"><input type="checkbox" id="cb1" onchange="updateBatchBar()" /></td>
+                  <td class="script-content">
+                    <div class="text-preview">你好，我们的公寓位于市中心核心地段，紧邻地铁站，步行仅需3分钟。周边配套设施齐全，包括超市、餐饮、健身房等。</div>
+                  </td>
+                  <td>公寓位置介绍</td>
+                  <td>
+                    <span class="tag">新人必用</span>
+                    <span class="tag tag-green">高转化</span>
+                  </td>
+                  <td>326</td>
+                  <td>张运营</td>
+                  <td>2026-05-15 14:30</td>
+                  <td class="actions-cell">
+                    <button class="btn-link" onclick="openEditScriptModal()">编辑</button>
+                    <button class="btn-link">排序</button>
+                    <button class="btn-link-danger">删除</button>
+                    <button class="btn-link">数据</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="cb-col"><input type="checkbox" id="cb2" onchange="updateBatchBar()" /></td>
+                  <td class="script-content">
+                    <div class="text-preview">目前我们正在做618专属优惠活动，预付定金可享受首月租金8折，还可免费获得搬家服务一次，名额有限先到先得哦~</div>
+                  </td>
+                  <td>618优惠活动话术</td>
+                  <td>
+                    <span class="tag tag-orange">618活动</span>
+                    <span class="tag tag-green">高转化</span>
+                    <span class="tag tag-purple">逼单</span>
+                  </td>
+                  <td>289</td>
+                  <td>李运营</td>
+                  <td>2026-05-14 10:20</td>
+                  <td class="actions-cell">
+                    <button class="btn-link" onclick="openEditScriptModal()">编辑</button>
+                    <button class="btn-link">排序</button>
+                    <button class="btn-link-danger">删除</button>
+                    <button class="btn-link">数据</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="cb-col"><input type="checkbox" id="cb3" onchange="updateBatchBar()" /></td>
+                  <td class="script-content">
+                    <div class="text-preview">非常理解您的顾虑。很多客户在看房前也有同样的想法，但实际入住后都觉得性价比很高。我可以安排您周末来实地看看，亲身感受一下？</div>
+                  </td>
+                  <td>价格异议处理</td>
+                  <td>
+                    <span class="tag tag-red">价格敏感</span>
+                    <span class="tag tag-purple">异议处理</span>
+                  </td>
+                  <td>245</td>
+                  <td>张运营</td>
+                  <td>2026-05-13 16:45</td>
+                  <td class="actions-cell">
+                    <button class="btn-link" onclick="openEditScriptModal()">编辑</button>
+                    <button class="btn-link">排序</button>
+                    <button class="btn-link-danger">删除</button>
+                    <button class="btn-link">数据</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="cb-col"><input type="checkbox" id="cb4" onchange="updateBatchBar()" /></td>
+                  <td class="script-content">
+                    <div class="text-preview">[客户昵称]你好，我是[顾问姓名]，之前跟您沟通过关于公寓的事情。最近我们有一批新房源上架，位置和户型都很不错，想给您推荐一下~</div>
+                  </td>
+                  <td>沉默客户唤醒</td>
+                  <td>
+                    <span class="tag">首次咨询</span>
+                  </td>
+                  <td>198</td>
+                  <td>王运营</td>
+                  <td>2026-05-12 09:15</td>
+                  <td class="actions-cell">
+                    <button class="btn-link" onclick="openEditScriptModal()">编辑</button>
+                    <button class="btn-link">排序</button>
+                    <button class="btn-link-danger">删除</button>
+                    <button class="btn-link">数据</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="cb-col"><input type="checkbox" id="cb5" onchange="updateBatchBar()" /></td>
+                  <td class="script-content">
+                    <div class="text-preview">同学你好！我们专门为留学生和实习生推出了短租方案，最短可以1个月起租，免押金，还提供免费Wi-Fi和每周保洁服务。</div>
+                  </td>
+                  <td>学生短租推荐</td>
+                  <td>
+                    <span class="tag tag-orange">学生群体</span>
+                    <span class="tag">新人必用</span>
+                  </td>
+                  <td>176</td>
+                  <td>李运营</td>
+                  <td>2026-05-11 11:30</td>
+                  <td class="actions-cell">
+                    <button class="btn-link" onclick="openEditScriptModal()">编辑</button>
+                    <button class="btn-link">排序</button>
+                    <button class="btn-link-danger">删除</button>
+                    <button class="btn-link">数据</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="cb-col"><input type="checkbox" id="cb6" onchange="updateBatchBar()" /></td>
+                  <td class="script-content">
+                    <div class="text-preview">这个房源目前咨询量比较大，已经有3组客户在考虑了。如果您确定想要的话，建议这两天先交定金锁定房源，避免被别人抢先签约。</div>
+                  </td>
+                  <td>紧迫感逼单</td>
+                  <td>
+                    <span class="tag tag-purple">逼单</span>
+                    <span class="tag tag-green">高转化</span>
+                  </td>
+                  <td>156</td>
+                  <td>张运营</td>
+                  <td>2026-05-10 15:00</td>
+                  <td class="actions-cell">
+                    <button class="btn-link" onclick="openEditScriptModal()">编辑</button>
+                    <button class="btn-link">排序</button>
+                    <button class="btn-link-danger">删除</button>
+                    <button class="btn-link">数据</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="pagination">
+              <span class="total">共 86 条</span>
+              <div class="page-item">‹</div>
+              <div class="page-item active">1</div>
+              <div class="page-item">2</div>
+              <div class="page-item">3</div>
+              <div class="page-item">4</div>
+              <div class="page-item">5</div>
+              <div class="page-item">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标签管理页面 ============ -->
+    <div id="page-tags" class="page page-full">
+      <div class="page-header">
+        <button class="btn" onclick="switchPage('scripts')">← 返回话术库</button>
+        <h2>标签管理</h2>
+      </div>
+      <div class="tag-mgmt">
+        <div class="tag-mgmt-header">
+          <div class="left">
+            <input type="text" placeholder="搜索标签名称..." style="padding:6px 12px;border:1px solid #d9d9d9;border-radius:4px;width:220px;font-size:13px;" />
+          </div>
+          <button class="btn btn-primary" onclick="openNewTagModal()">+ 新建标签</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>标签名称</th>
+              <th>使用次数（关联话术数）</th>
+              <th>创建时间</th>
+              <th>创建人</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tag tag-green">高转化</span></td>
+              <td><button class="btn-link">15</button></td>
+              <td>2026-05-01 10:00</td>
+              <td>张运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('高转化')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('高转化')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag">新人必用</span></td>
+              <td><button class="btn-link">12</button></td>
+              <td>2026-05-01 10:05</td>
+              <td>张运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('新人必用')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('新人必用')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-orange">618活动</span></td>
+              <td><button class="btn-link">8</button></td>
+              <td>2026-05-10 09:30</td>
+              <td>李运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('618活动')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('618活动')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-red">价格敏感</span></td>
+              <td><button class="btn-link">6</button></td>
+              <td>2026-05-02 14:20</td>
+              <td>张运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('价格敏感')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('价格敏感')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-orange">学生群体</span></td>
+              <td><button class="btn-link">5</button></td>
+              <td>2026-05-03 11:00</td>
+              <td>王运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('学生群体')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('学生群体')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag tag-purple">逼单</span></td>
+              <td><button class="btn-link">9</button></td>
+              <td>2026-05-02 16:00</td>
+              <td>张运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('逼单')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('逼单')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag">异议处理</span></td>
+              <td><button class="btn-link">7</button></td>
+              <td>2026-05-04 09:00</td>
+              <td>李运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('异议处理')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('异议处理')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="tag">首次咨询</span></td>
+              <td><button class="btn-link">4</button></td>
+              <td>2026-05-05 10:30</td>
+              <td>王运营</td>
+              <td class="actions-cell">
+                <button class="btn-link" onclick="openEditTagModal('首次咨询')">编辑</button>
+                <button class="btn-link-danger" onclick="openDeleteTagConfirm('首次咨询')">删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span class="total">共 8 条</span>
+          <div class="page-item active">1</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 新建话术弹窗 ============ -->
+<div class="modal-overlay" id="newScriptModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>新建话术</h3>
+      <button class="modal-close" onclick="closeModal('newScriptModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label><span class="required">*</span>话术分组</label>
+        <select>
+          <option value="">请选择分组</option>
+          <option>产品介绍 / 公寓介绍</option>
+          <option>产品介绍 / 服务介绍</option>
+          <option>报价与优惠 / 价格咨询</option>
+          <option>报价与优惠 / 优惠活动</option>
+          <option>异议处理</option>
+          <option>逼单技巧</option>
+          <option>售后服务</option>
+          <option>节日问候</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label><span class="required">*</span>话术标题</label>
+        <input type="text" placeholder="请输入话术标题，20字以内" maxlength="20" />
+      </div>
+      <div class="form-group">
+        <label><span class="required">*</span>话术内容</label>
+        <textarea rows="4" placeholder="请输入话术文本内容"></textarea>
+        <div class="form-hint">支持文本、图片、视频、链接、小程序等内容类型，最多9条</div>
+      </div>
+      <div class="form-group">
+        <label>标签</label>
+        <div class="tag-input-wrapper" id="newScriptTagInput" onclick="document.getElementById('newScriptTagField').focus()">
+          <input type="text" id="newScriptTagField" placeholder="搜索已有标签添加"
+                 oninput="showTagSuggestions(this, 'newScriptSuggestions')"
+                 onkeydown="handleTagKeydown(event, this, 'newScriptTagInput')"
+                 onfocus="showTagSuggestions(this, 'newScriptSuggestions')" />
+          <div class="tag-suggestions" id="newScriptSuggestions"></div>
+        </div>
+        <div class="form-hint">从已有标签中选择，如需新建标签请前往标签管理页</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('newScriptModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveNewScript()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 编辑话术弹窗 ============ -->
+<div class="modal-overlay" id="editScriptModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>编辑话术</h3>
+      <button class="modal-close" onclick="closeModal('editScriptModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label><span class="required">*</span>话术分组</label>
+        <select>
+          <option>产品介绍 / 公寓介绍</option>
+          <option>产品介绍 / 服务介绍</option>
+          <option>报价与优惠 / 价格咨询</option>
+          <option selected>报价与优惠 / 优惠活动</option>
+          <option>异议处理</option>
+          <option>逼单技巧</option>
+          <option>售后服务</option>
+          <option>节日问候</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label><span class="required">*</span>话术标题</label>
+        <input type="text" value="618优惠活动话术" maxlength="20" />
+      </div>
+      <div class="form-group">
+        <label><span class="required">*</span>话术内容</label>
+        <textarea rows="4">目前我们正在做618专属优惠活动，预付定金可享受首月租金8折，还可免费获得搬家服务一次，名额有限先到先得哦~</textarea>
+      </div>
+      <div class="form-group">
+        <label>标签</label>
+        <div class="tag-input-wrapper" id="editScriptTagInput" onclick="document.getElementById('editScriptTagField').focus()">
+          <span class="tag tag-orange" style="background:#fff7e6;color:#fa8c16;border-color:#ffd591;">618活动 <span class="tag-close" onclick="removeTagFromInput(this)">&times;</span></span>
+          <span class="tag tag-green" style="background:#f6ffed;color:#52c41a;border-color:#b7eb8f;">高转化 <span class="tag-close" onclick="removeTagFromInput(this)">&times;</span></span>
+          <span class="tag tag-purple" style="background:#f9f0ff;color:#722ed1;border-color:#d3adf7;">逼单 <span class="tag-close" onclick="removeTagFromInput(this)">&times;</span></span>
+          <input type="text" id="editScriptTagField" placeholder="搜索已有标签添加"
+                 oninput="showTagSuggestions(this, 'editScriptSuggestions')"
+                 onkeydown="handleTagKeydown(event, this, 'editScriptTagInput')"
+                 onfocus="showTagSuggestions(this, 'editScriptSuggestions')" />
+          <div class="tag-suggestions" id="editScriptSuggestions"></div>
+        </div>
+        <div class="form-hint">从已有标签中选择，如需新建标签请前往标签管理页</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('editScriptModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditScript()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 新建标签弹窗 ============ -->
+<div class="modal-overlay" id="newTagModal">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header">
+      <h3>新建标签</h3>
+      <button class="modal-close" onclick="closeModal('newTagModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label><span class="required">*</span>标签名称</label>
+        <input type="text" id="newTagName" placeholder="请输入标签名称，10字以内" maxlength="10" oninput="validateNewTag()" />
+        <div class="form-error" id="newTagError" style="display:none;"></div>
+      </div>
+      <div class="form-group">
+        <label>标签颜色</label>
+        <div class="color-picker" id="newTagColorPicker">
+          <div class="color-option selected" data-color="#1890ff" style="background:#1890ff;" onclick="selectColor(this, 'newTagColorPicker')"></div>
+          <div class="color-option" data-color="#52c41a" style="background:#52c41a;" onclick="selectColor(this, 'newTagColorPicker')"></div>
+          <div class="color-option" data-color="#fa8c16" style="background:#fa8c16;" onclick="selectColor(this, 'newTagColorPicker')"></div>
+          <div class="color-option" data-color="#722ed1" style="background:#722ed1;" onclick="selectColor(this, 'newTagColorPicker')"></div>
+          <div class="color-option" data-color="#f5222d" style="background:#f5222d;" onclick="selectColor(this, 'newTagColorPicker')"></div>
+          <div class="color-option" data-color="#13c2c2" style="background:#13c2c2;" onclick="selectColor(this, 'newTagColorPicker')"></div>
+          <div class="color-option" data-color="#eb2f96" style="background:#eb2f96;" onclick="selectColor(this, 'newTagColorPicker')"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('newTagModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveNewTag()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 编辑标签弹窗 ============ -->
+<div class="modal-overlay" id="editTagModal">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header">
+      <h3>编辑标签</h3>
+      <button class="modal-close" onclick="closeModal('editTagModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label><span class="required">*</span>标签名称</label>
+        <input type="text" id="editTagName" maxlength="10" />
+        <div class="form-error" id="editTagError" style="display:none;"></div>
+      </div>
+      <div class="form-group">
+        <label>标签颜色</label>
+        <div class="color-picker" id="editTagColorPicker">
+          <div class="color-option" data-color="#1890ff" style="background:#1890ff;" onclick="selectColor(this, 'editTagColorPicker')"></div>
+          <div class="color-option" data-color="#52c41a" style="background:#52c41a;" onclick="selectColor(this, 'editTagColorPicker')"></div>
+          <div class="color-option" data-color="#fa8c16" style="background:#fa8c16;" onclick="selectColor(this, 'editTagColorPicker')"></div>
+          <div class="color-option" data-color="#722ed1" style="background:#722ed1;" onclick="selectColor(this, 'editTagColorPicker')"></div>
+          <div class="color-option" data-color="#f5222d" style="background:#f5222d;" onclick="selectColor(this, 'editTagColorPicker')"></div>
+          <div class="color-option" data-color="#13c2c2" style="background:#13c2c2;" onclick="selectColor(this, 'editTagColorPicker')"></div>
+          <div class="color-option" data-color="#eb2f96" style="background:#eb2f96;" onclick="selectColor(this, 'editTagColorPicker')"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('editTagModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveEditTag()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 删除确认 ============ -->
+<div class="confirm-overlay" id="deleteTagConfirm">
+  <div class="confirm-box">
+    <div class="icon">⚠️</div>
+    <div class="title">确定删除标签「<span id="deleteTagName"></span>」吗？</div>
+    <div class="desc">删除后，所有话术上的该标签将被移除。此操作不可恢复。</div>
+    <div class="actions">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" onclick="confirmDeleteTag()" style="background:#ff4d4f;border-color:#ff4d4f;">确认删除</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============ 批量打标签弹窗 ============ -->
+<div class="modal-overlay" id="batchAddTagModal">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header">
+      <h3>批量打标签</h3>
+      <button class="modal-close" onclick="closeModal('batchAddTagModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">已选 <strong id="batchAddCount">0</strong> 条话术，选择要添加的标签：</p>
+      <div class="batch-tag-list" id="batchAddTagList"></div>
+      <div class="form-hint" style="margin-top:8px;">点击标签选中/取消，仅展示当前所选话术未共有的标签</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('batchAddTagModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveBatchAddTag()">确认添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 批量移除标签弹窗 ============ -->
+<div class="modal-overlay" id="batchRemoveTagModal">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header">
+      <h3>批量移除标签</h3>
+      <button class="modal-close" onclick="closeModal('batchRemoveTagModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#666;margin-bottom:16px;">已选 <strong id="batchRemoveCount">0</strong> 条话术，选择要移除的标签：</p>
+      <div class="batch-tag-list" id="batchRemoveTagList"></div>
+      <div class="form-hint" style="margin-top:8px;">仅展示所选话术共有的标签，点击选中/取消</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('batchRemoveTagModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveBatchRemoveTag()" style="background:#ff4d4f;border-color:#ff4d4f;">确认移除</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const TAG_COLORS = [
+  { name: '蓝色', value: '#1890ff', cssClass: '' },
+  { name: '绿色', value: '#52c41a', cssClass: 'tag-green' },
+  { name: '橙色', value: '#fa8c16', cssClass: 'tag-orange' },
+  { name: '紫色', value: '#722ed1', cssClass: 'tag-purple' },
+  { name: '红色', value: '#f5222d', cssClass: 'tag-red' },
+  { name: '青色', value: '#13c2c2', cssClass: 'tag-cyan' },
+  { name: '粉色', value: '#eb2f96', cssClass: 'tag-pink' },
+];
+
+const allTags = [
+  { name: '高转化', color: '#52c41a', cssClass: 'tag-green' },
+  { name: '新人必用', color: '#1890ff', cssClass: '' },
+  { name: '618活动', color: '#fa8c16', cssClass: 'tag-orange' },
+  { name: '价格敏感', color: '#f5222d', cssClass: 'tag-red' },
+  { name: '学生群体', color: '#fa8c16', cssClass: 'tag-orange' },
+  { name: '逼单', color: '#722ed1', cssClass: 'tag-purple' },
+  { name: '异议处理', color: '#722ed1', cssClass: 'tag-purple' },
+  { name: '首次咨询', color: '#1890ff', cssClass: '' },
+];
+
+function getTagByName(name) { return allTags.find(t => t.name === name); }
+
+function renderTagHTML(tag) {
+  return '<span class="tag ' + tag.cssClass + '" style="' + (tag.cssClass ? '' : 'background:#f0f5ff;color:#1890ff;border-color:#91caff;') + '">' + tag.name + '</span>';
+}
+
+function renderTagWithClose(tag) {
+  return '<span class="tag ' + tag.cssClass + '" style="' + (tag.cssClass ? '' : 'background:#f0f5ff;color:#1890ff;border-color:#91caff;') + '">' + tag.name + ' <span class="tag-close" onclick="removeTagFromInput(this)">&times;</span></span>';
+}
+
+function createTagEl(tag, withClose) {
+  const el = document.createElement('span');
+  el.className = 'tag ' + tag.cssClass;
+  if (!tag.cssClass) { el.style.cssText = 'background:#f0f5ff;color:#1890ff;border-color:#91caff;'; }
+  el.innerHTML = tag.name + (withClose ? ' <span class="tag-close" onclick="removeTagFromInput(this)">&times;</span>' : '');
+  return el;
+}
+
+// 页面切换
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar .menu-item').forEach(m => m.classList.remove('active'));
+
+  if (page === 'scripts') {
+    document.getElementById('page-scripts').classList.add('active');
+    document.querySelectorAll('.sidebar .menu-item')[0].classList.add('active');
+  } else if (page === 'tags') {
+    document.getElementById('page-tags').classList.add('active');
+  }
+}
+
+// 分组选择
+function selectGroup(el) {
+  document.querySelectorAll('.group-item').forEach(g => g.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// 标签筛选下拉
+function toggleTagFilter() {
+  const dropdown = document.getElementById('tagFilterDropdown');
+  dropdown.classList.toggle('show');
+}
+
+document.addEventListener('click', function(e) {
+  const filter = document.getElementById('tagFilter');
+  if (!filter.contains(e.target)) {
+    document.getElementById('tagFilterDropdown').classList.remove('show');
+  }
+  // 关闭标签建议
+  document.querySelectorAll('.tag-suggestions').forEach(s => {
+    if (!s.parentElement.contains(e.target)) {
+      s.classList.remove('show');
+    }
+  });
+});
+
+function filterTagOptions(query) {
+  const options = document.querySelectorAll('#tagOptions .tag-option');
+  options.forEach(opt => {
+    const text = opt.textContent.trim();
+    opt.style.display = text.includes(query) ? 'flex' : 'none';
+  });
+}
+
+function updateTagFilter() {
+  const checked = document.querySelectorAll('#tagOptions input:checked');
+  const bar = document.getElementById('selectedTagsBar');
+  const list = document.getElementById('selectedTagsList');
+
+  if (checked.length > 0) {
+    bar.style.display = 'block';
+    list.innerHTML = '';
+    checked.forEach(cb => {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.innerHTML = cb.value + ' <span class="tag-close" onclick="removeFilterTag(\'' + cb.value + '\')">&times;</span>';
+      list.appendChild(tag);
+    });
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function removeFilterTag(name) {
+  const checkboxes = document.querySelectorAll('#tagOptions input');
+  checkboxes.forEach(cb => {
+    if (cb.value === name) cb.checked = false;
+  });
+  updateTagFilter();
+}
+
+function clearTagFilter() {
+  document.querySelectorAll('#tagOptions input').forEach(cb => cb.checked = false);
+  updateTagFilter();
+}
+
+// 弹窗
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function openNewScriptModal() { openModal('newScriptModal'); }
+function openEditScriptModal() { openModal('editScriptModal'); }
+
+// 标签管理
+function openNewTagModal() {
+  document.getElementById('newTagName').value = '';
+  document.getElementById('newTagError').style.display = 'none';
+  selectColorByValue('newTagColorPicker', '#1890ff');
+  openModal('newTagModal');
+}
+
+function openEditTagModal(name) {
+  document.getElementById('editTagName').value = name;
+  document.getElementById('editTagName').setAttribute('data-original', name);
+  document.getElementById('editTagError').style.display = 'none';
+  const tag = getTagByName(name);
+  const colorVal = tag ? tag.color : '#1890ff';
+  selectColorByValue('editTagColorPicker', colorVal);
+  openModal('editTagModal');
+}
+
+function selectColor(el, pickerId) {
+  document.querySelectorAll('#' + pickerId + ' .color-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectColorByValue(pickerId, colorVal) {
+  const options = document.querySelectorAll('#' + pickerId + ' .color-option');
+  options.forEach(o => {
+    o.classList.remove('selected');
+    if (o.getAttribute('data-color') === colorVal) o.classList.add('selected');
+  });
+}
+
+function openDeleteTagConfirm(name) {
+  document.getElementById('deleteTagName').textContent = name;
+  document.getElementById('deleteTagConfirm').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('deleteTagConfirm').classList.remove('show');
+}
+
+function validateNewTag() {
+  const name = document.getElementById('newTagName').value.trim();
+  const error = document.getElementById('newTagError');
+  if (name && allTags.some(t => t.name === name)) {
+    error.textContent = '该标签已存在';
+    error.style.display = 'block';
+    return false;
+  }
+  error.style.display = 'none';
+  return true;
+}
+
+function getSelectedColor(modalPrefix) {
+  const selected = document.querySelector('#' + modalPrefix + ' .color-option.selected');
+  if (selected) {
+    const colorVal = selected.getAttribute('data-color');
+    return TAG_COLORS.find(c => c.value === colorVal);
+  }
+  return TAG_COLORS[0];
+}
+
+function saveNewTag() {
+  const name = document.getElementById('newTagName').value.trim();
+  if (!name) {
+    document.getElementById('newTagError').textContent = '请输入标签名称';
+    document.getElementById('newTagError').style.display = 'block';
+    return;
+  }
+  if (!validateNewTag()) return;
+  const color = getSelectedColor('newTagColorPicker');
+  allTags.push({ name: name, color: color.value, cssClass: color.cssClass });
+  closeModal('newTagModal');
+  showToast('标签「' + name + '」创建成功');
+}
+
+function saveEditTag() {
+  const name = document.getElementById('editTagName').value.trim();
+  if (!name) {
+    document.getElementById('editTagError').textContent = '请输入标签名称';
+    document.getElementById('editTagError').style.display = 'block';
+    return;
+  }
+  const color = getSelectedColor('editTagColorPicker');
+  const tag = allTags.find(t => t.name === name || t.name === document.getElementById('editTagName').getAttribute('data-original'));
+  if (tag) {
+    tag.name = name;
+    tag.color = color.value;
+    tag.cssClass = color.cssClass;
+  }
+  closeModal('editTagModal');
+  showToast('标签修改成功');
+}
+
+function confirmDeleteTag() {
+  closeConfirm();
+  showToast('标签已删除');
+}
+
+function saveNewScript() {
+  closeModal('newScriptModal');
+  showToast('话术创建成功');
+}
+
+function saveEditScript() {
+  closeModal('editScriptModal');
+  showToast('话术修改成功');
+}
+
+// 标签输入器 - 建议列表（仅从已有标签中选择，不支持创建）
+function showTagSuggestions(input, suggestionsId) {
+  const suggestions = document.getElementById(suggestionsId);
+  const wrapper = input.closest('.tag-input-wrapper');
+  const existingTags = Array.from(wrapper.querySelectorAll('.tag')).map(t => t.textContent.replace('×', '').trim());
+  const query = input.value.trim().toLowerCase();
+
+  const filtered = allTags.filter(t =>
+    !existingTags.includes(t.name) &&
+    (query === '' || t.name.toLowerCase().includes(query))
+  );
+
+  if (filtered.length === 0) {
+    suggestions.classList.remove('show');
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(tag => {
+    html += '<div class="tag-suggestion-item" onmousedown="selectTagSuggestion(\'' + tag.name + '\', \'' + wrapper.id + '\', \'' + input.id + '\')">' + tag.name + '</div>';
+  });
+
+  suggestions.innerHTML = html;
+  suggestions.classList.add('show');
+}
+
+function selectTagSuggestion(tagName, wrapperId, inputId) {
+  const wrapper = document.getElementById(wrapperId);
+  const input = document.getElementById(inputId);
+  const tag = getTagByName(tagName);
+  if (!tag) return;
+  const el = createTagEl(tag, true);
+  wrapper.insertBefore(el, input);
+  input.value = '';
+  wrapper.querySelector('.tag-suggestions').classList.remove('show');
+}
+
+function handleTagKeydown(e, input, wrapperId) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const name = input.value.trim();
+    if (!name) return;
+
+    const wrapper = document.getElementById(wrapperId);
+    const existingTags = Array.from(wrapper.querySelectorAll('.tag')).map(t => t.textContent.replace('×', '').trim());
+
+    if (existingTags.includes(name)) {
+      showToast('该标签已添加', true);
+      return;
+    }
+
+    const tag = getTagByName(name);
+    if (!tag) {
+      showToast('请从已有标签中选择，如需新建请前往标签管理页', true);
+      return;
+    }
+
+    selectTagSuggestion(name, wrapperId, input.id);
+  } else if (e.key === 'Backspace' && input.value === '') {
+    const wrapper = document.getElementById(wrapperId);
+    const tags = wrapper.querySelectorAll('.tag');
+    if (tags.length > 0) {
+      tags[tags.length - 1].remove();
+    }
+  }
+}
+
+function removeTagFromInput(closeBtn) {
+  closeBtn.parentElement.remove();
+}
+
+
+// ========== 批量操作 ==========
+const scriptTagMap = {
+  cb1: ['新人必用', '高转化'],
+  cb2: ['618活动', '高转化', '逼单'],
+  cb3: ['价格敏感', '异议处理'],
+  cb4: ['首次咨询'],
+  cb5: ['学生群体', '新人必用'],
+  cb6: ['逼单', '高转化'],
+};
+
+let batchAddSelected = [];
+let batchRemoveSelected = [];
+
+function toggleSelectAll(el) {
+  document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
+    cb.checked = el.checked;
+  });
+  updateBatchBar();
+}
+
+function updateBatchBar() {
+  const checked = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+  const bar = document.getElementById('batchBar');
+  const count = document.getElementById('batchCount');
+  const selectAll = document.getElementById('selectAllCb');
+  const total = document.querySelectorAll('tbody input[type="checkbox"]');
+  if (checked.length > 0) {
+    bar.classList.add('show');
+    count.textContent = checked.length;
+    selectAll.checked = checked.length === total.length;
+  } else {
+    bar.classList.remove('show');
+    selectAll.checked = false;
+  }
+}
+
+function clearBatchSelect() {
+  document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.getElementById('selectAllCb').checked = false;
+  updateBatchBar();
+}
+
+function getSelectedScriptTagSets() {
+  const sets = [];
+  document.querySelectorAll('tbody input[type="checkbox"]:checked').forEach(cb => {
+    const tags = scriptTagMap[cb.id] || [];
+    sets.push(new Set(tags));
+  });
+  return sets;
+}
+
+function openBatchAddTag() {
+  const sets = getSelectedScriptTagSets();
+  if (sets.length === 0) { showToast('请先选择话术', true); return; }
+  document.getElementById('batchAddCount').textContent = sets.length;
+  // Show tags that are NOT common to ALL selected (i.e., tags that at least one is missing)
+  const union = new Set();
+  sets.forEach(s => s.forEach(t => union.add(t)));
+  const intersection = new Set([...union].filter(t => sets.every(s => s.has(t))));
+  const available = [...union].filter(t => !intersection.has(t));
+  batchAddSelected = [];
+  renderBatchTagList('batchAddTagList', available, batchAddSelected);
+  openModal('batchAddTagModal');
+}
+
+function openBatchRemoveTag() {
+  const sets = getSelectedScriptTagSets();
+  if (sets.length === 0) { showToast('请先选择话术', true); return; }
+  document.getElementById('batchRemoveCount').textContent = sets.length;
+  // Show only tags that ALL selected scripts share
+  const union = new Set();
+  sets.forEach(s => s.forEach(t => union.add(t)));
+  const common = [...union].filter(t => sets.every(s => s.has(t)));
+  batchRemoveSelected = [];
+  renderBatchTagList('batchRemoveTagList', common, batchRemoveSelected);
+  openModal('batchRemoveTagModal');
+}
+
+function renderBatchTagList(listId, tags, selectedArr) {
+  const container = document.getElementById(listId);
+  if (tags.length === 0) {
+    container.innerHTML = '<div style="font-size:13px;color:#bbb;text-align:center;padding:20px;">' + (listId === 'batchRemoveTagList' ? '所选话术没有共有标签' : '所选话术已包含所有标签') + '</div>';
+    return;
+  }
+  container.innerHTML = tags.map(t => {
+    const tag = getTagByName(t);
+    const sel = selectedArr.includes(t);
+    const bg = tag ? tag.color : '#1890ff';
+    return '<div class="batch-tag-item' + (sel ? ' selected' : '') + '" onclick="toggleBatchTag(this, \'' + t + '\', \'' + listId + '\')"><span class="dot" style="background:' + bg + '"></span>' + t + '</div>';
+  }).join('');
+}
+
+function toggleBatchTag(el, tagName, listId) {
+  const arr = listId === 'batchAddTagList' ? batchAddSelected : batchRemoveSelected;
+  const idx = arr.indexOf(tagName);
+  if (idx > -1) {
+    arr.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    arr.push(tagName);
+    el.classList.add('selected');
+  }
+}
+
+function saveBatchAddTag() {
+  if (batchAddSelected.length === 0) { showToast('请至少选择一个标签', true); return; }
+  closeModal('batchAddTagModal');
+  showToast('已为 ' + document.getElementById('batchCount').textContent + ' 条话术添加标签');
+  clearBatchSelect();
+}
+
+function saveBatchRemoveTag() {
+  if (batchRemoveSelected.length === 0) { showToast('请至少选择一个标签', true); return; }
+  closeModal('batchRemoveTagModal');
+  showToast('已从 ' + document.getElementById('batchCount').textContent + ' 条话术中移除标签');
+  clearBatchSelect();
+}
+
+
+// Toast
+function showToast(msg, isError) {
+  const toast = document.getElementById('toast');
+  toast.textContent = (isError ? '⚠️ ' : '✅ ') + msg;
+  toast.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => { toast.className = 'toast'; }, 2000);
+}
+</script>
+
+</body>
+</html>
