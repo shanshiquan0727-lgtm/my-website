@@ -3,116 +3,665 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>产品原型目录</title>
+    <title>产品原型管理平台</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-            padding: 40px 20px; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        * { box-sizing: border-box; }
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --line: #d9e0ea;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #0f766e;
+            --danger: #b91c1c;
+            --warning: #b45309;
+            --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+        }
+        body {
+            margin: 0;
             min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            background: white; 
-            padding: 40px; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+        button, input {
+            font: inherit;
         }
-        h1 { 
-            text-align: center; 
-            color: #333; 
-            margin-bottom: 10px;
-            font-size: 28px;
+        .shell {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 28px 20px 40px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+            line-height: 1.2;
         }
         .subtitle {
-            text-align: center;
-            color: #999;
-            margin-bottom: 30px;
+            margin: 0;
+            color: var(--muted);
             font-size: 14px;
         }
-        .nav-list { 
-            list-style: none; 
-            padding: 0; 
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
-        .nav-item { 
-            margin-bottom: 15px; 
-            border: 1px solid #e0e0e0; 
-            border-radius: 12px; 
-            transition: all 0.3s;
-            overflow: hidden;
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            color: #ffffff;
+            background: var(--primary);
+            transition: background 0.2s, transform 0.2s;
+            white-space: nowrap;
         }
-        .nav-item:hover { 
-            border-color: #667eea; 
-            transform: translateX(5px); 
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15); 
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
         }
-        .nav-link { 
-            display: block; 
-            padding: 24px; 
-            text-decoration: none; 
-            color: #333; 
-            font-size: 16px;
-            font-weight: 500;
+        .btn.secondary {
+            background: #eef2ff;
+            color: #1e40af;
         }
-        .nav-link span { 
-            color: #999; 
-            font-size: 14px; 
-            display: block; 
-            margin-top: 6px;
-            font-weight: normal;
+        .btn.secondary:hover {
+            background: #dbeafe;
         }
-        .arrow {
-            float: right;
-            color: #ccc;
-            margin-top: -40px;
-            margin-right: 20px;
-            font-size: 20px;
-            transition: transform 0.3s;
+        .btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
         }
-        .nav-item:hover .arrow {
-            transform: translateX(5px);
-            color: #667eea;
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 18px;
+            align-items: start;
         }
-        .footer {
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+        .panel-title {
+            margin: 0;
+            font-size: 18px;
+        }
+        .count {
+            color: var(--muted);
+            font-size: 13px;
+        }
+        .dropzone {
+            margin: 20px;
+            padding: 28px;
+            border: 2px dashed #adc3e8;
+            border-radius: 8px;
+            background: #f8fbff;
             text-align: center;
-            margin-top: 30px;
-            color: #ccc;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .dropzone.dragover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+        .dropzone strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        .dropzone p {
+            margin: 0 0 16px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .file-input {
+            display: none;
+        }
+        .status {
+            margin: 0 20px 20px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            color: #334155;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .status.success {
+            background: #ecfdf5;
+            color: var(--success);
+        }
+        .status.error {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+        .status.warning {
+            background: #fffbeb;
+            color: var(--warning);
+        }
+        .prototype-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 14px;
+            padding: 0 20px 20px;
+        }
+        .prototype-card {
+            display: block;
+            min-height: 120px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text);
+            background: #ffffff;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+        .prototype-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.12);
+            transform: translateY(-2px);
+        }
+        .prototype-card h3 {
+            margin: 0 0 12px;
+            font-size: 17px;
+            line-height: 1.4;
+        }
+        .prototype-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+        .empty {
+            margin: 0 20px 20px;
+            padding: 28px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--muted);
+            text-align: center;
+            background: #fbfdff;
+        }
+        .config {
+            padding: 18px;
+        }
+        .config h2 {
+            margin: 0 0 14px;
+            font-size: 18px;
+        }
+        .field {
+            display: grid;
+            gap: 7px;
+            margin-bottom: 14px;
+        }
+        .field label {
+            color: #374151;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .field input {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 11px;
+            outline: none;
+            background: #ffffff;
+        }
+        .field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+        .hint {
+            margin: 10px 0 0;
+            color: var(--muted);
             font-size: 12px;
+            line-height: 1.5;
+        }
+        .config-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .config-actions .btn {
+            width: 100%;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        .toast {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            max-width: min(420px, calc(100vw - 36px));
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #111827;
+            color: #ffffff;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0;
+            transform: translateY(12px);
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (max-width: 820px) {
+            .topbar {
+                display: block;
+            }
+            .actions {
+                justify-content: flex-start;
+                margin-top: 14px;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .shell {
+                padding: 20px 14px 32px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📱 产品原型展示</h1>
-        <p class="subtitle">点击下面卡片查看详细原型</p>
-        
-        <ul class="nav-list">
-            <!-- 核心页面：话术库 -->
-            <li class="nav-item">
-                <a href="话术库标签原型.html" class="nav-link">
-                    💬 话术库标签原型
-                    <span>智能话术分类、标签管理、快速检索功能</span>
-                </a>
-                <div class="arrow">→</div>
-            </li>
-            
-            <!-- 如果你有其他页面，取消注释并修改 -->
-            <!--
-            <li class="nav-item">
-                <a href="其他页面.html" class="nav-link">
-                    📊 其他功能页面
-                    <span>功能描述...</span>
-                </a>
-                <div class="arrow">→</div>
-            </li>
-            -->
-        </ul>
-        
-        <div class="footer">
-            原型版本 v1.0 | 用于产品演示
+    <main class="shell">
+        <div class="topbar">
+            <div>
+                <h1>产品原型管理平台</h1>
+                <p class="subtitle">上传 HTML 原型后，目录会自动从 GitHub 仓库生成。</p>
+            </div>
+            <div class="actions">
+                <button class="btn secondary" id="reloadBtn" type="button">刷新列表</button>
+                <button class="btn" id="openRepoBtn" type="button">打开仓库</button>
+            </div>
         </div>
-    </div>
+
+        <section class="grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">原型列表</h2>
+                    <span class="count" id="prototypeCount">正在加载</span>
+                </div>
+
+                <div class="dropzone" id="dropzone">
+                    <strong>拖拽 HTML 文件到这里</strong>
+                    <p>也可以选择本地文件，上传后会自动覆盖同名文件并刷新列表。</p>
+                    <button class="btn" id="chooseFileBtn" type="button">选择 HTML 文件</button>
+                    <input class="file-input" id="fileInput" type="file" accept=".html,text/html">
+                </div>
+
+                <div class="status" id="statusBox">请先确认右侧 GitHub 配置，然后刷新列表或上传文件。</div>
+                <div class="prototype-list" id="prototypeList"></div>
+                <div class="empty" id="emptyState" hidden>当前目录还没有可展示的 HTML 原型。</div>
+            </div>
+
+            <aside class="panel">
+                <form class="config" id="configForm">
+                    <h2>GitHub 配置</h2>
+                    <div class="field">
+                        <label for="tokenInput">GitHub Token</label>
+                        <input id="tokenInput" type="password" autocomplete="off" placeholder="粘贴有仓库读写权限的 Token">
+                    </div>
+                    <div class="field">
+                        <label for="ownerInput">Owner</label>
+                        <input id="ownerInput" type="text" autocomplete="off" placeholder="shanshiquan0727-lgtm">
+                    </div>
+                    <div class="field">
+                        <label for="repoInput">Repo</label>
+                        <input id="repoInput" type="text" autocomplete="off" placeholder="my-website">
+                    </div>
+                    <div class="field">
+                        <label for="prefixInput">文件路径前缀</label>
+                        <input id="prefixInput" type="text" autocomplete="off" placeholder="留空表示仓库根目录">
+                    </div>
+                    <div class="config-actions">
+                        <button class="btn" type="submit">保存配置</button>
+                        <button class="btn secondary" id="testBtn" type="button">测试连接</button>
+                    </div>
+                    <p class="hint">Token 保存在当前浏览器 LocalStorage，仅用于调用 GitHub API。建议使用只授权该仓库 contents 读写权限的细粒度 Token。</p>
+                </form>
+            </aside>
+        </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const STORAGE_KEY = "prototypeManagerConfig";
+        const DEFAULT_CONFIG = {
+            token: "",
+            owner: "shanshiquan0727-lgtm",
+            repo: "my-website",
+            prefix: ""
+        };
+
+        const els = {
+            configForm: document.getElementById("configForm"),
+            tokenInput: document.getElementById("tokenInput"),
+            ownerInput: document.getElementById("ownerInput"),
+            repoInput: document.getElementById("repoInput"),
+            prefixInput: document.getElementById("prefixInput"),
+            testBtn: document.getElementById("testBtn"),
+            reloadBtn: document.getElementById("reloadBtn"),
+            openRepoBtn: document.getElementById("openRepoBtn"),
+            chooseFileBtn: document.getElementById("chooseFileBtn"),
+            fileInput: document.getElementById("fileInput"),
+            dropzone: document.getElementById("dropzone"),
+            statusBox: document.getElementById("statusBox"),
+            prototypeList: document.getElementById("prototypeList"),
+            prototypeCount: document.getElementById("prototypeCount"),
+            emptyState: document.getElementById("emptyState"),
+            toast: document.getElementById("toast")
+        };
+
+        let toastTimer = null;
+
+        function loadConfig() {
+            try {
+                return { ...DEFAULT_CONFIG, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
+            } catch (error) {
+                return { ...DEFAULT_CONFIG };
+            }
+        }
+
+        function getConfigFromForm() {
+            return {
+                token: els.tokenInput.value.trim(),
+                owner: els.ownerInput.value.trim(),
+                repo: els.repoInput.value.trim(),
+                prefix: normalizePrefix(els.prefixInput.value)
+            };
+        }
+
+        function renderConfig(config) {
+            els.tokenInput.value = config.token || "";
+            els.ownerInput.value = config.owner || "";
+            els.repoInput.value = config.repo || "";
+            els.prefixInput.value = config.prefix || "";
+        }
+
+        function saveConfig(config) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+        }
+
+        function normalizePrefix(prefix) {
+            return prefix.trim().replace(/^\/+|\/+$/g, "");
+        }
+
+        function requireConfig(config) {
+            if (!config.owner || !config.repo) {
+                throw new Error("请先填写 Owner 和 Repo。");
+            }
+            if (!config.token) {
+                throw new Error("请先填写 GitHub Token。");
+            }
+        }
+
+        function contentsUrl(config, path = "") {
+            const cleanPath = path.replace(/^\/+/, "");
+            const encodedPath = cleanPath
+                .split("/")
+                .filter(Boolean)
+                .map(encodeURIComponent)
+                .join("/");
+            const suffix = encodedPath ? `/${encodedPath}` : "";
+            return `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}/contents${suffix}`;
+        }
+
+        function githubHeaders(config) {
+            return {
+                "Accept": "application/vnd.github+json",
+                "Authorization": `Bearer ${config.token}`,
+                "X-GitHub-Api-Version": "2022-11-28"
+            };
+        }
+
+        async function githubRequest(config, url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    ...githubHeaders(config),
+                    ...(options.headers || {})
+                }
+            });
+
+            if (!response.ok) {
+                let message = `GitHub API 请求失败：${response.status}`;
+                try {
+                    const data = await response.json();
+                    if (data.message) message = `${message} - ${data.message}`;
+                } catch (error) {}
+                const apiError = new Error(message);
+                apiError.status = response.status;
+                throw apiError;
+            }
+
+            return response.json();
+        }
+
+        function setStatus(message, type = "") {
+            els.statusBox.textContent = message;
+            els.statusBox.className = `status ${type}`.trim();
+        }
+
+        function showToast(message) {
+            clearTimeout(toastTimer);
+            els.toast.textContent = message;
+            els.toast.classList.add("show");
+            toastTimer = setTimeout(() => els.toast.classList.remove("show"), 3500);
+        }
+
+        function fileTitle(filename) {
+            return filename
+                .replace(/\.html$/i, "")
+                .replace(/[-_]+/g, " ")
+                .trim();
+        }
+
+        function prototypeHref(config, filename) {
+            const path = [config.prefix, filename].filter(Boolean).join("/");
+            return encodeURI(path);
+        }
+
+        function renderPrototypes(files, config) {
+            els.prototypeList.innerHTML = "";
+            els.emptyState.hidden = files.length > 0;
+            els.prototypeCount.textContent = `${files.length} 个原型`;
+
+            files.forEach((file) => {
+                const link = document.createElement("a");
+                link.className = "prototype-card";
+                link.href = prototypeHref(config, file.name);
+                link.target = "_blank";
+                link.rel = "noopener";
+
+                const title = document.createElement("h3");
+                title.textContent = fileTitle(file.name);
+
+                const meta = document.createElement("span");
+                meta.textContent = file.path || file.name;
+
+                link.append(title, meta);
+                els.prototypeList.appendChild(link);
+            });
+        }
+
+        async function loadPrototypeList() {
+            const config = getConfigFromForm();
+            saveConfig(config);
+
+            try {
+                requireConfig(config);
+                els.prototypeCount.textContent = "加载中";
+                setStatus("正在从 GitHub 读取原型列表...");
+
+                const items = await githubRequest(config, contentsUrl(config, config.prefix));
+                const files = (Array.isArray(items) ? items : [])
+                    .filter((item) => item.type === "file")
+                    .filter((item) => /\.html$/i.test(item.name))
+                    .filter((item) => item.name.toLowerCase() !== "index.html")
+                    .sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+
+                renderPrototypes(files, config);
+                setStatus("原型列表已更新。", "success");
+            } catch (error) {
+                els.prototypeCount.textContent = "加载失败";
+                renderPrototypes([], config);
+                setStatus(error.message, "error");
+            }
+        }
+
+        async function testConnection() {
+            const config = getConfigFromForm();
+            saveConfig(config);
+
+            try {
+                requireConfig(config);
+                els.testBtn.disabled = true;
+                els.testBtn.textContent = "测试中";
+
+                await githubRequest(config, `https://api.github.com/repos/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`);
+                setStatus("连接成功，Token 可以访问该仓库。", "success");
+                showToast("GitHub 连接成功");
+            } catch (error) {
+                setStatus(error.message, "error");
+            } finally {
+                els.testBtn.disabled = false;
+                els.testBtn.textContent = "测试连接";
+            }
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = String(reader.result || "");
+                    resolve(result.split(",")[1] || "");
+                };
+                reader.onerror = () => reject(new Error("文件读取失败，请重新选择。"));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function getExistingSha(config, path) {
+            try {
+                const data = await githubRequest(config, contentsUrl(config, path));
+                return data.sha || "";
+            } catch (error) {
+                if (error.status === 404) return "";
+                throw error;
+            }
+        }
+
+        async function uploadFile(file) {
+            const config = getConfigFromForm();
+            saveConfig(config);
+
+            try {
+                requireConfig(config);
+                if (!/\.html$/i.test(file.name)) {
+                    throw new Error("只支持上传 .html 文件。");
+                }
+                if (file.name.toLowerCase() === "index.html") {
+                    throw new Error("不能通过页面覆盖 index.html 管理平台本身。");
+                }
+
+                const path = [config.prefix, file.name].filter(Boolean).join("/");
+                setStatus(`正在读取 ${file.name}...`);
+                const content = await readFileAsBase64(file);
+
+                setStatus("正在检查 GitHub 上是否已有同名文件...");
+                const sha = await getExistingSha(config, path);
+
+                setStatus(sha ? "发现同名文件，正在覆盖上传..." : "正在上传新原型...");
+                const body = {
+                    message: `${sha ? "Update" : "Add"} prototype ${file.name}`,
+                    content
+                };
+                if (sha) body.sha = sha;
+
+                await githubRequest(config, contentsUrl(config, path), {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+
+                setStatus(`${file.name} 上传成功，正在刷新列表...`, "success");
+                showToast("上传完成");
+                await loadPrototypeList();
+            } catch (error) {
+                setStatus(error.message, "error");
+            }
+        }
+
+        els.configForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const config = getConfigFromForm();
+            saveConfig(config);
+            setStatus("配置已保存，正在刷新原型列表...");
+            loadPrototypeList();
+        });
+
+        els.testBtn.addEventListener("click", testConnection);
+        els.reloadBtn.addEventListener("click", loadPrototypeList);
+        els.openRepoBtn.addEventListener("click", () => {
+            const config = getConfigFromForm();
+            if (!config.owner || !config.repo) {
+                setStatus("请先填写 Owner 和 Repo。", "warning");
+                return;
+            }
+            window.open(`https://github.com/${encodeURIComponent(config.owner)}/${encodeURIComponent(config.repo)}`, "_blank", "noopener");
+        });
+
+        els.chooseFileBtn.addEventListener("click", () => els.fileInput.click());
+        els.fileInput.addEventListener("change", () => {
+            const [file] = els.fileInput.files;
+            if (file) uploadFile(file);
+            els.fileInput.value = "";
+        });
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+            els.dropzone.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                els.dropzone.classList.add("dragover");
+            });
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+            els.dropzone.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                els.dropzone.classList.remove("dragover");
+            });
+        });
+
+        els.dropzone.addEventListener("drop", (event) => {
+            const [file] = event.dataTransfer.files;
+            if (file) uploadFile(file);
+        });
+
+        renderConfig(loadConfig());
+        loadPrototypeList();
+    </script>
 </body>
 </html>
