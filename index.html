@@ -118,21 +118,21 @@
         }
         .prototype-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 14px;
+            gap: 10px;
             padding: 20px;
         }
         .prototype-card {
-            display: flex;
-            min-height: 126px;
-            padding: 18px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(180px, 280px) auto;
+            gap: 14px;
+            align-items: center;
+            min-height: 58px;
+            padding: 14px 16px;
             border: 1px solid var(--line);
             border-radius: 8px;
             text-decoration: none;
             color: var(--text);
             background: #ffffff;
-            flex-direction: column;
-            justify-content: space-between;
             transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
         }
         .prototype-card:hover {
@@ -142,16 +142,20 @@
         }
         .prototype-card h3 {
             margin: 0;
-            font-size: 17px;
+            font-size: 16px;
             line-height: 1.4;
             overflow-wrap: anywhere;
         }
         .prototype-card span {
             display: block;
-            margin-top: 14px;
             color: var(--muted);
             font-size: 13px;
             overflow-wrap: anywhere;
+        }
+        .prototype-card .arrow {
+            color: var(--primary);
+            font-size: 18px;
+            line-height: 1;
         }
         .empty {
             margin: 20px;
@@ -177,6 +181,17 @@
             h1 {
                 font-size: 26px;
             }
+            .prototype-card {
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+            .prototype-card span {
+                grid-column: 1 / -1;
+                grid-row: 2;
+            }
+            .prototype-card .arrow {
+                grid-column: 2;
+                grid-row: 1;
+            }
         }
     </style>
 </head>
@@ -189,7 +204,6 @@
             </div>
             <div class="actions">
                 <button class="btn secondary" id="reloadBtn" type="button">刷新列表</button>
-                <button class="btn" id="openRepoBtn" type="button">打开仓库</button>
             </div>
         </div>
 
@@ -213,16 +227,11 @@
 
         const els = {
             reloadBtn: document.getElementById("reloadBtn"),
-            openRepoBtn: document.getElementById("openRepoBtn"),
             statusBox: document.getElementById("statusBox"),
             prototypeList: document.getElementById("prototypeList"),
             prototypeCount: document.getElementById("prototypeCount"),
             emptyState: document.getElementById("emptyState")
         };
-
-        function repoUrl() {
-            return `https://github.com/${REPO.owner}/${REPO.name}`;
-        }
 
         function contentsUrl() {
             const prefix = REPO.pathPrefix.replace(/^\/+|\/+$/g, "");
@@ -270,7 +279,11 @@
                 const meta = document.createElement("span");
                 meta.textContent = file.name;
 
-                link.append(title, meta);
+                const arrow = document.createElement("span");
+                arrow.className = "arrow";
+                arrow.textContent = "->";
+
+                link.append(title, meta, arrow);
                 els.prototypeList.appendChild(link);
             });
         }
@@ -301,16 +314,13 @@
             } catch (error) {
                 renderPrototypes([]);
                 els.prototypeCount.textContent = "加载失败";
-                setStatus(`${error.message}。可以稍后刷新，或打开仓库查看文件。`, "error");
+                setStatus(`${error.message}。可以稍后刷新。`, "error");
             } finally {
                 els.reloadBtn.disabled = false;
             }
         }
 
         els.reloadBtn.addEventListener("click", loadPrototypeList);
-        els.openRepoBtn.addEventListener("click", () => {
-            window.open(repoUrl(), "_blank", "noopener");
-        });
 
         loadPrototypeList();
     </script>
