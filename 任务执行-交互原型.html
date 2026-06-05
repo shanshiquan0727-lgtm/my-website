@@ -34,14 +34,11 @@ body {
 .filter-select { padding: 6px 28px 6px 10px; font-size: 13px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #1a1a2e; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; outline: none; }
 .filter-select:focus { border-color: #4a7cff; }
 
-.multi-select { position: relative; }
-.multi-select summary { list-style: none; min-width: 120px; padding: 6px 28px 6px 10px; font-size: 13px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #1a1a2e; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
-.multi-select summary::-webkit-details-marker { display: none; }
-.multi-select[open] summary { border-color: #4a7cff; }
-.multi-menu { position: absolute; top: calc(100% + 6px); left: 0; width: 220px; max-height: 260px; overflow: auto; padding: 8px; background: #fff; border: 1px solid #e5e6eb; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 20; }
-.multi-option { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 6px; font-size: 13px; color: #333; cursor: pointer; }
-.multi-option:hover { background: #f5f6f8; }
-.multi-option input { accent-color: #4a7cff; }
+.task-type-row { background: #fff; padding: 14px 20px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.task-type-tabs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.task-type-tab { padding: 7px 14px; border: 1px solid #e2e6f0; border-radius: 999px; background: #fff; color: #555; font-size: 13px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+.task-type-tab:hover { background: #f5f7ff; border-color: #b7c8ff; color: #315eea; }
+.task-type-tab.active { background: #4a7cff; border-color: #4a7cff; color: #fff; font-weight: 500; }
 
 .time-btns { display: flex; gap: 0; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
 .time-btn { padding: 6px 14px; font-size: 13px; border: none; background: #fff; color: #555; cursor: pointer; border-right: 1px solid #eee; transition: background 0.15s; }
@@ -59,16 +56,6 @@ body {
 .breadcrumb a { color: #4a7cff; cursor: pointer; text-decoration: none; }
 .breadcrumb a:hover { text-decoration: underline; }
 .breadcrumb .sep { color: #ccc; }
-
-/* Stats Cards */
-.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-.stat-card { background: #fff; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.stat-card .label { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #888; margin-bottom: 4px; }
-.help-tip { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid #c9d3e6; color: #6b7a99; font-size: 11px; line-height: 1; cursor: help; background: #f7f9fc; }
-.stat-card .value { font-size: 24px; font-weight: 600; }
-.stat-card .sub { font-size: 12px; color: #aaa; margin-top: 2px; }
-.stat-card .sub.good { color: #389e0d; }
-.stat-card .sub.bad { color: #e6453a; }
 
 /* Table */
 .table-container { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 16px; }
@@ -126,15 +113,14 @@ th:first-child, td:first-child { width: 150px; min-width: 150px; white-space: no
 .lb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .lb-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 20px; }
 .lb-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
-.lb-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.lb-card-header { margin-bottom: 12px; }
 .lb-card-header h3 { margin-bottom: 4px; }
 .lb-meta { font-size: 11px; color: #aaa; }
-.rank-level-tabs { display: flex; border: 1px solid #e5e6eb; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
-.rank-level-btn { padding: 5px 9px; border: none; border-right: 1px solid #e5e6eb; background: #fff; color: #666; font-size: 12px; cursor: pointer; }
-.rank-level-btn:last-child { border-right: none; }
-.rank-level-btn:hover { background: #f5f6f8; }
-.rank-level-btn.active { background: #4a7cff; color: #fff; }
 .lb-list { list-style: none; }
+.lb-list.scrollable { max-height: 520px; overflow-y: auto; padding-right: 4px; }
+.lb-list.scrollable::-webkit-scrollbar { width: 6px; }
+.lb-list.scrollable::-webkit-scrollbar-thumb { background: #d9deea; border-radius: 3px; }
+.lb-list.scrollable::-webkit-scrollbar-track { background: transparent; }
 .lb-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f5f6f8; }
 .lb-item:last-child { border-bottom: none; }
 .lb-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; background: #f0f1f4; color: #888; flex-shrink: 0; }
@@ -154,12 +140,11 @@ th:first-child, td:first-child { width: 150px; min-width: 150px; white-space: no
 .empty { text-align: center; padding: 40px; color: #aaa; font-size: 13px; }
 
 @media (max-width: 768px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
   .lb-grid { grid-template-columns: 1fr; }
-  .lb-card-header { flex-direction: column; }
   .filter-bar { flex-direction: column; align-items: flex-start; }
   .filter-group { flex-direction: column; align-items: flex-start; }
-  .multi-menu { position: static; width: min(280px, calc(100vw - 80px)); margin-top: 6px; box-shadow: none; }
+  .task-type-tabs { gap: 6px; }
+  .task-type-tab { padding: 6px 10px; font-size: 12px; }
   .spacer { display: none; }
   th, td { padding: 10px 12px; font-size: 12px; }
 }
@@ -178,18 +163,14 @@ th:first-child, td:first-child { width: 150px; min-width: 150px; white-space: no
   </div>
 
   <div id="deptView">
+  <div class="task-type-row" aria-label="任务类型">
+    <div class="task-type-tabs" id="taskTypeTabs" role="tablist" aria-label="任务类型筛选"></div>
+  </div>
+
   <div class="filter-bar">
     <div class="filter-group">
       <span class="filter-label">部门</span>
       <select class="filter-select" id="deptFilter"></select>
-    </div>
-
-    <div class="filter-group">
-      <span class="filter-label">任务类型</span>
-      <details class="multi-select" id="taskMulti">
-        <summary id="taskSummary">3 个任务类型</summary>
-        <div class="multi-menu" id="taskOptions"></div>
-      </details>
     </div>
 
     <div class="filter-group">
@@ -209,8 +190,6 @@ th:first-child, td:first-child { width: 150px; min-width: 150px; white-space: no
 
     <div class="spacer"></div>
   </div>
-
-  <div class="stats-row" id="statsRow"></div>
 
   <div class="lb-grid" id="lbGrid"></div>
 
@@ -408,8 +387,12 @@ getAllLeafNodes(deptTree).forEach(leaf => {
 
 const taskTypeNames = {
   custSop:'客户SOP',
+  groupSop:'群SOP',
   moments:'朋友圈任务',
-  custBroadcast:'客户群发'
+  custBroadcast:'客户群发',
+  groupBroadcast:'群聊群发',
+  warnCustomer:'预警计划客户',
+  warnGroup:'预警计划群'
 };
 
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -420,8 +403,12 @@ function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + m
 function genEmpData(taskTypeKey, empName) {
   const empConfigs = {
     custSop: { baseRate: 0.70, varRange: 0.28, avgTasks: 12,  avgReach: 75,   avgTime: 18.0 },
+    groupSop: { baseRate: 0.63, varRange: 0.30, avgTasks: 14, avgReach: 140, avgTime: 12.0 },
     moments: { baseRate: 0.55, varRange: 0.34, avgTasks: 18,  avgReach: 260,  avgTime: 6.5 },
-    custBroadcast: { baseRate: 0.68, varRange: 0.28, avgTasks: 22, avgReach: 600, avgTime: 2.8 }
+    custBroadcast: { baseRate: 0.68, varRange: 0.28, avgTasks: 22, avgReach: 600, avgTime: 2.8 },
+    groupBroadcast: { baseRate: 0.60, varRange: 0.32, avgTasks: 20, avgReach: 520, avgTime: 3.2 },
+    warnCustomer: { baseRate: 0.58, varRange: 0.26, avgTasks: 16, avgReach: 90, avgTime: 5.0 },
+    warnGroup: { baseRate: 0.56, varRange: 0.26, avgTasks: 15, avgReach: 120, avgTime: 4.5 }
   };
   const hash = empName.charCodeAt(0) + empName.charCodeAt(empName.length - 1);
   const c = empConfigs[taskTypeKey];
@@ -488,7 +475,7 @@ function generateTreeData(taskTypeKeys, nodes, path = '') {
 }
 
 function generateOverdueTasks(empName) {
-  const types = ['客户SOP', '朋友圈任务', '客户群发'];
+  const types = Object.values(taskTypeNames);
   const clients = ['北京科技有限公司', '上海创新集团', '深圳数据服务', '杭州电商平台', '广州制造有限公司', '成都网络科技', '武汉软件公司'];
   const count = rand(2, 5);
   const tasks = [];
@@ -507,11 +494,10 @@ function generateOverdueTasks(empName) {
 
 // ── State ──────────────────────────────────────────────
 
-let selectedTaskTypes = ['custSop', 'moments', 'custBroadcast'];
+let selectedTaskTypes = ['custSop'];
 let currentDeptPath = 'all';
 let currentScopeName = '全部部门';
 let currentTimeRange = 'month';
-let currentRankScope = 'direct';
 let currentView = 'dept';
 let treeData = [];
 // Navigation stack for overview: array of {node, parentData}
@@ -558,46 +544,22 @@ function getCompletionRate(row) {
   return success > 0 ? getCompletedCount(row) / success : 0;
 }
 
-function getCompareNodes() {
-  if (navStack.length === 0) return treeData;
-  const last = navStack[navStack.length - 1];
-  return last.node.children || [];
-}
-
-function getLeafDeptNodes(nodes) {
+function getFlatDeptNodes(nodes) {
   const result = [];
   nodes.forEach(node => {
     if (node.isDirectEmployeeGroup) return;
-    if (node.children && node.children.length > 0) {
-      result.push(...getLeafDeptNodes(node.children));
-    } else if (node.employees) {
-      result.push(node);
-    }
+    result.push(node);
+    if (node.children && node.children.length > 0) result.push(...getFlatDeptNodes(node.children));
   });
   return result;
 }
 
 function getRankDeptNodes() {
-  if (currentRankScope === 'direct') {
-    return getCompareNodes().filter(node => !node.isDirectEmployeeGroup);
-  }
-  const nodes = getCompareNodes();
+  const nodes = navStack.length === 0 ? treeData : getCurrentNodes();
   if (currentDeptPath !== 'all' && navStack.length === 0 && nodes.length === 1 && nodes[0].fullPath === currentDeptPath && !nodes[0].children) {
     return [];
   }
-  return getLeafDeptNodes(nodes);
-}
-
-function getPeriodChange(label, value, reverse = false) {
-  const seed = String(label).split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0) + Math.round(value);
-  const delta = (seed % 31) - 15;
-  const cls = delta === 0 ? '' : ((reverse ? delta < 0 : delta > 0) ? 'good' : 'bad');
-  const sign = delta > 0 ? '+' : '';
-  return `<div class="sub ${cls}">较同期 ${sign}${delta}%</div>`;
-}
-
-function renderKpiLabel(name, desc) {
-  return `<div class="label">${name}<span class="help-tip" title="${desc}" aria-label="${desc}">?</span></div>`;
+  return getFlatDeptNodes(nodes);
 }
 
 function showToast(msg) {
@@ -617,21 +579,10 @@ function getSelectedTaskNames() {
   return selectedTaskTypes.map(type => taskTypeNames[type]);
 }
 
-function updateTaskSummary() {
-  const summary = document.getElementById('taskSummary');
-  const names = getSelectedTaskNames();
-  summary.textContent = names.length === 1 ? names[0] : `${names.length} 个任务类型`;
-  summary.title = names.join('、');
-}
-
-function renderTaskOptions() {
-  document.getElementById('taskOptions').innerHTML = Object.entries(taskTypeNames).map(([key, name]) => `
-    <label class="multi-option">
-      <input type="checkbox" value="${key}" ${selectedTaskTypes.includes(key) ? 'checked' : ''}>
-      <span>${name}</span>
-    </label>
+function renderTaskTypeTabs() {
+  document.getElementById('taskTypeTabs').innerHTML = Object.entries(taskTypeNames).map(([key, name]) => `
+    <button class="task-type-tab${selectedTaskTypes.includes(key) ? ' active' : ''}" data-task-type="${key}" role="tab" aria-selected="${selectedTaskTypes.includes(key)}">${name}</button>
   `).join('');
-  updateTaskSummary();
 }
 
 function renderDeptOptions() {
@@ -691,60 +642,14 @@ function renderBreadcrumb() {
   return html;
 }
 
-function renderStatsRow() {
-  const allLeaves = getAllLeafNodes(treeData);
-  const allEmployees = new Set();
-  allLeaves.forEach(leaf => {
-    (leaf.employees || []).forEach(emp => allEmployees.add(emp.name || emp));
-  });
-  const deptCount = getLeafDeptNodes(treeData).length;
-  const totalAssigned = allLeaves.reduce((s, n) => s + n.assigned, 0);
-  const totalFailed = allLeaves.reduce((s, n) => s + getFailedCount(n), 0);
-  const totalSuccess = Math.max(0, totalAssigned - totalFailed);
-  const totalCompleted = allLeaves.reduce((s, n) => s + getCompletedCount(n), 0);
-  const completionRate = totalSuccess > 0 ? totalCompleted / totalSuccess : 0;
-
-  document.getElementById('statsRow').innerHTML = `
-    <div class="stat-card">
-      ${renderKpiLabel('部门数', '顶部组织范围内有任务下发记录的末级部门数，不随下方排行切换或明细下钻变化')}
-      <div class="value">${deptCount.toLocaleString()}</div>
-    </div>
-    <div class="stat-card">
-      ${renderKpiLabel('员工数', '当前筛选范围内有任务下发记录的去重员工数，按员工ID去重')}
-      <div class="value">${allEmployees.size.toLocaleString()}</div>
-    </div>
-    <div class="stat-card">
-      ${renderKpiLabel('应下发任务数', '当前筛选范围内系统计划下发给员工的任务总数，包含下发成功和下发失败')}
-      <div class="value">${totalAssigned.toLocaleString()}</div>
-      ${getPeriodChange('应下发任务数', totalAssigned)}
-    </div>
-    <div class="stat-card">
-      ${renderKpiLabel('下发失败任务数', '计划下发但未成功送达员工的任务数，不进入完成率分母')}
-      <div class="value">${totalFailed.toLocaleString()}</div>
-      ${getPeriodChange('下发失败任务数', totalFailed, true)}
-    </div>
-    <div class="stat-card">
-      ${renderKpiLabel('完成任务数', '下发成功后，按任务类型规则判定完成的任务数')}
-      <div class="value">${totalCompleted.toLocaleString()}</div>
-      ${getPeriodChange('完成任务数', totalCompleted)}
-    </div>
-    <div class="stat-card">
-      ${renderKpiLabel('完成率', '完成任务数 / 下发成功任务数；下发成功任务数 = 应下发任务数 - 下发失败任务数')}
-      <div class="value">${Math.round(completionRate * 100)}%</div>
-      ${getPeriodChange('完成率', Math.round(completionRate * 100))}
-    </div>`;
-}
-
 function isExpanded(node) {
   if (navStack.length === 0) return false;
   return navStack.some(s => s.node === node);
 }
 
-function renderOverview(updateKpi = true) {
+function renderOverview() {
   rebuildTreeData();
   selectedEmp = null; overdueCache = {};
-
-  if (updateKpi) renderStatsRow();
 
   const nodes = getCurrentNodes();
 
@@ -916,7 +821,6 @@ function renderLeaderboard() {
     .sort((a, b) => getCompletionRate(b) - getCompletionRate(a));
 
   const empRanks = allEmps.sort((a, b) => getCompletionRate(b) - getCompletionRate(a));
-  const scopeLabelMap = { direct: '直属下级', leaf: '末级部门' };
 
   function rankClass(i) {
     if (i === 0) return 'gold'; if (i === 1) return 'silver'; if (i === 2) return 'bronze'; return '';
@@ -924,17 +828,11 @@ function renderLeaderboard() {
 
   let deptHtml = `<div class="lb-card">
     <div class="lb-card-header">
-      <div>
-        <h3>🏆 部门完成率 Top 5</h3>
-        <div class="lb-meta">当前口径：${scopeLabelMap[currentRankScope]}，按当前组织范围横向对比</div>
-      </div>
-      <div class="rank-level-tabs" aria-label="部门层级">
-        <button class="rank-level-btn${currentRankScope === 'direct' ? ' active' : ''}" data-scope="direct">直属下级</button>
-        <button class="rank-level-btn${currentRankScope === 'leaf' ? ' active' : ''}" data-scope="leaf">末级部门</button>
-      </div>
+      <h3>🏆 部门完成率（全部部门）</h3>
+      <div class="lb-meta">默认展示前 10 个，可滑动查看更多</div>
     </div>
-    <ul class="lb-list">`;
-  deptRanks.slice(0, 5).forEach((d, i) => {
+    <ul class="lb-list scrollable">`;
+  deptRanks.forEach((d, i) => {
     const cls = rankClass(i);
     const rate = getCompletionRate(d);
     const ratePct = Math.round(rate * 100);
@@ -946,7 +844,7 @@ function renderLeaderboard() {
     </li>`;
   });
   if (deptRanks.length === 0) {
-    deptHtml += `<li class="empty">${currentRankScope === 'direct' ? '当前组织范围下暂无直属下级部门' : '当前组织范围下暂无可对比的末级部门'}</li>`;
+    deptHtml += '<li class="empty">当前组织范围下暂无可展示部门</li>';
   }
   deptHtml += '</ul></div>';
 
@@ -965,13 +863,6 @@ function renderLeaderboard() {
   empHtml += '</ul></div>';
 
   document.getElementById('lbGrid').innerHTML = deptHtml + empHtml;
-
-  document.querySelectorAll('#lbGrid .rank-level-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      currentRankScope = this.dataset.scope;
-      renderLeaderboard();
-    });
-  });
 }
 
 // ── Event Bindings ─────────────────────────────────────
@@ -991,16 +882,11 @@ document.getElementById('deptFilter').addEventListener('change', function() {
   renderOverview();
 });
 
-document.getElementById('taskOptions').addEventListener('change', function(e) {
-  if (e.target.type !== 'checkbox') return;
-  const checkedTasks = [...this.querySelectorAll('input:checked')].map(input => input.value);
-  if (checkedTasks.length === 0) {
-    e.target.checked = true;
-    showToast('至少选择一个任务');
-    return;
-  }
-  selectedTaskTypes = checkedTasks;
-  updateTaskSummary();
+document.getElementById('taskTypeTabs').addEventListener('click', function(e) {
+  const btn = e.target.closest('.task-type-tab');
+  if (!btn) return;
+  selectedTaskTypes = [btn.dataset.taskType];
+  renderTaskTypeTabs();
   resetView();
   renderOverview();
 });
@@ -1029,7 +915,7 @@ document.getElementById('dateTo').addEventListener('change', () => {
 
 // ── Init ───────────────────────────────────────────────
 renderDeptOptions();
-renderTaskOptions();
+renderTaskTypeTabs();
 renderOverview();
 </script>
 </body>
