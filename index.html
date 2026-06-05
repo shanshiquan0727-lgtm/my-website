@@ -219,6 +219,10 @@
     </main>
 
     <script>
+        const STATIC_PROTOTYPES = [
+            { name: "任务执行-交互原型.html", type: "file" }
+        ];
+
         const REPO = {
             owner: "shanshiquan0727-lgtm",
             name: "my-website",
@@ -290,8 +294,8 @@
 
         async function loadPrototypeList() {
             els.reloadBtn.disabled = true;
-            els.prototypeCount.textContent = "加载中";
-            setStatus("正在读取原型列表...");
+            renderPrototypes(STATIC_PROTOTYPES);
+            setStatus("已显示可用原型。");
 
             try {
                 const response = await fetch(contentsUrl(), {
@@ -299,7 +303,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`读取失败：GitHub API 返回 ${response.status}`);
+                    throw new Error(`GitHub API 返回 ${response.status}`);
                 }
 
                 const items = await response.json();
@@ -309,12 +313,13 @@
                     .filter((item) => item.name.toLowerCase() !== "index.html")
                     .sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
 
-                renderPrototypes(files);
-                setStatus("列表已更新。");
+                if (files.length > 0) {
+                    renderPrototypes(files);
+                    setStatus("列表已更新。");
+                }
             } catch (error) {
-                renderPrototypes([]);
-                els.prototypeCount.textContent = "加载失败";
-                setStatus(`${error.message}。可以稍后刷新。`, "error");
+                renderPrototypes(STATIC_PROTOTYPES);
+                setStatus("已显示可用原型；自动刷新列表暂时不可用。");
             } finally {
                 els.reloadBtn.disabled = false;
             }
