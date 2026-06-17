@@ -1,0 +1,1386 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>系统标签同步企微 - 原型</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --line: #dfe5ee;
+      --line-soft: #edf1f6;
+      --text: #1f2937;
+      --muted: #667085;
+      --weak: #98a2b3;
+      --blue: #1769e0;
+      --blue-soft: #eaf2ff;
+      --green: #149263;
+      --green-soft: #e8f7f0;
+      --orange: #c76a11;
+      --orange-soft: #fff2df;
+      --red: #c93434;
+      --red-soft: #fff0f0;
+      --gray-soft: #f2f4f7;
+      --shadow: 0 12px 30px rgba(15, 23, 42, .12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 196px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .side {
+      background: #101828;
+      color: #d0d5dd;
+      padding: 18px 12px;
+    }
+
+    .side-title {
+      color: #98a2b3;
+      font-size: 12px;
+      margin: 8px 12px;
+    }
+
+    .side-item {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      color: #d0d5dd;
+    }
+
+    .side-item.active {
+      background: #1d2939;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .main {
+      padding: 18px 24px 32px;
+      min-width: 0;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0 0 4px;
+      line-height: 1.25;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 14px;
+      background: var(--panel);
+      padding: 0 14px;
+    }
+
+    .tab {
+      height: 48px;
+      padding: 0 14px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: #344054;
+      font-weight: 600;
+    }
+
+    .tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+
+    .toolbar {
+      background: var(--panel);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .rule-panel {
+      background: var(--panel);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .rule-card {
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #fbfcfe;
+    }
+
+    .rule-card p {
+      margin: 4px 0;
+      color: var(--muted);
+    }
+
+    .rule-card ol {
+      margin: 4px 0 8px 20px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    .rule-card li {
+      margin: 4px 0;
+    }
+
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    label {
+      color: #344054;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    textarea {
+      border: 1px solid #cfd7e3;
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      min-height: 34px;
+      padding: 7px 10px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, .12);
+    }
+
+    .input-sm { width: 240px; }
+
+    .btn {
+      border: 1px solid #cfd7e3;
+      background: #fff;
+      color: #344054;
+      border-radius: 6px;
+      min-height: 34px;
+      padding: 0 14px;
+      font-weight: 600;
+    }
+
+    .btn.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .btn.ghost {
+      border-color: transparent;
+      color: var(--blue);
+      background: transparent;
+    }
+
+    .btn.danger {
+      color: var(--red);
+      border-color: #f2b8b8;
+      background: #fff;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .table-wrap {
+      background: var(--panel);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #344054;
+      text-align: left;
+      font-weight: 700;
+      height: 46px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      vertical-align: middle;
+      color: #344054;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .pagination {
+      min-height: 52px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 0 14px;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .page-btn {
+      min-width: 34px;
+      padding: 0 10px;
+    }
+
+    .page-btn.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+    }
+
+    .ellipsis {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #344054;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--weak);
+      flex: 0 0 auto;
+    }
+
+    .dot.running { background: var(--blue); }
+    .dot.done { background: var(--green); }
+    .dot.stopped { background: var(--weak); }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--gray-soft);
+      color: #344054;
+      font-size: 12px;
+      margin: 2px 4px 2px 0;
+      max-width: 210px;
+      vertical-align: middle;
+    }
+
+    .tag.blue {
+      background: var(--blue-soft);
+      color: #1353af;
+    }
+
+    .empty {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 32px;
+    }
+
+    .empty strong {
+      display: block;
+      color: #344054;
+      margin-bottom: 4px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .metric .num {
+      font-size: 26px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .form-page {
+      background: var(--panel);
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .form-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .form-body {
+      padding: 18px;
+    }
+
+    .notice {
+      background: #f8fafc;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #344054;
+      margin-bottom: 18px;
+    }
+
+    .notice.warning {
+      background: var(--orange-soft);
+      border-color: #ffd7a8;
+      color: #7a3f08;
+    }
+
+    .notice.error {
+      background: var(--red-soft);
+      border-color: #ffc7c7;
+      color: #8d2020;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 14px 14px;
+      align-items: start;
+      max-width: 980px;
+    }
+
+    .form-grid > label {
+      text-align: right;
+      padding-top: 7px;
+    }
+
+    .field-help {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .plain-value {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      color: #344054;
+      font-weight: 600;
+    }
+
+    .input-count-wrap {
+      position: relative;
+      width: 360px;
+      max-width: 100%;
+    }
+
+    .input-count-wrap input {
+      width: 100%;
+      padding-right: 56px;
+    }
+
+    .input-count {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .required::before {
+      content: "* ";
+      color: var(--red);
+    }
+
+    .selected-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+
+    .selected-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .selected-tags {
+      margin-top: 10px;
+      min-height: 28px;
+    }
+
+    .picker-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .42);
+      display: none;
+      z-index: 30;
+    }
+
+    .picker-mask.active {
+      display: block;
+    }
+
+    .picker-modal {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(820px, 100vw);
+      height: 100vh;
+      background: #fff;
+      border-radius: 0;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .picker-head {
+      height: 52px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      font-weight: 700;
+    }
+
+    .picker-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 42% 58%;
+      min-height: 0;
+    }
+
+    .picker-left,
+    .picker-right {
+      min-height: 0;
+      overflow: auto;
+      padding: 12px;
+    }
+
+    .picker-left {
+      border-right: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .picker-search {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .tree-group {
+      margin-bottom: 8px;
+    }
+
+    .tree-title {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      color: #344054;
+    }
+
+    .tree-item {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 24px;
+      color: #344054;
+    }
+
+    .picker-empty {
+      height: 100%;
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      color: var(--weak);
+      text-align: center;
+    }
+
+    .picker-foot {
+      height: 58px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0 16px;
+    }
+
+    .footer-actions {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .drawer-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .28);
+      display: none;
+      z-index: 20;
+    }
+
+    .drawer-mask.active { display: block; }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(760px, 100vw);
+      height: 100vh;
+      background: #fff;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drawer-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .drawer-body {
+      overflow: auto;
+      padding: 18px 20px 24px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      background: #101828;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+      z-index: 40;
+    }
+
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { display: none; }
+      .main { padding: 14px; }
+      .toolbar,
+      .page-head {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-grid > label {
+        text-align: left;
+        padding-top: 0;
+      }
+      table {
+        min-width: 920px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="layout">
+      <aside class="side">
+        <div class="side-title">运营工具</div>
+        <div class="side-item">朋友圈任务</div>
+        <div class="side-item active">标签同步</div>
+        <div class="side-item">客户分群</div>
+        <div class="side-item">素材库</div>
+        <div class="side-title">数据资产</div>
+        <div class="side-item">系统标签</div>
+        <div class="side-item">用户画像</div>
+      </aside>
+
+      <main class="main">
+        <section id="listView" class="view active">
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="change">变更标签同步</button>
+            <button class="tab" data-tab="history">历史标签同步</button>
+          </div>
+
+          <div class="rule-panel">
+            <div class="rule-card">
+              <div id="ruleContent">
+                <p><b>同步规则：</b></p>
+                <ol>
+                  <li>所选标签在用户身上新增 / 移除时，实时触发同步任务，并持续执行。</li>
+                  <li>变更标签不处理历史客户，只处理任务创建成功后的标签新增 / 移除事件。</li>
+                </ol>
+                <p><b>场景：</b>适合高意向客户、沉睡客户等需要长期跟随用户变化的人群。</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="taskPanels">
+            <div class="panel" data-panel="change">
+              <div class="toolbar">
+                <div class="search-row">
+                  <label for="changeSearch">任务名称</label>
+                  <input id="changeSearch" class="input-sm" placeholder="输入任务名称">
+                  <select id="changeStatus">
+                    <option value="">全部状态</option>
+                    <option value="进行中">进行中</option>
+                    <option value="已完成">已完成</option>
+                    <option value="已终止">已终止</option>
+                  </select>
+                </div>
+                <div class="search-row">
+                  <button class="btn" data-reset="change">重置</button>
+                  <button class="btn primary" data-search="change">查询</button>
+                  <button class="btn primary" data-create="change">新增任务</button>
+                </div>
+              </div>
+              <div class="table-wrap" id="changeTable"></div>
+            </div>
+
+            <div class="panel" data-panel="history" hidden>
+              <div class="toolbar">
+                <div class="search-row">
+                  <label for="historySearch">任务名称</label>
+                  <input id="historySearch" class="input-sm" placeholder="输入任务名称">
+                  <select id="historyStatus">
+                    <option value="">全部状态</option>
+                    <option value="进行中">进行中</option>
+                    <option value="已完成">已完成</option>
+                    <option value="已终止">已终止</option>
+                  </select>
+                </div>
+                <div class="search-row">
+                  <button class="btn" data-reset="history">重置</button>
+                  <button class="btn primary" data-search="history">查询</button>
+                  <button class="btn primary" data-create="history">新增任务</button>
+                </div>
+              </div>
+              <div class="table-wrap" id="historyTable"></div>
+            </div>
+
+          </div>
+        </section>
+
+        <section id="createView" class="view">
+          <div class="form-page">
+            <div class="form-head">
+              <div>
+                <h1 style="font-size: 19px;" id="createTitle">新建同步任务</h1>
+              </div>
+              <button class="btn" id="backToList">返回列表</button>
+            </div>
+            <div class="form-body">
+              <div class="form-grid">
+                <label>同步目标</label>
+                <div>
+                  <div class="plain-value">企微标签-CDP系统标签组下</div>
+                </div>
+
+                <label class="required" for="taskName">任务名称</label>
+                <div>
+                  <div class="input-count-wrap">
+                    <input id="taskName" maxlength="20" placeholder="例如：高意向客户同步企微">
+                    <span class="input-count" id="nameCount">0/20</span>
+                  </div>
+                </div>
+
+                <label class="required">选择标签</label>
+                <div>
+                  <div class="field-help" style="margin-top: 0; margin-bottom: 8px;">同一个标签仅能在一个未开始或进行中的同类型任务中。</div>
+                  <div class="selected-panel">
+                    <div class="selected-summary">
+                      <button class="btn" id="openTagPicker">选择标签</button>
+                      <span class="sub">已选 <b id="selectedCount">0</b> 个</span>
+                    </div>
+                    <div class="selected-tags" id="selectedTagList">
+                      <span class="sub">暂未选择标签</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="footer-actions">
+                <button class="btn" id="cancelCreate">取消</button>
+                <button class="btn primary" id="submitCreate">创建任务</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="drawer-mask" id="drawerMask" aria-hidden="true">
+    <aside class="drawer" aria-label="任务详情">
+      <div class="drawer-head">
+        <div>
+          <h1 id="drawerTitle" style="font-size: 19px;">任务详情</h1>
+          <p class="sub" id="drawerMeta"></p>
+        </div>
+        <button class="btn" id="closeDrawer">关闭</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </aside>
+  </div>
+
+  <div class="picker-mask" id="tagPickerMask" aria-hidden="true">
+    <div class="picker-modal" role="dialog" aria-label="选择标签">
+      <div class="picker-head">
+        <span>选择标签</span>
+        <button class="link" id="closeTagPicker">关闭</button>
+      </div>
+      <div class="picker-body">
+        <div class="picker-left">
+          <input class="picker-search" id="tagSearch" placeholder="请输入搜索内容">
+          <div id="tagTree"></div>
+        </div>
+        <div class="picker-right">
+          <div style="margin-bottom: 12px;">选中 <b id="pickerSelectedCount">0</b> 个</div>
+          <div id="pickerSelectedList" class="picker-empty">暂无选中数据</div>
+        </div>
+      </div>
+      <div class="picker-foot">
+        <button class="btn" id="cancelTagPicker">取消</button>
+        <button class="btn primary" id="confirmTagPicker">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const systemTags = [
+      { id: "tag_101", name: "高意向客户", group: "自定义标签", source: "CDP", currentUsers: 4280, activeChange: true, activeHistory: false, mapped: true },
+      { id: "tag_102", name: "近30天复购倾向", group: "自定义标签", source: "CDP", currentUsers: 1896, activeChange: false, activeHistory: false, mapped: true },
+      { id: "tag_103", name: "沉睡待唤醒", group: "我创建的", source: "CDP", currentUsers: 6240, activeChange: false, activeHistory: false, mapped: false },
+      { id: "tag_104", name: "浏览A产品未下单", group: "自定义标签", source: "CDP", currentUsers: 1362, activeChange: false, activeHistory: true, mapped: true },
+      { id: "tag_105", name: "企微同名冲突客户", group: "我创建的", source: "CDP", currentUsers: 302, activeChange: false, activeHistory: false, mapped: false, conflict: true },
+      { id: "tag_106", name: "超长标签名-近90天多次浏览核心产品但未下单客户", group: "自定义标签", source: "CDP", currentUsers: 918, activeChange: false, activeHistory: false, mapped: false, longName: true },
+      { id: "tag_107", name: "新客首单转化", group: "我创建的", source: "CDP", currentUsers: 754, activeChange: false, activeHistory: false, mapped: false },
+      { id: "tag_108", name: "直播间高互动", group: "我创建的", source: "CDP", currentUsers: 2180, activeChange: false, activeHistory: false, mapped: false }
+    ];
+
+    let tasks = [
+      {
+        id: "chg_001",
+        type: "change",
+        name: "高意向客户后续变化同步",
+        tags: ["tag_101"],
+        createdAt: "2026-06-16 10:24",
+        executeAt: "实时触发",
+        finishedAt: "--",
+        status: "进行中",
+        summary: { total: 1286, success: 1198, unmatched: 62, failed: 18, skipped: 8 }
+      },
+      {
+        id: "chg_002",
+        type: "change",
+        name: "复购倾向变更同步",
+        tags: ["tag_102"],
+        createdAt: "2026-06-12 16:42",
+        executeAt: "实时触发",
+        finishedAt: "2026-06-15 18:20",
+        status: "已终止",
+        summary: { total: 742, success: 701, unmatched: 32, failed: 9, skipped: 0 }
+      },
+      {
+        id: "chg_003",
+        type: "change",
+        name: "沉睡客户变化同步",
+        tags: ["tag_103"],
+        createdAt: "2026-05-31 09:18",
+        executeAt: "实时触发",
+        finishedAt: "2026-06-14 02:17",
+        status: "已完成",
+        summary: { total: 4380, success: 4096, unmatched: 211, failed: 73, skipped: 0 }
+      },
+      {
+        id: "his_001",
+        type: "history",
+        name: "浏览A产品未下单存量同步",
+        tags: ["tag_104"],
+        createdAt: "2026-06-16 13:08",
+        executeAt: "次日 02:00",
+        finishedAt: "--",
+        status: "进行中",
+        summary: { total: 1362, success: 0, unmatched: 0, failed: 0, skipped: 0 }
+      },
+      {
+        id: "his_002",
+        type: "history",
+        name: "618 高意向客户存量补齐",
+        tags: ["tag_101", "tag_102", "tag_107"],
+        createdAt: "2026-06-15 15:42",
+        executeAt: "次日 02:00",
+        finishedAt: "2026-06-16 02:31",
+        status: "已完成",
+        summary: { total: 6930, success: 6421, unmatched: 386, failed: 89, skipped: 34 }
+      },
+      {
+        id: "his_003",
+        type: "history",
+        name: "沉睡客户朋友圈召回",
+        tags: ["tag_103"],
+        createdAt: "2026-06-08 11:02",
+        executeAt: "次日 02:00",
+        finishedAt: "2026-06-08 18:08",
+        status: "已终止",
+        summary: { total: 6240, success: 2108, unmatched: 166, failed: 20, skipped: 3946 }
+      }
+    ];
+
+    const changeTaskNames = [
+      "高意向客户实时同步", "沉睡客户唤醒同步", "直播互动客户同步", "复购倾向客户同步", "新客首单转化同步",
+      "浏览未下单客户同步", "会员升级意向同步", "内容高互动同步", "活动报名客户同步", "价格敏感客户同步",
+      "售后咨询客户同步", "优惠券领取客户同步", "加购未支付客户同步", "近7天活跃客户同步", "门店到访客户同步",
+      "企微新增好友同步", "高价值客户同步", "低活跃客户同步", "新品关注客户同步", "服务到期提醒同步",
+      "社群活跃客户同步", "私域沉淀客户同步", "复购流失预警同步", "关键页面访问同步"
+    ];
+    const historyTaskNames = [
+      "618 高意向客户存量补齐", "浏览A产品未下单存量同步", "沉睡客户朋友圈召回", "新客首单存量同步", "复购倾向存量同步",
+      "直播活动存量同步", "会员升级存量同步", "优惠券领取存量同步", "加购未支付存量同步", "门店到访存量同步",
+      "内容互动存量同步", "售后咨询存量同步", "价格敏感存量同步", "低活跃客户存量同步", "新品关注存量同步",
+      "服务到期存量同步", "社群活跃存量同步", "私域沉淀存量同步", "流失预警存量同步", "关键页面访问存量同步",
+      "端午活动人群同步", "周年庆活动人群同步", "高客单价人群同步", "老客召回人群同步"
+    ];
+    const statusCycle = ["进行中", "已完成", "已终止"];
+    changeTaskNames.forEach((name, index) => {
+      tasks.push({
+        id: `chg_extra_${index + 1}`,
+        type: "change",
+        name,
+        tags: [`tag_${101 + (index % 8)}`],
+        createdAt: `2026-05-${String(28 - (index % 20)).padStart(2, "0")} ${String(9 + (index % 8)).padStart(2, "0")}:18`,
+        executeAt: "实时触发",
+        finishedAt: statusCycle[index % 3] === "进行中" ? "--" : `2026-06-${String(1 + (index % 14)).padStart(2, "0")} 18:20`,
+        status: statusCycle[index % 3],
+        summary: { total: 0, success: 0, unmatched: 0, failed: 0, skipped: 0 }
+      });
+    });
+    historyTaskNames.forEach((name, index) => {
+      tasks.push({
+        id: `his_extra_${index + 1}`,
+        type: "history",
+        name,
+        tags: [`tag_${101 + (index % 8)}`],
+        createdAt: `2026-04-${String(26 - (index % 20)).padStart(2, "0")} ${String(10 + (index % 7)).padStart(2, "0")}:36`,
+        executeAt: "次日 02:00",
+        finishedAt: statusCycle[(index + 1) % 3] === "进行中" ? "--" : `2026-05-${String(2 + (index % 18)).padStart(2, "0")} 02:31`,
+        status: statusCycle[(index + 1) % 3],
+        summary: { total: 0, success: 0, unmatched: 0, failed: 0, skipped: 0 }
+      });
+    });
+
+    const pageSize = 20;
+    const currentPage = { change: 1, history: 1 };
+
+    let activeTab = "change";
+    let createType = "history";
+    let selectedTags = new Set();
+    let pickerTags = new Set();
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+
+    function tagName(id) {
+      return systemTags.find(tag => tag.id === id)?.name || id;
+    }
+
+    function getTaskTags(task) {
+      return task.tags.map(tagName);
+    }
+
+    function statusDot(status) {
+      if (status === "进行中") return "running";
+      if (status === "已完成") return "done";
+      return "stopped";
+    }
+
+    function showToast(text) {
+      const toast = $("#toast");
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function updateRulePanel(tab) {
+      const isHistory = tab === "history";
+      $("#ruleContent").innerHTML = isHistory
+        ? `
+          <p><b>同步规则：</b></p>
+          <ol>
+            <li>在固定时间点（次日0点），一次性同步当前命中所选标签的用户。后续用户的标签新增/移除时不会再次同步。</li>
+            <li>已开始的任务手动终止后，未执行到的用户不会打上标签，并在明细中置为失败。</li>
+          </ol>
+          <p><b>场景：</b>适合活动前补齐存量人群，或临时同步一批用户的标签时使用。</p>
+        `
+        : `
+          <p><b>同步规则：</b></p>
+          <ol>
+            <li>所选标签在用户身上新增 / 移除时，实时触发同步任务，并持续执行。</li>
+            <li>变更标签不处理历史客户，只处理任务创建成功后的标签新增 / 移除事件。</li>
+          </ol>
+          <p><b>场景：</b>适合高意向客户、沉睡客户等需要长期跟随用户变化的人群。</p>
+        `;
+    }
+
+    function setTab(tab) {
+      activeTab = tab;
+      $$(".tab[data-tab]").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
+      $$("[data-panel]").forEach(panel => panel.hidden = panel.dataset.panel !== tab);
+      updateRulePanel(tab);
+    }
+
+    function taskTable(type) {
+      const search = $(`#${type}Search`).value.trim();
+      const status = $(`#${type}Status`).value;
+      const filtered = tasks.filter(task => {
+        return task.type === type &&
+          (!search || task.name.includes(search)) &&
+          (!status || task.status === status);
+      });
+
+      if (!filtered.length) {
+        return `<div class="empty"><div><strong>暂无符合条件的任务</strong><span>换个任务名称或状态再查。</span></div></div>`;
+      }
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      currentPage[type] = Math.min(currentPage[type], totalPages);
+      const page = currentPage[type];
+      const start = (page - 1) * pageSize;
+      const pageItems = filtered.slice(start, start + pageSize);
+      const pageButtons = Array.from({ length: totalPages }, (_, index) => index + 1).map(pageNumber => `
+        <button class="btn page-btn ${pageNumber === page ? "active" : ""}" data-page="${type}:${pageNumber}">${pageNumber}</button>
+      `).join("");
+
+      return `
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30%;">任务名称</th>
+              <th style="width: 16%;">任务中标签数</th>
+              <th style="width: 18%;">创建时间</th>
+              <th style="width: 18%;">完成/终止时间</th>
+              <th style="width: 10%;">任务状态</th>
+              <th style="width: 8%; text-align: center;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageItems.map(task => `
+              <tr>
+                <td>
+                  <div class="ellipsis" title="${task.name}">${task.name}</div>
+                </td>
+                <td><button class="link" data-detail="${task.id}">${task.tags.length}</button></td>
+                <td>${task.createdAt}</td>
+                <td>${task.finishedAt}</td>
+                <td><span class="status"><i class="dot ${statusDot(task.status)}"></i>${task.status}</span></td>
+                <td>
+                  <div class="actions">
+                    ${task.status === "进行中" ? `<button class="link" data-stop="${task.id}">终止</button>` : ""}
+                    <button class="link" data-detail="${task.id}">详情</button>
+                  </div>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span>共 ${filtered.length} 条</span>
+          <button class="btn page-btn" data-page="${type}:prev" ${page === 1 ? "disabled" : ""}>上一页</button>
+          ${pageButtons}
+          <button class="btn page-btn" data-page="${type}:next" ${page === totalPages ? "disabled" : ""}>下一页</button>
+          <span>20 条/页</span>
+        </div>
+      `;
+    }
+
+    function renderTables() {
+      $("#changeTable").innerHTML = taskTable("change");
+      $("#historyTable").innerHTML = taskTable("history");
+      bindTableActions();
+    }
+
+    function bindTableActions() {
+      $$("[data-detail]").forEach(btn => {
+        btn.onclick = () => openDrawer(btn.dataset.detail);
+      });
+      $$("[data-stop]").forEach(btn => {
+        btn.onclick = () => stopTask(btn.dataset.stop);
+      });
+      $$("[data-page]").forEach(btn => {
+        btn.onclick = () => {
+          const [type, action] = btn.dataset.page.split(":");
+          if (action === "prev") currentPage[type] -= 1;
+          else if (action === "next") currentPage[type] += 1;
+          else currentPage[type] = Number(action);
+          renderTables();
+        };
+      });
+    }
+
+    function stopTask(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+      task.status = "已终止";
+      task.finishedAt = "2026-06-16 15:20";
+      renderTables();
+      showToast("任务已终止，后续不再处理");
+    }
+
+    function openDrawer(id) {
+      const task = tasks.find(item => item.id === id);
+      if (!task) return;
+      $("#drawerTitle").textContent = task.name;
+      $("#drawerMeta").textContent = `${task.type === "history" ? "历史标签同步" : "变更标签同步"} · ${task.status}`;
+      $("#drawerBody").innerHTML = `
+        <div class="notice">
+          <b>企微标签组：</b>CDP系统标签<br>
+          <b>同步标签：</b>${getTaskTags(task).map(name => `<span class="tag">${name}</span>`).join("")}
+        </div>
+        <div class="table-wrap" style="margin-top: 14px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 18%;">one_id</th>
+                <th style="width: 18%;">客户昵称</th>
+                <th style="width: 18%;">员工</th>
+                <th style="width: 15%;">动作</th>
+                <th style="width: 15%;">状态</th>
+                <th>说明</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${detailRows(task).map(row => `
+                <tr>
+                  <td>${row.oneId}</td>
+                  <td>${row.customerName}</td>
+                  <td>${row.staff}</td>
+                  <td>${row.action}</td>
+                  <td>${row.status}</td>
+                  <td>${row.status === "失败" ? row.note : ""}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        <div class="notice" style="margin-top: 14px;">
+          已完成只代表任务处理结束。失败明细不会在原任务中重试，如需再次处理，需要新建同步任务。
+        </div>
+      `;
+      $("#drawerMask").classList.add("active");
+      $("#drawerMask").setAttribute("aria-hidden", "false");
+    }
+
+    function detailRows(task) {
+      const action = task.type === "history" ? "添加标签" : "添加/移除标签";
+      const baseRows = [
+        { oneId: "ONE-238890", customerName: "林晓雨", staff: "赵敏", action, status: "处理中", note: "" },
+        { oneId: "ONE-238901", customerName: "周先生", staff: "张琳", action, status: "成功", note: "" },
+        { oneId: "ONE-238944", customerName: "Mia", staff: "李哲", action, status: "成功", note: "" },
+        { oneId: "ONE-239008", customerName: "--", staff: "--", action, status: "失败", note: "未匹配企微客户" },
+        { oneId: "ONE-239102", customerName: "海边咖啡", staff: "--", action, status: "失败", note: "未匹配企微客户" },
+        { oneId: "ONE-239176", customerName: "阿凯", staff: "王可", action, status: "失败", note: "标签重复" },
+        { oneId: "ONE-239233", customerName: "陈女士", staff: "陈昊", action, status: "失败", note: "标签重复" },
+        { oneId: "ONE-239260", customerName: "南风", staff: "林越", action, status: "失败", note: "标签名超出30字符" },
+        { oneId: "ONE-239278", customerName: "北辰", staff: "刘宁", action, status: "失败", note: "标签名超出30字符" }
+      ];
+      return baseRows;
+    }
+
+    function allowedTags() {
+      return systemTags.filter(tag => tag.group !== "企微标签");
+    }
+
+    function renderSelectedTags() {
+      $("#selectedCount").textContent = selectedTags.size;
+      const selected = systemTags.filter(tag => selectedTags.has(tag.id));
+      $("#selectedTagList").innerHTML = selected.length
+        ? selected.map(tag => `<span class="tag">${tag.name}</span>`).join("")
+        : `<span class="sub">暂未选择标签</span>`;
+    }
+
+    function renderPicker() {
+      const keyword = $("#tagSearch").value.trim();
+      const groups = ["自定义标签", "我创建的"];
+      $("#tagTree").innerHTML = groups.map(group => {
+        const list = allowedTags().filter(tag => tag.group === group && (!keyword || tag.name.includes(keyword)));
+        const rows = list.length
+          ? list.map(tag => {
+            return `
+              <label class="tree-item">
+                <input type="checkbox" value="${tag.id}" ${pickerTags.has(tag.id) ? "checked" : ""}>
+                <span class="ellipsis" title="${tag.name}">${tag.name}</span>
+              </label>
+            `;
+          }).join("")
+          : `<div class="tree-item"><span class="sub">暂无标签</span></div>`;
+        return `
+          <div class="tree-group">
+            <div class="tree-title">▾ ${group}</div>
+            ${rows}
+          </div>
+        `;
+      }).join("");
+
+      $$("#tagTree input[type=checkbox]").forEach(box => {
+        box.onchange = () => {
+          if (box.checked) pickerTags.add(box.value);
+          else pickerTags.delete(box.value);
+          renderPickerSelected();
+        };
+      });
+      renderPickerSelected();
+    }
+
+    function renderPickerSelected() {
+      $("#pickerSelectedCount").textContent = pickerTags.size;
+      const selected = systemTags.filter(tag => pickerTags.has(tag.id));
+      $("#pickerSelectedList").classList.toggle("picker-empty", !selected.length);
+      $("#pickerSelectedList").innerHTML = selected.length
+        ? selected.map(tag => `<span class="tag">${tag.name}</span>`).join("")
+        : "暂无选中数据";
+    }
+
+    function openTagPicker() {
+      pickerTags = new Set(selectedTags);
+      $("#tagSearch").value = "";
+      renderPicker();
+      $("#tagPickerMask").classList.add("active");
+      $("#tagPickerMask").setAttribute("aria-hidden", "false");
+    }
+
+    function closeTagPicker() {
+      $("#tagPickerMask").classList.remove("active");
+      $("#tagPickerMask").setAttribute("aria-hidden", "true");
+    }
+
+    function updateCreateCopy() {
+      const isHistory = createType === "history";
+      $("#createTitle").textContent = isHistory ? "新建历史标签同步任务" : "新建变更标签同步任务";
+      renderSelectedTags();
+    }
+
+    function showCreate(type) {
+      createType = type || activeTab === "change" ? (type || activeTab) : "history";
+      selectedTags = new Set();
+      $("#taskName").value = "";
+      $("#nameCount").textContent = "0/20";
+      updateCreateCopy();
+      $("#listView").classList.remove("active");
+      $("#createView").classList.add("active");
+    }
+
+    function backToList() {
+      $("#createView").classList.remove("active");
+      $("#listView").classList.add("active");
+    }
+
+    function createTask() {
+      const name = $("#taskName").value.trim();
+      if (!name) {
+        showToast("请输入任务名称");
+        return;
+      }
+      if (!selectedTags.size) {
+        showToast("请选择标签");
+        return;
+      }
+      const selected = systemTags.filter(tag => selectedTags.has(tag.id));
+      const id = `${createType}_${Date.now()}`;
+      tasks.unshift({
+        id,
+        type: createType,
+        name,
+        tags: selected.map(tag => tag.id),
+        createdAt: "2026-06-16 15:30",
+        executeAt: createType === "history" ? "次日 02:00" : "实时触发",
+        finishedAt: "--",
+        status: "进行中",
+        summary: { total: selected.reduce((sum, tag) => sum + tag.currentUsers, 0), success: 0, unmatched: 0, failed: 0, skipped: 0 }
+      });
+      selected.forEach(tag => {
+        if (createType === "history") tag.activeHistory = true;
+        if (createType === "change") tag.activeChange = true;
+      });
+      currentPage[createType] = 1;
+      setTab(createType);
+      renderTables();
+      backToList();
+      showToast("任务已创建，进入进行中");
+    }
+
+    $$(".tab[data-tab]").forEach(btn => {
+      btn.onclick = () => setTab(btn.dataset.tab);
+    });
+
+    $$("[data-create]").forEach(btn => {
+      btn.onclick = () => showCreate(btn.dataset.create);
+    });
+
+    $("#backToList").onclick = backToList;
+    $("#cancelCreate").onclick = backToList;
+    $("#submitCreate").onclick = createTask;
+    $("#closeDrawer").onclick = () => {
+      $("#drawerMask").classList.remove("active");
+      $("#drawerMask").setAttribute("aria-hidden", "true");
+    };
+    $("#drawerMask").onclick = (event) => {
+      if (event.target.id === "drawerMask") $("#closeDrawer").click();
+    };
+    $("#taskName").oninput = () => $("#nameCount").textContent = `${$("#taskName").value.length}/20`;
+    $("#openTagPicker").onclick = openTagPicker;
+    $("#closeTagPicker").onclick = closeTagPicker;
+    $("#cancelTagPicker").onclick = closeTagPicker;
+    $("#confirmTagPicker").onclick = () => {
+      selectedTags = new Set(pickerTags);
+      closeTagPicker();
+      renderSelectedTags();
+    };
+    $("#tagSearch").oninput = renderPicker;
+    $("#tagPickerMask").onclick = (event) => {
+      if (event.target.id === "tagPickerMask") closeTagPicker();
+    };
+
+    $$("[data-reset]").forEach(btn => {
+      btn.onclick = () => {
+        const type = btn.dataset.reset;
+        $(`#${type}Search`).value = "";
+        $(`#${type}Status`).value = "";
+        currentPage[type] = 1;
+        renderTables();
+      };
+    });
+    $$("[data-search]").forEach(btn => {
+      btn.onclick = () => {
+        const type = btn.dataset.search;
+        currentPage[type] = 1;
+        renderTables();
+      };
+    });
+
+    renderTables();
+    updateCreateCopy();
+  </script>
+</body>
+</html>
