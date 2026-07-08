@@ -1,0 +1,2916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>群标签手动创建原型</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #1f2937;
+  background: #f6f7f9;
+  font-size: 14px;
+}
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.app-header {
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+.brand { font-size: 16px; font-weight: 700; color: #175cd3; }
+.nav { display: flex; gap: 20px; color: #667085; font-size: 13px; }
+.nav span.active { color: #1f2937; font-weight: 600; }
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 28px 40px;
+}
+.page-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+h1 { margin: 0; font-size: 22px; line-height: 1.3; }
+.subtitle { color: #667085; font-size: 13px; margin-top: 6px; }
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.list-workbench {
+  height: calc(100vh - 96px);
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tag-list-shell {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+}
+.tag-group-sidebar {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tag-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f2f5;
+}
+.tag-group-title { font-weight: 700; }
+.tag-group-tree {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-top: 10px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+.tag-group-node {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #344054;
+  border-radius: 6px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  position: relative;
+}
+.tag-group-node:hover { background: #f9fafb; }
+.tag-group-node.active {
+  color: #175cd3;
+  background: #eff4ff;
+  font-weight: 700;
+}
+.tag-group-block {
+  border-radius: 6px;
+}
+.tag-group-label {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+}
+.tag-group-label-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tag-group-node-count {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tag-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: 4px;
+}
+.tag-group-action {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #667085;
+}
+.tag-group-action:hover {
+  color: #175cd3;
+  background: #eff4ff;
+}
+.tag-group-action.danger:hover {
+  color: #b42318;
+  background: #fef3f2;
+}
+.tag-subgroup-list {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 4px 12px;
+  padding-left: 8px;
+  border-left: 1px solid #eaecf0;
+}
+.tag-subgroup-node {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  color: #475467;
+  padding: 7px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  font-size: 12px;
+}
+.tag-subgroup-node:hover { background: #f9fafb; }
+.tag-subgroup-node.active {
+  color: #175cd3;
+  background: #eff4ff;
+  font-weight: 700;
+}
+.tag-list-main {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.list-toolbar {
+  flex-shrink: 0;
+}
+.list-filter-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filter-chip {
+  height: 32px;
+  border: 1px solid #d0d5dd;
+  color: #475467;
+  background: #fff;
+  border-radius: 16px;
+  padding: 0 14px;
+}
+.filter-chip.active {
+  color: #175cd3;
+  border-color: #84adff;
+  background: #eff4ff;
+}
+.search-input, .field, textarea {
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+  outline: none;
+}
+.search-input { width: 280px; height: 36px; padding: 0 12px; }
+.field { width: 100%; height: 36px; padding: 0 10px; }
+textarea { width: 100%; min-height: 74px; resize: vertical; padding: 9px 10px; }
+.search-input:focus, .field:focus, textarea:focus {
+  border-color: #175cd3;
+  box-shadow: 0 0 0 3px rgba(23, 92, 211, .12);
+}
+.btn {
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  color: #344054;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn:hover { background: #f9fafb; }
+.btn.primary {
+  background: #175cd3;
+  color: #fff;
+  border-color: #175cd3;
+}
+.btn.primary:hover { background: #1849a9; }
+.btn.danger {
+  color: #b42318;
+  border-color: #fda29b;
+  background: #fff;
+}
+.btn.text {
+  border-color: transparent;
+  background: transparent;
+  color: #175cd3;
+  padding: 0 8px;
+}
+.btn.text:hover { background: #eff4ff; }
+.btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.table-wrap {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.list-table-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.list-table-area > .empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.list-table-area .table-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.list-table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.list-table-scroll th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.list-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid #f0f2f5;
+  flex-shrink: 0;
+}
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  text-align: left;
+  padding: 13px 14px;
+  border-bottom: 1px solid #f0f2f5;
+  vertical-align: middle;
+}
+th {
+  color: #667085;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+}
+tr:last-child td { border-bottom: 0; }
+tr:hover td { background: #fcfcfd; }
+.name-main { font-weight: 650; }
+.muted { color: #667085; font-size: 12px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  border-radius: 12px;
+  padding: 0 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.badge.manual { color: #027a48; background: #ecfdf3; }
+.badge.rule { color: #175cd3; background: #eff4ff; }
+.badge.warn { color: #b54708; background: #fffaeb; }
+.badge.gray { color: #475467; background: #f2f4f7; }
+.actions { display: flex; gap: 4px; flex-wrap: wrap; }
+.empty {
+  background: #fff;
+  border: 1px dashed #cfd4dc;
+  border-radius: 8px;
+  padding: 48px 20px;
+  text-align: center;
+  color: #667085;
+}
+.empty h3 { margin: 0 0 8px; color: #344054; font-size: 16px; }
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.choice-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+}
+.choice-card.selected { border-color: #84adff; box-shadow: 0 0 0 3px rgba(23, 92, 211, .1); }
+.choice-card.disabled {
+  background: #f9fafb;
+  color: #98a2b3;
+}
+.choice-card.disabled p { color: #98a2b3; }
+.choice-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+.choice-title-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.choice-card p { color: #667085; margin: 0 0 18px; line-height: 1.7; }
+.flow-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.flow-step {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #eff4ff;
+  color: #175cd3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.step-title { font-weight: 700; }
+.step-desc { color: #667085; font-size: 12px; margin-top: 3px; line-height: 1.5; }
+.create-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+.batch-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+  height: calc(100vh - 145px);
+  min-height: 0;
+}
+.batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.batch-title {
+  font-size: 20px;
+  font-weight: 750;
+}
+.batch-filter-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 140px 140px auto;
+  grid-template-areas:
+    "name owner type empty"
+    "date date member actions";
+  gap: 8px;
+  align-items: center;
+}
+#batchGroupNameFilter { grid-area: name; }
+#batchOwnerFilter { grid-area: owner; }
+#batchTypeFilter { grid-area: type; }
+.batch-date-range,
+.batch-member-filter {
+  display: grid;
+  align-items: center;
+  gap: 6px;
+}
+.batch-date-range {
+  grid-area: date;
+  grid-template-columns: auto minmax(0, 1fr) 12px minmax(0, 1fr);
+}
+.batch-date-range .filter-label {
+  color: #667085;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.batch-date-range .range-dash {
+  color: #98a2b3;
+  text-align: center;
+}
+.batch-member-filter {
+  grid-area: member;
+  grid-template-columns: 92px minmax(0, 1fr);
+}
+.batch-filter-actions {
+  grid-area: actions;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.batch-side-block {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #eef0f3;
+}
+.batch-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.batch-table-area {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.batch-side-summary {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.batch-side-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.batch-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+}
+.tag-tree {
+  display: grid;
+  gap: 12px;
+}
+.tag-tree-group {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tag-tree-title {
+  background: #f9fafb;
+  padding: 9px 10px;
+  font-weight: 700;
+}
+.tag-subgroup {
+  padding: 10px;
+  border-top: 1px solid #f0f2f5;
+}
+.tag-subgroup:first-child { border-top: 0; }
+.tag-subgroup-title {
+  color: #667085;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.tag-tree-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag-tree-item {
+  min-height: 30px;
+  border: 1px solid #d0d5dd;
+  border-radius: 15px;
+  background: #fff;
+  color: #344054;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.tag-tree-item:hover {
+  border-color: #84adff;
+  color: #175cd3;
+  background: #eff4ff;
+}
+.tag-tree-item.selected {
+  border-color: #175cd3;
+  color: #175cd3;
+  background: #eff4ff;
+  font-weight: 700;
+}
+.group-manage-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 14px;
+  max-height: 220px;
+  overflow: auto;
+}
+.group-manage-item {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.group-manage-main {
+  min-width: 0;
+  flex: 1;
+}
+.group-manage-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.group-edit-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: start;
+  width: 100%;
+}
+.panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+}
+.section-title {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 0 0 14px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 14px;
+}
+.form-row { margin-bottom: 14px; }
+label { display: block; color: #475467; font-size: 13px; margin-bottom: 6px; }
+.required { color: #d92d20; }
+.selector-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 12px;
+}
+.selector-filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 150px 150px;
+  gap: 8px;
+}
+.group-name { max-width: 320px; }
+.group-name .name-main {
+  overflow-wrap: anywhere;
+}
+.checkbox-cell { width: 42px; }
+.side-summary {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 104px);
+  display: flex;
+  flex-direction: column;
+}
+.summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.selected-list {
+  overflow: auto;
+  border-top: 1px solid #f0f2f5;
+  border-bottom: 1px solid #f0f2f5;
+  max-height: 440px;
+}
+.selected-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+.selected-item:last-child { border-bottom: 0; }
+.selected-meta {
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.summary-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 14px;
+}
+.hint {
+  color: #667085;
+  background: #f9fafb;
+  border: 1px solid #eaecf0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  line-height: 1.6;
+  font-size: 13px;
+}
+.tag-pick-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.tag-pick-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+}
+.tag-pick-item input { margin-top: 3px; }
+.tag-pick-item.rule-disabled {
+  background: #f9fafb;
+  color: #98a2b3;
+}
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.impact-box {
+  background: #f9fafb;
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  padding: 10px;
+}
+.impact-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #175cd3;
+}
+.impact-label {
+  font-size: 12px;
+  color: #667085;
+  margin-top: 2px;
+}
+.error-text { color: #d92d20; font-size: 12px; margin-top: 5px; min-height: 18px; }
+.detail-head {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.detail-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0 0;
+}
+.stat {
+  background: #f9fafb;
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  padding: 12px;
+}
+.stat-num { font-size: 20px; font-weight: 750; }
+.stat-label { color: #667085; font-size: 12px; margin-top: 3px; }
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, .42);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+}
+.modal-mask.open { display: flex; }
+.modal {
+  width: min(460px, 100%);
+  background: #fff;
+  border-radius: 8px;
+  padding: 22px;
+  box-shadow: 0 18px 48px rgba(17, 24, 39, .22);
+}
+.drawer-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, .38);
+  display: none;
+  justify-content: flex-end;
+  z-index: 45;
+}
+.drawer-mask.open { display: flex; }
+.drawer {
+  width: min(860px, 100vw);
+  height: 100vh;
+  background: #fff;
+  box-shadow: -16px 0 40px rgba(17, 24, 39, .18);
+  display: flex;
+  flex-direction: column;
+}
+.drawer-header {
+  height: 58px;
+  padding: 0 22px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.drawer-header h2 { margin: 0; font-size: 18px; }
+.drawer-close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  font-size: 24px;
+  color: #344054;
+}
+.drawer-body {
+  padding: 22px;
+  overflow: auto;
+  flex: 1;
+}
+.drawer-footer {
+  padding: 14px 22px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.drawer-form-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.drawer-form-row > label {
+  text-align: right;
+  padding-top: 8px;
+  margin: 0;
+  color: #344054;
+}
+.radio-line {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 36px;
+}
+.radio-line label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+.condition-block {
+  border-top: 1px solid #eef0f3;
+  padding-top: 14px;
+  margin-top: 10px;
+}
+.condition-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.condition-title { font-weight: 700; }
+.condition-row {
+  display: grid;
+  grid-template-columns: 150px 120px minmax(220px, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+.condition-row.chat {
+  grid-template-columns: 230px 100px 110px 110px 110px;
+}
+.logic-rail {
+  width: 42px;
+  color: #175cd3;
+  font-weight: 700;
+  text-align: center;
+}
+.drawer-two-col {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+}
+.selector-modal {
+  width: min(980px, 100vw);
+  height: 100vh;
+  background: #fff;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -16px 0 40px rgba(17, 24, 39, .18);
+}
+.selector-modal-header {
+  height: 46px;
+  padding: 0 14px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.selector-modal-body {
+  padding: 12px 14px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.selector-form {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 72px minmax(0, 1fr);
+  gap: 10px 14px;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+.selector-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+.selector-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+  padding-top: 12px;
+}
+.selector-pane {
+  border: 1px solid #e5e7eb;
+  min-height: 0;
+  overflow: auto;
+  background: #fff;
+}
+.selector-pane-head {
+  height: 40px;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fafafa;
+}
+.selector-modal-footer {
+  height: 58px;
+  border-top: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.selector-drawer-mask {
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 0;
+}
+.selector-table-name,
+.selector-table-tags {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.selector-nowrap {
+  white-space: nowrap;
+}
+.modal h3 { margin: 0 0 12px; font-size: 17px; }
+.modal-body { color: #475467; line-height: 1.7; }
+.confirm-count {
+  font-size: 34px;
+  color: #175cd3;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
+  background: #101828;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+  z-index: 80;
+}
+.toast.show { opacity: 1; }
+.hidden { display: none !important; }
+@media (max-width: 980px) {
+  .create-layout, .batch-layout, .choice-grid, .form-grid, .flow-steps, .tag-list-shell { grid-template-columns: 1fr; }
+  .side-summary { position: static; max-height: none; }
+  .selector-filters, .batch-filter-row { grid-template-columns: 1fr 1fr; }
+  .batch-filter-row {
+    grid-template-areas:
+      "name owner"
+      "type type"
+      "date date"
+      "member member"
+      "actions actions";
+  }
+  .batch-filter-actions { justify-content: flex-start; flex-wrap: wrap; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .tag-group-sidebar { max-height: 260px; }
+}
+@media (max-width: 640px) {
+  .app-header { padding: 0 16px; }
+  .nav { display: none; }
+  .page { padding: 18px 14px 28px; }
+  .page-title, .toolbar, .selector-head { flex-direction: column; align-items: stretch; }
+  .search-input { width: 100%; }
+  .selector-filters, .batch-filter-row { grid-template-columns: 1fr; }
+  .batch-filter-row {
+    grid-template-areas:
+      "name"
+      "owner"
+      "type"
+      "date"
+      "member"
+      "actions";
+  }
+  .table-wrap { overflow-x: auto; }
+  table { min-width: 760px; }
+}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">CDP 运营后台</div>
+  <nav class="nav">
+    <span>客户标签</span>
+    <span class="active">群标签</span>
+    <span>群 SOP</span>
+    <span>企微侧边栏</span>
+  </nav>
+</header>
+
+<main class="page">
+  <section id="listView" class="list-workbench">
+    <div class="tag-list-shell">
+      <aside class="tag-group-sidebar">
+        <div class="tag-group-head">
+          <div class="tag-group-title">标签分组</div>
+          <button class="btn text" onclick="openGroupModal('create')">新增分组</button>
+        </div>
+        <div id="tagGroupTree" class="tag-group-tree"></div>
+      </aside>
+
+      <div class="tag-list-main">
+        <div class="toolbar list-toolbar">
+          <div class="filters">
+            <button class="filter-chip" data-kind="all" onclick="setTagKind('all')">全部</button>
+            <button class="filter-chip active" data-kind="manual" onclick="setTagKind('manual')">手动创建</button>
+            <button class="filter-chip" data-kind="rule" onclick="setTagKind('rule')">规则创建</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn primary" onclick="showBatchTagging()">批量打标</button>
+            <button class="btn" onclick="openCreateTypeModal()">新建标签</button>
+          </div>
+        </div>
+
+        <div class="toolbar list-toolbar">
+          <select id="tagOwnerFilter" class="field" style="width:160px;">
+            <option value="">全部创建人</option>
+            <option value="系统">系统</option>
+            <option value="林然">林然</option>
+            <option value="周晴">周晴</option>
+            <option value="陈安">陈安</option>
+            <option value="当前用户">当前用户</option>
+          </select>
+          <div class="list-filter-actions">
+            <input id="tagSearch" class="search-input" placeholder="搜索标签名称">
+            <button class="btn primary" onclick="searchTagList()">查询</button>
+            <button class="btn" onclick="resetTagFilters()">重置</button>
+          </div>
+        </div>
+
+        <div id="tagTable" class="list-table-area"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="choiceView" class="hidden">
+    <div class="page-title">
+      <div>
+        <h1>新建群标签</h1>
+        <div class="subtitle">先选择创建方式，再进入对应配置流程。</div>
+      </div>
+      <button class="btn" onclick="showList()">返回列表</button>
+    </div>
+    <div class="choice-grid">
+      <div class="choice-card selected">
+        <div class="choice-title">手动创建</div>
+        <p>创建一个固定群标签，用于后续在批量打标中给新群或存量群添加标签。</p>
+        <button class="btn primary" onclick="openCreateDrawer('manual')">进入手动创建</button>
+      </div>
+      <div class="choice-card disabled">
+        <div class="choice-title choice-title-line">规则创建 <span class="badge gray">敬请期待</span></div>
+        <p>适合能被数据条件表达的群，例如社群成员数大于 200、近 7 天发言人数少于 3 人。</p>
+        <button class="btn" disabled>进入规则创建</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="createView" class="hidden">
+    <div class="page-title">
+      <div>
+        <h1>手动创建群标签</h1>
+        <div class="subtitle">按“填标签信息 → 筛选群 → 确认生效”完成，选群体验与群 SOP 下发任务保持一致。</div>
+      </div>
+      <button class="btn" onclick="showChoice()">返回</button>
+    </div>
+
+    <div class="flow-steps">
+      <div class="flow-step">
+        <span class="step-num">1</span>
+        <div><div class="step-title">定义标签</div><div class="step-desc">填写名称、分组和业务说明。</div></div>
+      </div>
+      <div class="flow-step">
+        <span class="step-num">2</span>
+        <div><div class="step-title">筛选目标群</div><div class="step-desc">复用群 SOP 的筛选和已选模式。</div></div>
+      </div>
+      <div class="flow-step">
+        <span class="step-num">3</span>
+        <div><div class="step-title">确认打标</div><div class="step-desc">保存后立即为已选群打上标签。</div></div>
+      </div>
+    </div>
+
+    <div class="create-layout">
+      <div>
+        <div class="panel batch-panel">
+          <h2 class="section-title">标签信息</h2>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>标签名称 <span class="required">*</span></label>
+              <input id="tagName" class="field" value="伦敦公寓房源推广群" maxlength="30" oninput="validateForm()">
+              <div id="nameError" class="error-text"></div>
+            </div>
+            <div class="form-row">
+              <label>标签分组 <span class="required">*</span></label>
+              <select id="tagGroup" class="field" onchange="validateForm()"></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>标签描述</label>
+            <textarea id="tagDesc">运营人工圈定的伦敦公寓房源推广社群，用于后续群发触达、房源内容投放和活动承接。</textarea>
+          </div>
+          <div class="hint">标签分组按业务口径共用，手动标签和规则标签都放在同一套分组下；创建方式只表示这个标签怎么维护。</div>
+          <div class="hint">当前不单独做群数据菜单。群数据只作为打标签时的选择对象出现，核心任务是快速圈选社群，而不是管理群。</div>
+        </div>
+
+        <div class="panel" style="margin-top:16px;">
+          <div class="selector-head">
+            <h2 class="section-title" style="margin:0;">选择目标社群</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn" onclick="selectFilteredGroups()">选择当前筛选结果</button>
+              <button class="btn text" onclick="resetGroupFilters()">清空筛选</button>
+            </div>
+          </div>
+          <div class="hint">这里与群 SOP 下发任务使用同一套选群心智：先筛选目标群，再进入右侧已选列表确认。</div>
+          <div class="selector-filters">
+            <input id="groupSearch" class="field" placeholder="搜索群名称、群主" oninput="renderGroupTable()">
+            <select id="ownerFilter" class="field" onchange="renderGroupTable()">
+              <option value="">全部群主</option>
+              <option value="林然">林然</option>
+              <option value="周晴">周晴</option>
+              <option value="王澈">王澈</option>
+              <option value="陈安">陈安</option>
+            </select>
+            <select id="typeFilter" class="field" onchange="renderGroupTable()">
+              <option value="">全部群类型</option>
+              <option value="客户服务群">客户服务群</option>
+              <option value="营销社群" selected>营销社群</option>
+              <option value="异业合作群">异业合作群</option>
+            </select>
+          </div>
+          <div id="groupTable" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <aside class="panel side-summary">
+        <div class="summary-top">
+          <h2 class="section-title" style="margin:0;">已选群</h2>
+          <span class="badge manual"><span id="selectedCount">0</span> 个群</span>
+        </div>
+        <div id="selectedList" class="selected-list"></div>
+        <div class="summary-actions">
+          <button class="btn" onclick="clearSelected()">清空</button>
+          <button id="saveButton" class="btn primary" onclick="openSaveConfirm()">保存并打标</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="batchView" class="hidden">
+    <div class="batch-header">
+      <div>
+        <div class="batch-title">批量打标</div>
+        <div class="subtitle">输入群名搜索并勾选目标群，右侧点击标签按钮即可添加；完成后可继续搜索下一批群。</div>
+      </div>
+      <button class="btn" onclick="showList()">返回列表</button>
+    </div>
+
+    <div class="batch-layout">
+      <div>
+        <div class="panel">
+          <div class="selector-head">
+            <h2 class="section-title" style="margin:0;">搜索并选择群</h2>
+            <span class="badge manual">已选 <span id="batchSelectedCountTop">0</span> 个群</span>
+          </div>
+          <div class="batch-filter-row">
+            <input id="batchGroupNameFilter" class="field" placeholder="输入群名称，回车搜索" onkeydown="handleBatchGroupSearchKey(event)">
+            <select id="batchOwnerFilter" class="field">
+              <option value="">群主姓名</option>
+              <option value="林然">林然</option>
+              <option value="周晴">周晴</option>
+              <option value="王澈">王澈</option>
+              <option value="陈安">陈安</option>
+            </select>
+            <select id="batchTypeFilter" class="field">
+              <option value="">群类型</option>
+              <option value="客户服务群">客户服务群</option>
+              <option value="营销社群">营销社群</option>
+              <option value="异业合作群">异业合作群</option>
+            </select>
+            <div class="batch-date-range">
+              <span class="filter-label">建群日期</span>
+              <input id="batchStartDate" class="field" type="date" aria-label="建群开始日期">
+              <span class="range-dash">-</span>
+              <input id="batchEndDate" class="field" type="date" aria-label="建群结束日期">
+            </div>
+            <div class="batch-member-filter">
+              <select id="batchMemberOp" class="field" aria-label="群成员数筛选方式">
+                <option value="">群成员数</option>
+                <option value="gte">大于等于</option>
+                <option value="lte">小于等于</option>
+              </select>
+              <input id="batchMemberValue" class="field" type="number" min="0" placeholder="人数">
+            </div>
+            <div class="batch-filter-actions">
+              <button class="btn primary" onclick="searchBatchGroups()">搜索</button>
+              <button class="btn" onclick="selectCurrentBatchPage()">全选当前页</button>
+              <button class="btn text" onclick="resetBatchFilters()">清空筛选</button>
+            </div>
+          </div>
+          <div id="batchGroupTable" class="batch-table-area" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <aside class="panel side-summary batch-side-summary">
+        <div class="summary-top">
+          <h2 class="section-title" style="margin:0;">添加标签</h2>
+          <span class="badge manual">已选 <span id="batchSelectedTagCount">0</span> 个标签</span>
+        </div>
+        <div class="batch-side-scroll">
+          <div class="batch-side-block" style="margin-top:0;padding-top:0;border-top:0;">
+            <h3 class="section-title" style="margin-bottom:8px;">选择要添加的标签</h3>
+            <input id="batchTagSearch" class="field" placeholder="搜索标签名称" oninput="renderBatchTagPicker()" style="margin-bottom:10px;">
+            <div id="batchTagPicker" class="tag-pick-list"></div>
+          </div>
+        </div>
+
+        <div class="summary-actions">
+          <button class="btn" onclick="clearBatchTags()">清空标签</button>
+          <button id="batchSaveButton" class="btn primary" onclick="openBatchConfirm()">确认添加标签</button>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="detailView" class="hidden">
+    <div class="page-title">
+      <div>
+        <h1>标签详情</h1>
+        <div class="subtitle">查看并维护该手动标签当前覆盖的群。</div>
+      </div>
+      <button class="btn" onclick="showList()">返回列表</button>
+    </div>
+    <div id="detailHead"></div>
+    <div class="toolbar">
+      <input id="detailSearch" class="search-input" placeholder="搜索已覆盖群" oninput="renderDetailGroups()">
+      <button class="btn primary" onclick="openGroupSelector('detail')">添加覆盖群</button>
+    </div>
+    <div id="detailGroups"></div>
+  </section>
+</main>
+
+<div id="createDrawerMask" class="drawer-mask">
+  <aside class="drawer">
+    <div class="drawer-header">
+      <h2 id="drawerTitle">创建群标签</h2>
+      <button class="drawer-close" onclick="closeCreateDrawer()">×</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-form-row">
+        <label><span class="required">*</span> 群标签名称</label>
+        <div>
+          <input id="drawerTagName" class="field" placeholder="请输入">
+          <div id="drawerNameError" class="error-text"></div>
+        </div>
+      </div>
+      <div class="drawer-form-row">
+        <label><span class="required">*</span> 分组</label>
+        <select id="drawerTagGroup" class="field"></select>
+      </div>
+      <div class="drawer-form-row">
+        <label>描述</label>
+        <textarea id="drawerTagDesc" maxlength="100" placeholder="请输入"></textarea>
+      </div>
+
+      <div id="manualDrawerSection">
+        <div class="drawer-form-row">
+          <label></label>
+        <div class="hint">新建标签只维护标签资产，不在这里选择群。保存后覆盖群数为 0，后续在「批量打标」中给群添加该标签。</div>
+        </div>
+      </div>
+
+      <div id="ruleDrawerSection" class="hidden">
+        <div class="drawer-form-row">
+          <label>更新方式</label>
+          <div class="radio-line">
+            <label><input type="radio" name="drawerUpdateMode" value="daily" checked> 日例行</label>
+            <label><input type="radio" name="drawerUpdateMode" value="manual"> 手动</label>
+            <label><input type="radio" name="drawerUpdateMode" value="none"> 不更新</label>
+          </div>
+        </div>
+
+        <div class="drawer-form-row">
+          <label>规则条件</label>
+          <div>
+            <div class="condition-block">
+              <div class="condition-head">
+                <div class="condition-title">群属性满足</div>
+                <button class="btn text" onclick="toast('原型中展示固定条件，实际支持添加多行')">+添加</button>
+              </div>
+              <div class="drawer-two-col">
+                <div class="logic-rail">且</div>
+                <div>
+                  <div class="condition-row">
+                    <select class="field"><option>群类型</option><option>建群日期</option><option>群人数</option></select>
+                    <select class="field"><option>等于</option><option>区间</option><option>大于等于</option></select>
+                    <select class="field"><option>社群</option><option>客户服务群</option><option>异业合作群</option></select>
+                  </div>
+                  <div class="condition-row">
+                    <select class="field"><option>建群日期</option><option>群类型</option><option>群人数</option></select>
+                    <select class="field"><option>区间</option><option>等于</option><option>大于等于</option></select>
+                    <select class="field"><option>2026-07-01 16:00 - 2026-08-01 16:00</option></select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="condition-block">
+              <div class="condition-head">
+                <div class="condition-title">群会话满足</div>
+                <button class="btn text" onclick="toast('原型中展示固定条件，实际支持添加多行')">+添加</button>
+              </div>
+              <div class="condition-row chat">
+                <select class="field"><option>2026-07-01 16:00 - 2026-08-01</option></select>
+                <select class="field"><option>客户侧</option><option>全群</option></select>
+                <select class="field"><option>发言天数</option><option>消息数量</option><option>发言人数</option></select>
+                <select class="field"><option>大于等于</option><option>小于</option><option>区间</option></select>
+                <input class="field" value="7">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <button class="btn" onclick="closeCreateDrawer()">取消</button>
+      <button class="btn primary" onclick="confirmDrawerSave()">确定</button>
+    </div>
+  </aside>
+</div>
+
+<div id="groupSelectorModal" class="modal-mask selector-drawer-mask">
+  <div class="selector-modal">
+    <div class="selector-modal-header">
+      <strong>选择群聊</strong>
+      <button class="drawer-close" onclick="closeGroupSelector()">×</button>
+    </div>
+    <div class="selector-modal-body">
+      <div class="selector-form">
+        <label>建群日期</label>
+        <div style="display:grid;grid-template-columns:1fr 24px 1fr;gap:8px;align-items:center;">
+          <input id="selectorStartDate" class="field" placeholder="开始日期">
+          <span class="muted" style="text-align:center;">-</span>
+          <input id="selectorEndDate" class="field" placeholder="结束日期">
+        </div>
+        <label>群名称</label>
+        <input id="selectorGroupName" class="field" placeholder="请输入群名，可输入多个">
+        <label>群主姓名</label>
+        <select id="selectorOwner" class="field">
+          <option value="">请选择群主姓名</option>
+          <option value="林然">林然</option>
+          <option value="周晴">周晴</option>
+          <option value="王澈">王澈</option>
+          <option value="陈安">陈安</option>
+        </select>
+        <label>群类型</label>
+        <select id="selectorGroupType" class="field">
+          <option value="">请选择群类型</option>
+          <option value="客户服务群">客户服务群</option>
+          <option value="营销社群">营销社群</option>
+          <option value="异业合作群">异业合作群</option>
+        </select>
+        <label>群成员数</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <select id="selectorMemberOp" class="field">
+            <option value="">请选择</option>
+            <option value="gte">大于等于</option>
+            <option value="lte">小于等于</option>
+          </select>
+          <input id="selectorMemberValue" class="field" placeholder="请输入">
+        </div>
+        <div class="selector-actions">
+          <button class="btn primary" onclick="searchSelectorGroups()">搜索</button>
+          <button class="btn" onclick="resetSelectorFilters()">重置</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn" onclick="selectAllSelectorGroups()">勾选全部</button>
+        <button class="btn" onclick="selectCurrentSelectorGroups()">勾选当前页</button>
+      </div>
+      <div class="selector-main">
+        <div class="selector-pane">
+          <div id="selectorGroupTable"></div>
+        </div>
+        <div class="selector-pane">
+          <div class="selector-pane-head">
+            <span>选中 <strong id="selectorSelectedCount">0</strong> 个群</span>
+            <button class="btn text danger" onclick="clearSelectorSelection()">清空</button>
+          </div>
+          <div id="selectorSelectedList" style="padding:0 12px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="selector-modal-footer">
+      <button class="btn" onclick="closeGroupSelector()">取消</button>
+      <button class="btn primary" onclick="confirmGroupSelector()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div id="createTypeModal" class="modal-mask">
+  <div class="modal" style="width:min(720px, 100%);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="margin:0;">新建群标签</h3>
+      <button class="drawer-close" onclick="closeCreateTypeModal()">×</button>
+    </div>
+    <div class="choice-grid">
+      <div class="choice-card selected">
+        <div class="choice-title">手动创建</div>
+        <p>创建一个固定群标签，用于后续在批量打标中给新群或存量群添加标签。</p>
+        <button class="btn primary" onclick="chooseCreateType('manual')">进入手动创建</button>
+      </div>
+      <div class="choice-card disabled">
+        <div class="choice-title choice-title-line">规则创建 <span class="badge gray">敬请期待</span></div>
+        <p>适合能被数据条件表达的群，例如社群成员数大于 200、近 7 天发言人数少于 3 人。</p>
+        <button class="btn" disabled>进入规则创建</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-mask">
+  <div class="modal">
+    <h3>确认保存手动标签</h3>
+    <div class="modal-body">
+      <div>标签名称：<strong id="confirmName"></strong></div>
+      <div>标签分组：<strong id="confirmGroup"></strong></div>
+      <div style="margin-top:10px;">本次将覆盖</div>
+      <div><span id="confirmCount" class="confirm-count">0</span> 个群</div>
+      <div id="zeroHint" class="badge warn hidden" style="margin-top:8px;">当前没有选择群，保存后会创建一个空标签</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeSaveConfirm()">取消</button>
+      <button class="btn primary" onclick="confirmSave()">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="drawerConfirmModal" class="modal-mask">
+  <div class="modal">
+    <h3>确认创建手动标签</h3>
+    <div class="modal-body">
+      <div>标签名称：<strong id="drawerConfirmName"></strong></div>
+      <div>标签分组：<strong id="drawerConfirmGroup"></strong></div>
+      <div style="margin-top:10px;">创建后覆盖群数为</div>
+      <div><span id="drawerConfirmCount" class="confirm-count">0</span> 个群</div>
+      <div id="drawerZeroHint" class="badge warn" style="margin-top:8px;">后续可在「批量打标」中给群添加该标签</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeDrawerSaveConfirm()">取消</button>
+      <button class="btn primary" onclick="saveDrawerTag()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<div id="removeModal" class="modal-mask">
+  <div class="modal">
+    <h3>确认移除标签关系</h3>
+    <div class="modal-body">移除后，该群不再拥有当前标签。群本身和其他标签不会受影响。</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeRemoveConfirm()">取消</button>
+      <button class="btn danger" onclick="confirmRemove()">确认移除</button>
+    </div>
+  </div>
+</div>
+
+<div id="batchConfirmModal" class="modal-mask">
+  <div class="modal">
+    <h3>确认批量打标</h3>
+    <div class="modal-body">
+      <div>将为已选群添加所选标签，若所选群已存在相同标签则自动跳过</div>
+      <div class="impact-grid">
+        <div class="impact-box">
+          <div id="batchConfirmGroups" class="impact-num">0</div>
+          <div class="impact-label">已选群</div>
+        </div>
+        <div class="impact-box">
+          <div id="batchConfirmTags" class="impact-num">0</div>
+          <div class="impact-label">已选标签</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeBatchConfirm()">取消</button>
+      <button class="btn primary" onclick="confirmBatchTagging()">确认添加</button>
+    </div>
+  </div>
+</div>
+
+<div id="groupModal" class="modal-mask">
+  <div class="modal">
+    <h3 id="groupModalTitle">新增分组</h3>
+    <div class="modal-body">
+      <div class="hint">标签分组是统一的业务分类；创建标签时只选择已有分组。</div>
+      <label>分组名称</label>
+      <input id="newGroupName" class="field" placeholder="例如：英国房源推广" maxlength="20" oninput="validateGroupName()">
+      <div id="groupNameError" class="error-text"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeGroupModal()">取消</button>
+      <button id="createGroupButton" class="btn primary" onclick="confirmSaveGroup()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="deleteGroupModal" class="modal-mask">
+  <div class="modal">
+    <h3>确认删除分组</h3>
+    <div class="modal-body">
+      <div>删除后，该分组不会再出现在左侧分组列表和新建标签的分组选择中。</div>
+      <div style="margin-top:10px;">分组名称：<strong id="deleteGroupName"></strong></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeDeleteGroupConfirm()">取消</button>
+      <button class="btn danger" onclick="confirmDeleteGroup()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const groups = [
+  { id: 1, name: "上海静安顾问跟进客群", owner: "林然", dept: "华东运营部", type: "客户服务群", createdAt: "2025-09-12", members: 187, status: "正常", permission: true },
+  { id: 2, name: "杭州留学生租房复购激活社群", owner: "周晴", dept: "华东运营部", type: "营销社群", createdAt: "2025-11-08", members: 326, status: "正常", permission: true },
+  { id: 3, name: "广州天河高预算客户陪跑群", owner: "王澈", dept: "华南运营部", type: "客户服务群", createdAt: "2026-01-16", members: 94, status: "正常", permission: true },
+  { id: 4, name: "深圳南山留学生公寓推广社群", owner: "王澈", dept: "华南运营部", type: "营销社群", createdAt: "2026-02-21", members: 218, status: "正常", permission: true },
+  { id: 5, name: "英国房东渠道共创群", owner: "林然", dept: "华东运营部", type: "异业合作群", createdAt: "2025-07-03", members: 46, status: "正常", permission: true },
+  { id: 6, name: "伦敦公寓 6 月直播承接社群", owner: "陈安", dept: "会员增长组", type: "营销社群", createdAt: "2026-05-18", members: 511, status: "正常", permission: true },
+  { id: 7, name: "投诉风险临时跟进客群", owner: "周晴", dept: "客户成功部", type: "客户服务群", createdAt: "2026-03-09", members: 38, status: "正常", permission: true },
+  { id: 8, name: "北京朝阳项目交付客群", owner: "陈安", dept: "客户成功部", type: "客户服务群", createdAt: "2024-12-28", members: 73, status: "已解散", permission: true },
+  { id: 9, name: "英国留学生超级长名称社群：伦敦曼彻斯特伯明翰格拉斯哥多城市租房房源推广群", owner: "王澈", dept: "华南运营部", type: "营销社群", createdAt: "2025-10-02", members: 689, status: "正常", permission: true },
+  { id: 10, name: "海外渠道伙伴联合运营群", owner: "许越", dept: "渠道合作部", type: "异业合作群", createdAt: "2025-04-17", members: 132, status: "正常", permission: false },
+  { id: 11, name: "武汉留学咨询首单转化客群", owner: "林然", dept: "华东运营部", type: "客户服务群", createdAt: "2026-04-05", members: 119, status: "正常", permission: true },
+  { id: 12, name: "曼彻斯特社群活跃度提升群", owner: "周晴", dept: "会员增长组", type: "营销社群", createdAt: "2026-01-30", members: 277, status: "正常", permission: true },
+  { id: 13, name: "伦敦东一区新房源订阅社群", owner: "林然", dept: "会员增长组", type: "营销社群", createdAt: "2026-02-06", members: 243, status: "正常", permission: true },
+  { id: 14, name: "曼城秋季入学租房答疑社群", owner: "周晴", dept: "会员增长组", type: "营销社群", createdAt: "2026-02-12", members: 364, status: "正常", permission: true },
+  { id: 15, name: "伯明翰学生公寓拼团社群", owner: "陈安", dept: "会员增长组", type: "营销社群", createdAt: "2026-02-20", members: 296, status: "正常", permission: true },
+  { id: 16, name: "格拉斯哥租房攻略分享社群", owner: "王澈", dept: "华南运营部", type: "营销社群", createdAt: "2026-03-02", members: 188, status: "正常", permission: true },
+  { id: 17, name: "爱丁堡短租过渡咨询社群", owner: "林然", dept: "华东运营部", type: "营销社群", createdAt: "2026-03-10", members: 156, status: "正常", permission: true },
+  { id: 18, name: "利兹大学周边房源推广社群", owner: "周晴", dept: "会员增长组", type: "营销社群", createdAt: "2026-03-18", members: 221, status: "正常", permission: true },
+  { id: 19, name: "谢菲尔德留学生入住提醒社群", owner: "陈安", dept: "客户成功部", type: "营销社群", createdAt: "2026-03-26", members: 179, status: "正常", permission: true },
+  { id: 20, name: "布里斯托租房避坑交流社群", owner: "王澈", dept: "华南运营部", type: "营销社群", createdAt: "2026-04-02", members: 307, status: "正常", permission: true },
+  { id: 21, name: "诺丁汉公寓开放日社群", owner: "林然", dept: "华东运营部", type: "营销社群", createdAt: "2026-04-11", members: 134, status: "正常", permission: true },
+  { id: 22, name: "考文垂留学生房源福利社群", owner: "周晴", dept: "会员增长组", type: "营销社群", createdAt: "2026-04-19", members: 265, status: "正常", permission: true },
+  { id: 23, name: "纽卡斯尔新生租房陪跑社群", owner: "陈安", dept: "会员增长组", type: "营销社群", createdAt: "2026-05-01", members: 198, status: "正常", permission: true },
+  { id: 24, name: "约克留学生精品公寓推荐社群", owner: "王澈", dept: "华南运营部", type: "营销社群", createdAt: "2026-05-09", members: 174, status: "正常", permission: true }
+];
+
+let tags = [
+  { id: 101, name: "高活跃留学生社群", desc: "人工维护的高活跃社群", group: "社群分层", kind: "manual", count: 3, owner: "林然", createdAt: "2026-06-18 10:12", updated: "2026-06-24 15:20", updateMode: "-", groupIds: [2, 6, 12] },
+  { id: 102, name: "近 7 天沉默社群", desc: "系统按规则更新", group: "活跃分层", kind: "rule", count: 42, owner: "系统", createdAt: "2026-06-15 09:30", updated: "2026-06-26 02:00", updateMode: "日例行", groupIds: [] },
+  { id: 103, name: "投诉风险跟进", desc: "人工维护的风险群", group: "风险跟进", kind: "manual", count: 1, owner: "周晴", createdAt: "2026-06-21 14:08", updated: "2026-06-25 18:05", updateMode: "-", groupIds: [7] },
+  { id: 104, name: "成员数 200+ 营销社群", desc: "系统按成员规模匹配", group: "规模分层", kind: "rule", count: 18, owner: "陈安", createdAt: "2026-06-16 11:20", updated: "2026-06-26 02:00", updateMode: "手动", groupIds: [] },
+  { id: 105, name: "英国秋招活动承接社群", desc: "人工维护的活动承接群", group: "活动运营", kind: "manual", count: 2, owner: "林然", createdAt: "2026-06-12 16:30", updated: "2026-06-20 10:12", updateMode: "-", groupIds: [2, 6] }
+];
+
+let tagGroups = ["活动运营", "社群分层", "活跃分层", "风险跟进", "规模分层", "区域运营"];
+tags = tags.concat([
+  ["伦敦东一区房源推广社群", "伦敦东一区公寓内容投放", "区域运营", "林然", 6, "2026-06-10 09:20", "2026-06-24 18:00"],
+  ["曼城秋季入学答疑社群", "人工维护的秋季入学答疑群", "活动运营", "周晴", 4, "2026-06-10 11:15", "2026-06-22 16:32"],
+  ["伯明翰学生公寓拼团社群", "拼团活动承接和转化跟进", "活动运营", "陈安", 5, "2026-06-09 10:08", "2026-06-20 15:40"],
+  ["格拉斯哥租房攻略社群", "攻略内容分发和直播预热", "社群分层", "王澈", 7, "2026-06-08 14:20", "2026-06-19 10:28"],
+  ["谢菲尔德入住提醒社群", "入住前提醒和服务触达", "活动运营", "陈安", 3, "2026-06-07 16:42", "2026-06-18 12:05"],
+  ["英国房东合作线索群", "渠道合作线索人工维护", "区域运营", "林然", 2, "2026-06-06 13:18", "2026-06-17 19:30"],
+  ["利兹大学周边房源群", "大学周边房源推广", "区域运营", "周晴", 4, "2026-06-05 09:36", "2026-06-17 11:08"],
+  ["诺丁汉开放日承接群", "开放日活动承接社群", "活动运营", "林然", 2, "2026-06-04 17:05", "2026-06-16 16:20"],
+  ["布里斯托避坑交流社群", "人工维护的内容种草群", "社群分层", "王澈", 6, "2026-06-03 10:10", "2026-06-15 20:11"],
+  ["约克精品公寓推荐群", "精品公寓推荐和用户咨询", "区域运营", "王澈", 3, "2026-06-02 12:42", "2026-06-14 15:16"],
+  ["爱丁堡短租过渡社群", "短租过渡需求运营群", "社群分层", "林然", 4, "2026-06-01 18:12", "2026-06-13 09:42"],
+  ["纽卡新生租房陪跑群", "新生租房陪跑人工分层", "社群分层", "陈安", 5, "2026-05-31 11:26", "2026-06-12 18:19"],
+  ["考文垂福利房源社群", "福利房源活动承接", "活动运营", "周晴", 3, "2026-05-30 15:08", "2026-06-11 12:55"],
+  ["海外渠道伙伴运营群", "渠道伙伴协同运营", "区域运营", "林然", 1, "2026-05-29 10:30", "2026-06-10 17:20"],
+  ["伦敦高预算房源社群", "高预算用户内容触达", "社群分层", "王澈", 8, "2026-05-28 09:48", "2026-06-09 14:36"],
+  ["复购激活重点社群", "复购激活名单人工维护", "活跃分层", "周晴", 5, "2026-05-27 13:12", "2026-06-08 11:22"],
+  ["高咨询未转化社群", "高咨询未转化群跟进", "风险跟进", "陈安", 2, "2026-05-26 16:20", "2026-06-07 19:44"],
+  ["直播报名未到场社群", "直播报名未到场二次触达", "活动运营", "林然", 4, "2026-05-25 12:18", "2026-06-06 10:12"],
+  ["房源内容测试社群", "房源内容 AB 测试群", "活动运营", "周晴", 6, "2026-05-24 10:04", "2026-06-05 16:09"],
+  ["区域投诉观察社群", "需要人工观察的风险群", "风险跟进", "陈安", 1, "2026-05-23 17:30", "2026-06-04 13:25"],
+  ["品牌活动种子社群", "品牌活动种子用户群", "活动运营", "林然", 7, "2026-05-22 09:18", "2026-06-03 15:10"],
+  ["伦敦公寓退订挽回群", "退订用户挽回触达", "风险跟进", "王澈", 2, "2026-05-21 14:44", "2026-06-02 12:20"]
+].map((item, index) => ({
+  id: 200 + index,
+  name: item[0],
+  desc: item[1],
+  group: item[2],
+  kind: "manual",
+  count: item[4],
+  owner: item[3],
+  createdAt: item[5],
+  updated: item[6],
+  updateMode: "-",
+  groupIds: []
+})));
+let tagKind = "manual";
+let tagPage = 1;
+const tagPageSize = 20;
+let tagQuery = { keyword: "", group: "", subGroup: "", owner: "" };
+let activeTagGroup = "";
+let activeTagSubGroup = "";
+let selectedIds = new Set([2, 4, 6]);
+let batchSelectedGroupIds = new Set();
+let batchSelectedTagIds = new Set();
+let batchPage = 1;
+const batchPageSize = 20;
+let batchHasSearched = false;
+let currentDetailId = 101;
+let appendMode = false;
+let pendingRemoveId = null;
+let drawerMode = "manual";
+let drawerSelectedIds = new Set([2, 4, 6]);
+let selectorContext = "drawer";
+let selectorSelectedIds = new Set();
+let selectorHasSearched = false;
+let groupModalMode = "create";
+let editingGroupName = "";
+let openedGroupMenu = "";
+let pendingDeleteGroup = "";
+
+function byId(id) { return document.getElementById(id); }
+
+function renderTagGroupOptions(selectedValue, selectId = "tagGroup") {
+  const select = byId(selectId);
+  if (!select) return;
+  const value = selectedValue !== undefined ? selectedValue : (select.value || "");
+  select.innerHTML = `<option value="">请选择</option>` + tagGroups.map(group => `<option value="${group}">${group}</option>`).join("");
+  if (tagGroups.includes(value)) select.value = value;
+  else select.value = "";
+}
+
+function renderAllTagGroupOptions(selectedValue) {
+  renderTagGroupOptions(selectedValue, "tagGroup");
+  renderTagGroupOptions(selectedValue, "drawerTagGroup");
+  renderTagGroupTree();
+}
+
+function getTagGroupCount(group) {
+  return tags.filter(tag => !group || tag.group === group).length;
+}
+
+function getTagSubGroupCount(group, subGroup) {
+  return tags.filter(tag => tag.group === group && getTagSubGroup(tag) === subGroup).length;
+}
+
+function getTagSubGroups(group) {
+  return [...new Set(tags.filter(tag => tag.group === group).map(tag => getTagSubGroup(tag)))];
+}
+
+function renderTagGroupTree() {
+  const tree = byId("tagGroupTree");
+  if (!tree) return;
+  tree.innerHTML = `
+    <div class="tag-group-node ${!activeTagGroup ? "active" : ""}">
+      <button class="tag-group-label" onclick="setActiveTagGroup('', '')">
+        <span class="tag-group-label-text">全部标签</span>
+        <span class="tag-group-node-count">${getTagGroupCount("")}</span>
+      </button>
+    </div>
+    ${tagGroups.map(group => {
+      const groupArg = JSON.stringify(group).replace(/"/g, "&quot;");
+      const subGroups = getTagSubGroups(group);
+      const isGroupActive = activeTagGroup === group && !activeTagSubGroup;
+      const isExpanded = activeTagGroup === group || subGroups.length > 0;
+      return `
+        <div class="tag-group-block">
+          <div class="tag-group-node ${isGroupActive ? "active" : ""}">
+            <button class="tag-group-label" onclick="setActiveTagGroup(${groupArg}, '')">
+              <span class="tag-group-label-text">${group}</span>
+              <span class="tag-group-node-count">${getTagGroupCount(group)}</span>
+            </button>
+            <div class="tag-group-actions">
+              <button class="tag-group-action" title="编辑分组" onclick="openGroupModal('edit', ${groupArg})">改</button>
+              <button class="tag-group-action danger" title="删除分组" onclick="openDeleteGroupConfirm(${groupArg})">删</button>
+            </div>
+          </div>
+          ${isExpanded ? `
+            <div class="tag-subgroup-list">
+              ${subGroups.map(subGroup => {
+                const subArg = JSON.stringify(subGroup).replace(/"/g, "&quot;");
+                const active = activeTagGroup === group && activeTagSubGroup === subGroup;
+                return `
+                  <button class="tag-subgroup-node ${active ? "active" : ""}" onclick="setActiveTagGroup(${groupArg}, ${subArg})">
+                    <span class="tag-group-label-text">${subGroup}</span>
+                    <span class="tag-group-node-count">${getTagSubGroupCount(group, subGroup)}</span>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }).join("")}
+  `;
+}
+
+function showOnly(viewId) {
+  ["listView", "choiceView", "createView", "batchView", "detailView"].forEach(id => byId(id).classList.add("hidden"));
+  byId(viewId).classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+
+function showList() {
+  appendMode = false;
+  showOnly("listView");
+  renderTagList();
+}
+
+function showChoice() {
+  appendMode = false;
+  showOnly("choiceView");
+}
+
+function openCreateTypeModal() {
+  byId("createTypeModal").classList.add("open");
+}
+
+function closeCreateTypeModal() {
+  byId("createTypeModal").classList.remove("open");
+}
+
+function chooseCreateType(mode) {
+  closeCreateTypeModal();
+  openCreateDrawer(mode);
+}
+
+function openCreateDrawer(mode = "manual") {
+  drawerMode = mode;
+  drawerSelectedIds = new Set();
+  byId("drawerTitle").textContent = mode === "manual" ? "创建手动群标签" : "创建规则群标签";
+  byId("drawerTagName").value = "";
+  renderTagGroupOptions("", "drawerTagGroup");
+  byId("drawerTagDesc").value = "";
+  byId("drawerNameError").textContent = "";
+  byId("manualDrawerSection").classList.toggle("hidden", mode !== "manual");
+  byId("ruleDrawerSection").classList.toggle("hidden", mode !== "rule");
+  byId("createDrawerMask").classList.add("open");
+}
+
+function closeCreateDrawer() {
+  byId("createDrawerMask").classList.remove("open");
+}
+
+function renderDrawerSelected() {
+  const countEl = byId("drawerSelectedCount");
+  const listEl = byId("drawerSelectedList");
+  if (!countEl || !listEl) return;
+  const selected = groups.filter(group => drawerSelectedIds.has(group.id));
+  countEl.textContent = selected.length;
+  if (!selected.length) {
+    listEl.innerHTML = `
+      <div class="empty" style="border:0; padding:26px 8px;">
+        <h3>当前未选择群</h3>
+        <div>点击“选择群聊”添加覆盖群。</div>
+      </div>`;
+    return;
+  }
+  listEl.innerHTML = selected.map(group => `
+    <div class="selected-item">
+      <div class="name-main">${group.name}</div>
+      <div class="selected-meta">${group.owner} · ${group.type} · ${group.createdAt} 建群 · ${group.members} 人</div>
+      <button class="btn text" style="height:28px;padding-left:0;" onclick="removeDrawerSelected(${group.id})">移除</button>
+    </div>
+  `).join("");
+}
+
+function removeDrawerSelected(id) {
+  drawerSelectedIds.delete(id);
+  renderDrawerSelected();
+}
+
+function confirmDrawerSave() {
+  const name = byId("drawerTagName").value.trim();
+  const group = byId("drawerTagGroup").value;
+  const duplicated = tags.some(tag => tag.name === name && tag.group === group);
+  byId("drawerNameError").textContent = !name ? "请输入标签名称" : !group ? "请选择标签分组" : duplicated ? "该分组下已存在同名标签" : "";
+  if (!name || !group || duplicated) return;
+  byId("drawerConfirmName").textContent = name;
+  byId("drawerConfirmGroup").textContent = group;
+  byId("drawerConfirmCount").textContent = "0";
+  byId("drawerConfirmModal").classList.add("open");
+}
+
+function closeDrawerSaveConfirm() {
+  byId("drawerConfirmModal").classList.remove("open");
+}
+
+function saveDrawerTag() {
+  const updateModeMap = { daily: "日例行", manual: "手动", none: "不更新" };
+  const checkedUpdateMode = document.querySelector('input[name="drawerUpdateMode"]:checked')?.value || "daily";
+  const newTag = {
+    id: Date.now(),
+    name: byId("drawerTagName").value.trim(),
+    desc: byId("drawerTagDesc").value.trim() || "-",
+    group: byId("drawerTagGroup").value,
+    kind: drawerMode,
+    count: 0,
+    owner: drawerMode === "manual" ? "当前用户" : "系统",
+    createdAt: "2026-06-27 11:00",
+    updated: "2026-06-27 11:00",
+    updateMode: drawerMode === "manual" ? "-" : updateModeMap[checkedUpdateMode],
+    groupIds: []
+  };
+  tags.unshift(newTag);
+  closeDrawerSaveConfirm();
+  closeCreateDrawer();
+  showList();
+  toast(drawerMode === "manual" ? "手动标签已创建，可在批量打标中使用" : "规则标签已创建，等待规则计算");
+}
+
+function showBatchTagging() {
+  appendMode = false;
+  batchSelectedGroupIds = new Set();
+  batchSelectedTagIds = new Set();
+  batchHasSearched = false;
+  batchPage = 1;
+  byId("batchGroupNameFilter").value = "";
+  byId("batchOwnerFilter").value = "";
+  byId("batchTypeFilter").value = "";
+  byId("batchStartDate").value = "";
+  byId("batchEndDate").value = "";
+  byId("batchMemberOp").value = "";
+  byId("batchMemberValue").value = "";
+  byId("batchTagSearch").value = "";
+  showOnly("batchView");
+  renderBatchGroupTable();
+  renderBatchTagPicker();
+  renderBatchSelected();
+  validateBatchAction();
+}
+
+function showCreate() {
+  appendMode = false;
+  selectedIds = new Set([2, 4, 6]);
+  byId("tagName").value = "伦敦公寓房源推广群";
+  renderTagGroupOptions("活动运营");
+  byId("tagDesc").value = "运营人工圈定的伦敦公寓房源推广社群，用于后续群发触达、房源内容投放和活动承接。";
+  byId("typeFilter").value = "营销社群";
+  showOnly("createView");
+  validateForm();
+  renderGroupTable();
+  renderSelected();
+}
+
+function showCreateForAppend() {
+  appendMode = true;
+  const tag = tags.find(item => item.id === currentDetailId);
+  selectedIds = new Set(tag.groupIds);
+  byId("tagName").value = tag.name;
+  renderTagGroupOptions(tag.group);
+  byId("tagDesc").value = "从标签详情进入添加群，本次保存后会更新覆盖群列表。";
+  showOnly("createView");
+  validateForm();
+  renderGroupTable();
+  renderSelected();
+}
+
+function showDetail(id) {
+  currentDetailId = id;
+  showOnly("detailView");
+  renderDetail();
+}
+
+function setTagKind(kind) {
+  tagKind = kind;
+  tagPage = 1;
+  document.querySelectorAll(".filter-chip").forEach(btn => btn.classList.toggle("active", btn.dataset.kind === kind));
+  renderTagList();
+}
+
+function setActiveTagGroup(group, subGroup = "") {
+  openedGroupMenu = "";
+  activeTagGroup = group;
+  activeTagSubGroup = subGroup;
+  tagQuery.group = group;
+  tagQuery.subGroup = subGroup;
+  tagPage = 1;
+  renderTagGroupTree();
+  renderTagList();
+}
+
+function syncTagKindTabs() {
+  document.querySelectorAll(".filter-chip").forEach(btn => btn.classList.toggle("active", btn.dataset.kind === tagKind));
+}
+
+function filteredTags() {
+  const { keyword, group: groupFilter, subGroup: subGroupFilter, owner: ownerFilter } = tagQuery;
+  return tags.filter(tag => {
+    const kindMatch = tagKind === "all" || tag.kind === tagKind;
+    const searchMatch = !keyword || tag.name.includes(keyword) || tag.group.includes(keyword);
+    const groupMatch = !groupFilter || tag.group === groupFilter;
+    const subGroupMatch = !subGroupFilter || getTagSubGroup(tag) === subGroupFilter;
+    const ownerMatch = !ownerFilter || tag.owner === ownerFilter;
+    return kindMatch && searchMatch && groupMatch && subGroupMatch && ownerMatch;
+  });
+}
+
+function searchTagList() {
+  tagQuery = {
+    keyword: byId("tagSearch").value.trim(),
+    group: activeTagGroup,
+    subGroup: activeTagSubGroup,
+    owner: byId("tagOwnerFilter")?.value || ""
+  };
+  tagPage = 1;
+  renderTagList();
+}
+
+function resetTagFilters() {
+  tagKind = "manual";
+  activeTagGroup = "";
+  activeTagSubGroup = "";
+  tagPage = 1;
+  tagQuery = { keyword: "", group: "", subGroup: "", owner: "" };
+  byId("tagSearch").value = "";
+  byId("tagOwnerFilter").value = "";
+  syncTagKindTabs();
+  renderTagGroupTree();
+  renderTagList();
+}
+
+function changeTagPage(delta) {
+  tagPage += delta;
+  renderTagList();
+}
+
+function renderTagList() {
+  syncTagKindTabs();
+  renderTagGroupTree();
+  const rows = filteredTags();
+  const totalPages = Math.max(1, Math.ceil(rows.length / tagPageSize));
+  if (tagPage > totalPages) tagPage = totalPages;
+  if (tagPage < 1) tagPage = 1;
+  const start = (tagPage - 1) * tagPageSize;
+  const pageRows = rows.slice(start, start + tagPageSize);
+  if (!rows.length) {
+    byId("tagTable").innerHTML = `
+      <div class="empty">
+        <h3>没有匹配的群标签</h3>
+        <div>换一个关键词或清空筛选后再试。</div>
+      </div>`;
+    return;
+  }
+  byId("tagTable").innerHTML = `
+    <div class="table-wrap">
+      <div class="list-table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>标签名称</th>
+              <th>描述</th>
+              <th>创建方式</th>
+              <th>标签分组</th>
+              <th>覆盖群数</th>
+              <th>创建人</th>
+              <th>创建时间</th>
+              <th>更新方式</th>
+              <th>最后更新</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${pageRows.map(tag => `
+              <tr>
+                <td><div class="name-main">${tag.name}</div></td>
+                <td>${tag.desc || "-"}</td>
+                <td><span class="badge ${tag.kind}">${tag.kind === "manual" ? "手动创建" : "规则创建"}</span></td>
+                <td>${tag.group}</td>
+                <td>${tag.count}</td>
+                <td>${tag.owner}</td>
+                <td>${tag.createdAt || "-"}</td>
+                <td>${tag.kind === "manual" ? "-" : (tag.updateMode || "-")}</td>
+                <td>${tag.updated}</td>
+                <td>
+                  <div class="actions">
+                    ${tag.kind === "manual"
+                      ? `<button class="btn text" onclick="showDetail(${tag.id})">详情</button>`
+                      : `<button class="btn text" onclick="toast('规则标签详情不在本次原型范围')">详情</button>${tag.updateMode === "手动" ? `<button class="btn text" onclick="updateRuleTag(${tag.id})">更新</button>` : ""}`}
+                  </div>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+      <div class="list-pagination">
+        <span class="muted">共 ${rows.length} 条，每页 20 条，第 ${tagPage} / ${totalPages} 页</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" ${tagPage === 1 ? "disabled" : ""} onclick="changeTagPage(-1)">上一页</button>
+          <button class="btn" ${tagPage === totalPages ? "disabled" : ""} onclick="changeTagPage(1)">下一页</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateRuleTag(id) {
+  const tag = tags.find(item => item.id === id);
+  if (!tag || tag.kind !== "rule" || tag.updateMode !== "手动") return;
+  tag.updated = "2026-06-27 11:25";
+  renderTagList();
+  toast("已触发手动更新，覆盖群数将在计算后刷新");
+}
+
+function filteredGroups() {
+  const keyword = byId("groupSearch").value.trim();
+  const owner = byId("ownerFilter").value;
+  const type = byId("typeFilter").value;
+  return groups.filter(group => {
+    const keywordMatch = !keyword || group.name.includes(keyword) || group.owner.includes(keyword);
+    const ownerMatch = !owner || group.owner === owner;
+    const typeMatch = !type || group.type === type;
+    return keywordMatch && ownerMatch && typeMatch;
+  });
+}
+
+function renderGroupTable() {
+  const rows = filteredGroups();
+  if (!rows.length) {
+    byId("groupTable").innerHTML = `
+      <div class="empty">
+        <h3>没有找到目标群</h3>
+        <div>可以调整群名称、群主姓名、群类型、建群日期或群成员数筛选。</div>
+      </div>`;
+    return;
+  }
+  byId("groupTable").innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="checkbox-cell">选择</th>
+            <th>群名称</th>
+            <th>群主</th>
+            <th>群类型</th>
+            <th>建群时间</th>
+            <th>成员数</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(group => `
+            <tr>
+              <td class="checkbox-cell">
+                <input type="checkbox" ${selectedIds.has(group.id) ? "checked" : ""} ${group.permission ? "" : "disabled"} onchange="toggleGroup(${group.id}, this.checked)">
+              </td>
+              <td class="group-name">
+                <div class="name-main">${group.name}</div>
+                ${group.permission ? "" : `<div class="muted">无权限操作该群</div>`}
+              </td>
+              <td>${group.owner}</td>
+              <td>${group.type}</td>
+              <td>${group.createdAt}</td>
+              <td>${group.members}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function statusBadge(group) {
+  if (!group.permission) return `<span class="badge gray">无权限</span>`;
+  if (group.status === "已解散") return `<span class="badge warn">已解散</span>`;
+  return `<span class="badge manual">正常</span>`;
+}
+
+function toggleGroup(id, checked) {
+  if (checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  renderSelected();
+}
+
+function renderSelected() {
+  const selected = groups.filter(group => selectedIds.has(group.id));
+  byId("selectedCount").textContent = selected.length;
+  if (!selected.length) {
+    byId("selectedList").innerHTML = `
+      <div class="empty" style="border:0; padding:34px 8px;">
+        <h3>当前未选择群</h3>
+        <div>可以保存为空标签，也可以先选择目标群。</div>
+      </div>`;
+    return;
+  }
+  byId("selectedList").innerHTML = selected.map(group => `
+    <div class="selected-item">
+      <div class="name-main">${group.name}</div>
+      <div class="selected-meta">${group.owner} · ${group.type} · ${group.createdAt} 建群 · ${group.members} 人</div>
+      <button class="btn text" style="height:28px;padding-left:0;" onclick="removeSelected(${group.id})">移除</button>
+    </div>
+  `).join("");
+}
+
+function removeSelected(id) {
+  selectedIds.delete(id);
+  renderGroupTable();
+  renderSelected();
+}
+
+function clearSelected() {
+  if (!selectedIds.size) return;
+  selectedIds.clear();
+  renderGroupTable();
+  renderSelected();
+  toast("已清空当前选择");
+}
+
+function resetGroupFilters() {
+  byId("groupSearch").value = "";
+  byId("ownerFilter").value = "";
+  byId("typeFilter").value = "";
+  renderGroupTable();
+}
+
+function selectFilteredGroups() {
+  const rows = filteredGroups().filter(group => group.permission);
+  rows.forEach(group => selectedIds.add(group.id));
+  renderGroupTable();
+  renderSelected();
+  toast(`已选择当前筛选结果中的 ${rows.length} 个群`);
+}
+
+function filteredBatchGroups() {
+  const groupName = byId("batchGroupNameFilter").value.trim();
+  const owner = byId("batchOwnerFilter").value;
+  const type = byId("batchTypeFilter").value;
+  const startDate = byId("batchStartDate").value;
+  const endDate = byId("batchEndDate").value;
+  const memberOp = byId("batchMemberOp").value;
+  const memberValue = Number(byId("batchMemberValue").value);
+  return groups.filter(group => {
+    const nameMatch = !groupName || group.name.includes(groupName);
+    const ownerMatch = !owner || group.owner === owner;
+    const typeMatch = !type || group.type === type;
+    const startMatch = !startDate || group.createdAt >= startDate;
+    const endMatch = !endDate || group.createdAt <= endDate;
+    const memberMatch = !memberOp || !memberValue || (memberOp === "gte" ? group.members >= memberValue : group.members <= memberValue);
+    return nameMatch && ownerMatch && typeMatch && startMatch && endMatch && memberMatch;
+  });
+}
+
+function renderBatchGroupTable() {
+  if (!batchHasSearched) {
+    byId("batchGroupTable").innerHTML = `
+      <div class="empty" style="height:100%;display:flex;flex-direction:column;justify-content:center;">
+        <h3>暂无群数据</h3>
+        <div>请先设置筛选条件并点击搜索。</div>
+      </div>`;
+    return;
+  }
+  const rows = filteredBatchGroups();
+  const totalPages = Math.max(1, Math.ceil(rows.length / batchPageSize));
+  if (batchPage > totalPages) batchPage = totalPages;
+  const start = (batchPage - 1) * batchPageSize;
+  const pageRows = rows.slice(start, start + batchPageSize);
+  if (!rows.length) {
+    byId("batchGroupTable").innerHTML = `
+      <div class="empty">
+        <h3>没有找到目标群</h3>
+        <div>可以调整群名称、群主姓名、群类型、建群日期或群成员数筛选。</div>
+      </div>`;
+    return;
+  }
+  byId("batchGroupTable").innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="checkbox-cell"><input type="checkbox" onchange="toggleCurrentBatchPage(this.checked)"></th>
+            <th>群名称</th>
+            <th>群主</th>
+            <th>群类型</th>
+            <th>建群时间</th>
+            <th>成员数</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pageRows.map(group => `
+            <tr>
+              <td class="checkbox-cell">
+                <input type="checkbox" ${batchSelectedGroupIds.has(group.id) ? "checked" : ""} ${group.permission ? "" : "disabled"} onchange="toggleBatchGroup(${group.id}, this.checked)">
+              </td>
+              <td class="group-name">
+                <div class="name-main">${group.name}</div>
+                ${group.permission ? "" : `<div class="muted">无权限操作该群</div>`}
+              </td>
+              <td>${group.owner}</td>
+              <td>${group.type}</td>
+              <td>${group.createdAt}</td>
+              <td>${group.members}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+      <div class="batch-pagination">
+        <span class="muted">共 ${rows.length} 个群，每页 20 条，第 ${batchPage} / ${totalPages} 页</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" ${batchPage === 1 ? "disabled" : ""} onclick="changeBatchPage(-1)">上一页</button>
+          <button class="btn" ${batchPage === totalPages ? "disabled" : ""} onclick="changeBatchPage(1)">下一页</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderBatchGroupTableFromFilter() {
+  batchPage = 1;
+  renderBatchGroupTable();
+}
+
+function searchBatchGroups() {
+  batchHasSearched = true;
+  batchPage = 1;
+  renderBatchGroupTable();
+}
+
+function handleBatchGroupSearchKey(event) {
+  if (event.key === "Enter") searchBatchGroups();
+}
+
+function getShortTagName(tag) {
+  const map = {
+    "高活跃留学生社群": "高活跃",
+    "英国秋招活动承接社群": "英国秋招",
+    "曼城秋季入学答疑社群": "曼城秋季",
+    "伯明翰学生公寓拼团社群": "伯明翰拼团",
+    "谢菲尔德入住提醒社群": "谢菲入住",
+    "诺丁汉开放日承接群": "诺丁汉开放日",
+    "考文垂福利房源社群": "考文垂福利",
+    "直播报名未到场社群": "直播未到场",
+    "房源内容测试社群": "房源测试",
+    "品牌活动种子社群": "品牌种子",
+    "格拉斯哥租房攻略社群": "格拉斯哥攻略",
+    "布里斯托避坑交流社群": "布里斯托避坑",
+    "爱丁堡短租过渡社群": "爱丁堡短租",
+    "纽卡新生租房陪跑群": "纽卡新生",
+    "伦敦高预算房源社群": "伦敦高预算",
+    "复购激活重点社群": "复购激活",
+    "投诉风险跟进": "投诉风险",
+    "高咨询未转化社群": "未转化",
+    "区域投诉观察社群": "投诉观察",
+    "伦敦公寓退订挽回群": "退订挽回",
+    "伦敦东一区房源推广社群": "伦敦东一区",
+    "英国房东合作线索群": "房东合作",
+    "利兹大学周边房源群": "利兹周边",
+    "约克精品公寓推荐群": "约克精品"
+  };
+  return map[tag.name] || tag.name.replace(/留学生|学生公寓|社群|群/g, "").slice(0, 8);
+}
+
+function getTagSubGroup(tag) {
+  const text = `${tag.name}${tag.desc}`;
+  if (tag.group === "活动运营") {
+    if (/秋招|开放日|直播|品牌/.test(text)) return "活动承接";
+    if (/入学|入住|提醒/.test(text)) return "入学服务";
+    if (/拼团|福利/.test(text)) return "转化活动";
+    return "日常运营";
+  }
+  if (tag.group === "社群分层") {
+    if (/高活跃|高预算|复购|精品/.test(text)) return "价值分层";
+    if (/攻略|避坑|短租|新生/.test(text)) return "内容社群";
+    return "人群分层";
+  }
+  if (tag.group === "风险跟进") {
+    if (/投诉|退订|未转化/.test(text)) return "风险名单";
+    return "观察名单";
+  }
+  if (tag.group === "区域运营") {
+    if (/伦敦|曼城|伯明翰|利兹|约克/.test(text)) return "城市房源";
+    return "渠道合作";
+  }
+  return "默认分类";
+}
+
+function renderBatchTagPicker() {
+  const keyword = byId("batchTagSearch") ? byId("batchTagSearch").value.trim() : "";
+  const manualTags = tags.filter(tag => tag.kind === "manual" && (!keyword || tag.name.includes(keyword) || getShortTagName(tag).includes(keyword)));
+  const groupsByName = tagGroups
+    .map(group => ({ group, items: manualTags.filter(tag => tag.group === group) }))
+    .filter(item => item.items.length);
+  byId("batchSelectedTagCount").textContent = batchSelectedTagIds.size;
+  if (!groupsByName.length) {
+    byId("batchTagPicker").innerHTML = `
+      <div class="empty" style="padding:28px 10px;">
+        <h3>没有找到标签</h3>
+        <div>可以换一个标签名称试试。</div>
+      </div>`;
+    validateBatchAction();
+    return;
+  }
+  byId("batchTagPicker").innerHTML = `
+    <div class="tag-tree">
+      ${groupsByName.map(groupItem => `
+        <div class="tag-tree-group">
+          <div class="tag-tree-title">${groupItem.group}</div>
+          ${Object.entries(groupItem.items.reduce((result, tag) => {
+            const subgroup = getTagSubGroup(tag);
+            if (!result[subgroup]) result[subgroup] = [];
+            result[subgroup].push(tag);
+            return result;
+          }, {})).map(([subgroup, subgroupTags]) => `
+            <div class="tag-subgroup">
+              <div class="tag-subgroup-title">${subgroup}</div>
+              <div class="tag-tree-items">
+                ${subgroupTags.map(tag => `
+                  <button class="tag-tree-item ${batchSelectedTagIds.has(tag.id) ? "selected" : ""}" title="${tag.name}" onclick="toggleBatchTag(${tag.id})">
+                    ${getShortTagName(tag)}
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `).join("")}
+    </div>`;
+  validateBatchAction();
+}
+
+function renderBatchSelected() {
+  const selected = groups.filter(group => batchSelectedGroupIds.has(group.id));
+  if (byId("batchSelectedCountTop")) byId("batchSelectedCountTop").textContent = selected.length;
+  validateBatchAction();
+}
+
+function toggleBatchGroup(id, checked) {
+  if (checked) batchSelectedGroupIds.add(id);
+  else batchSelectedGroupIds.delete(id);
+  renderBatchSelected();
+}
+
+function changeBatchPage(delta) {
+  batchPage += delta;
+  renderBatchGroupTable();
+}
+
+function toggleCurrentBatchPage(checked) {
+  if (!batchHasSearched) {
+    toast("请先搜索群");
+    return;
+  }
+  const rows = filteredBatchGroups();
+  const start = (batchPage - 1) * batchPageSize;
+  rows.slice(start, start + batchPageSize).filter(group => group.permission).forEach(group => {
+    if (checked) batchSelectedGroupIds.add(group.id);
+    else batchSelectedGroupIds.delete(group.id);
+  });
+  renderBatchGroupTable();
+  renderBatchSelected();
+}
+
+function selectCurrentBatchPage() {
+  toggleCurrentBatchPage(true);
+}
+
+function removeBatchGroup(id) {
+  batchSelectedGroupIds.delete(id);
+  renderBatchGroupTable();
+  renderBatchSelected();
+}
+
+function toggleBatchTag(id) {
+  if (batchSelectedTagIds.has(id)) batchSelectedTagIds.delete(id);
+  else batchSelectedTagIds.add(id);
+  renderBatchTagPicker();
+}
+
+function clearBatchSelected() {
+  if (!batchSelectedGroupIds.size) return;
+  batchSelectedGroupIds.clear();
+  renderBatchGroupTable();
+  renderBatchSelected();
+  toast("已清空当前选择");
+}
+
+function clearBatchTags() {
+  if (!batchSelectedTagIds.size) return;
+  batchSelectedTagIds.clear();
+  renderBatchTagPicker();
+}
+
+function resetBatchFilters() {
+  byId("batchGroupNameFilter").value = "";
+  byId("batchOwnerFilter").value = "";
+  byId("batchTypeFilter").value = "";
+  byId("batchStartDate").value = "";
+  byId("batchEndDate").value = "";
+  byId("batchMemberOp").value = "";
+  byId("batchMemberValue").value = "";
+  batchPage = 1;
+  batchHasSearched = false;
+  renderBatchGroupTable();
+}
+
+function selectFilteredBatchGroups() {
+  const rows = filteredBatchGroups().filter(group => group.permission);
+  rows.forEach(group => batchSelectedGroupIds.add(group.id));
+  renderBatchGroupTable();
+  renderBatchSelected();
+  toast(`已选择当前筛选结果中的 ${rows.length} 个群`);
+}
+
+function openGroupSelector(context = "drawer") {
+  selectorContext = context;
+  if (context === "detail") {
+    const tag = tags.find(item => item.id === currentDetailId);
+    selectorSelectedIds = new Set(tag ? tag.groupIds : []);
+  } else {
+    selectorSelectedIds = new Set(drawerSelectedIds);
+  }
+  resetSelectorFilters(false);
+  selectorHasSearched = false;
+  byId("groupSelectorModal").classList.add("open");
+  renderSelectorGroups();
+  renderSelectorSelected();
+}
+
+function closeGroupSelector() {
+  byId("groupSelectorModal").classList.remove("open");
+}
+
+function resetSelectorFilters(shouldRender = true) {
+  byId("selectorStartDate").value = "";
+  byId("selectorEndDate").value = "";
+  byId("selectorGroupName").value = "";
+  byId("selectorOwner").value = "";
+  byId("selectorGroupType").value = "";
+  byId("selectorMemberOp").value = "";
+  byId("selectorMemberValue").value = "";
+  if (shouldRender) {
+    selectorHasSearched = false;
+    renderSelectorGroups();
+  }
+}
+
+function groupTagNames(groupId) {
+  return tags.filter(tag => tag.groupIds.includes(groupId)).map(tag => tag.name);
+}
+
+function filteredSelectorGroups() {
+  const keyword = byId("selectorGroupName").value.trim();
+  const owner = byId("selectorOwner").value;
+  const type = byId("selectorGroupType").value;
+  const memberOp = byId("selectorMemberOp").value;
+  const memberValue = Number(byId("selectorMemberValue").value);
+  return groups.filter(group => {
+    const keywordMatch = !keyword || group.name.includes(keyword) || group.owner.includes(keyword);
+    const ownerMatch = !owner || group.owner === owner;
+    const typeMatch = !type || group.type === type;
+    const memberMatch = !memberOp || !memberValue
+      || (memberOp === "gte" && group.members >= memberValue)
+      || (memberOp === "lte" && group.members <= memberValue);
+    return keywordMatch && ownerMatch && typeMatch && memberMatch;
+  });
+}
+
+function searchSelectorGroups() {
+  selectorHasSearched = true;
+  renderSelectorGroups();
+}
+
+function renderSelectorGroups() {
+  if (!selectorHasSearched) {
+    byId("selectorGroupTable").innerHTML = `
+      <div class="empty" style="border:0;">
+        <h3>暂无数据</h3>
+        <div>请先设置筛选条件并点击搜索。</div>
+      </div>`;
+    return;
+  }
+  const rows = filteredSelectorGroups();
+  if (!rows.length) {
+    byId("selectorGroupTable").innerHTML = `
+      <div class="empty" style="border:0;">
+        <h3>暂无数据</h3>
+        <div>调整筛选条件后再搜索。</div>
+      </div>`;
+    return;
+  }
+  byId("selectorGroupTable").innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th class="checkbox-cell"><input type="checkbox" onchange="toggleCurrentSelectorGroups(this.checked)"></th>
+          <th>群名称</th>
+          <th>群标签</th>
+          <th>群主</th>
+          <th>群类型</th>
+          <th>建群时间</th>
+          <th>群人数</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(group => {
+          const tagNames = groupTagNames(group.id);
+          return `
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" ${selectorSelectedIds.has(group.id) ? "checked" : ""} ${group.permission ? "" : "disabled"} onchange="toggleSelectorGroup(${group.id}, this.checked)"></td>
+              <td class="selector-table-name">
+                <div class="name-main">${group.name}</div>
+                ${group.permission ? "" : `<div class="muted">无权限操作该群</div>`}
+              </td>
+              <td class="selector-table-tags">${tagNames.length ? tagNames.slice(0, 2).join("、") : "-"}</td>
+              <td class="selector-nowrap">${group.owner}</td>
+              <td class="selector-nowrap">${group.type}</td>
+              <td class="selector-nowrap">${group.createdAt}</td>
+              <td class="selector-nowrap">${group.members}</td>
+            </tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+}
+
+function renderSelectorSelected() {
+  const selected = groups.filter(group => selectorSelectedIds.has(group.id));
+  byId("selectorSelectedCount").textContent = selected.length;
+  if (!selected.length) {
+    byId("selectorSelectedList").innerHTML = `
+      <div class="empty" style="border:0; padding:34px 8px;">
+        <h3>暂无数据</h3>
+        <div>左侧勾选群后会显示在这里。</div>
+      </div>`;
+    return;
+  }
+  byId("selectorSelectedList").innerHTML = selected.map(group => `
+    <div class="selected-item">
+      <div class="name-main">${group.name}</div>
+      <div class="selected-meta">${group.owner} · ${group.type} · ${group.members} 人</div>
+      <button class="btn text" style="height:28px;padding-left:0;" onclick="removeSelectorGroup(${group.id})">移除</button>
+    </div>
+  `).join("");
+}
+
+function toggleSelectorGroup(id, checked) {
+  if (checked) selectorSelectedIds.add(id);
+  else selectorSelectedIds.delete(id);
+  renderSelectorSelected();
+}
+
+function removeSelectorGroup(id) {
+  selectorSelectedIds.delete(id);
+  renderSelectorGroups();
+  renderSelectorSelected();
+}
+
+function toggleCurrentSelectorGroups(checked) {
+  const rows = filteredSelectorGroups().filter(group => group.permission);
+  rows.forEach(group => {
+    if (checked) selectorSelectedIds.add(group.id);
+    else selectorSelectedIds.delete(group.id);
+  });
+  renderSelectorGroups();
+  renderSelectorSelected();
+}
+
+function selectCurrentSelectorGroups() {
+  const rows = filteredSelectorGroups().filter(group => group.permission);
+  rows.forEach(group => selectorSelectedIds.add(group.id));
+  renderSelectorGroups();
+  renderSelectorSelected();
+}
+
+function selectAllSelectorGroups() {
+  selectCurrentSelectorGroups();
+  toast("原型中“全部”按当前筛选结果处理");
+}
+
+function clearSelectorSelection() {
+  selectorSelectedIds.clear();
+  renderSelectorGroups();
+  renderSelectorSelected();
+}
+
+function confirmGroupSelector() {
+  if (selectorContext === "detail") {
+    const tag = tags.find(item => item.id === currentDetailId);
+    tag.groupIds = [...selectorSelectedIds];
+    tag.count = tag.groupIds.length;
+    tag.updated = "2026-06-27 11:10";
+    closeGroupSelector();
+    renderDetail();
+    renderTagList();
+    toast("覆盖群已更新");
+    return;
+  }
+  drawerSelectedIds = new Set(selectorSelectedIds);
+  closeGroupSelector();
+  renderDrawerSelected();
+}
+
+function validateBatchAction() {
+  const button = byId("batchSaveButton");
+  if (!button) return false;
+  const ok = batchSelectedGroupIds.size > 0 && batchSelectedTagIds.size > 0;
+  button.disabled = !ok;
+  return ok;
+}
+
+function getBatchImpact() {
+  let addCount = 0;
+  let skipCount = 0;
+  const selectedTagList = tags.filter(tag => batchSelectedTagIds.has(tag.id) && tag.kind === "manual");
+  selectedTagList.forEach(tag => {
+    batchSelectedGroupIds.forEach(groupId => {
+      if (tag.groupIds.includes(groupId)) skipCount += 1;
+      else addCount += 1;
+    });
+  });
+  return {
+    groupCount: batchSelectedGroupIds.size,
+    tagCount: selectedTagList.length,
+    addCount,
+    skipCount
+  };
+}
+
+function openBatchConfirm() {
+  if (!validateBatchAction()) return;
+  const impact = getBatchImpact();
+  byId("batchConfirmGroups").textContent = impact.groupCount;
+  byId("batchConfirmTags").textContent = impact.tagCount;
+  byId("batchConfirmModal").classList.add("open");
+}
+
+function closeBatchConfirm() {
+  byId("batchConfirmModal").classList.remove("open");
+}
+
+function confirmBatchTagging() {
+  const impact = getBatchImpact();
+  tags.forEach(tag => {
+    if (!batchSelectedTagIds.has(tag.id) || tag.kind !== "manual") return;
+    const merged = new Set(tag.groupIds);
+    batchSelectedGroupIds.forEach(groupId => merged.add(groupId));
+    tag.groupIds = [...merged];
+    tag.count = tag.groupIds.length;
+    tag.updated = "2026-06-26 16:45";
+  });
+  closeBatchConfirm();
+  batchSelectedGroupIds.clear();
+  renderBatchGroupTable();
+  renderBatchTagPicker();
+  renderBatchSelected();
+  renderTagList();
+  toast(`批量打标完成，新增 ${impact.addCount} 个标签关系，可继续搜索下一批群`);
+}
+
+function toggleGroupMenu(event, group) {
+  event.stopPropagation();
+  openedGroupMenu = openedGroupMenu === group ? "" : group;
+  renderTagGroupTree();
+}
+
+function openGroupModal(mode = "create", group = "") {
+  groupModalMode = mode;
+  editingGroupName = group;
+  openedGroupMenu = "";
+  byId("groupModalTitle").textContent = mode === "edit" ? "编辑分组" : "新增分组";
+  byId("newGroupName").value = "";
+  byId("groupNameError").textContent = "";
+  byId("createGroupButton").disabled = mode !== "edit";
+  if (mode === "edit") byId("newGroupName").value = group;
+  byId("groupModal").classList.add("open");
+  renderTagGroupTree();
+}
+
+function closeGroupModal() {
+  editingGroupName = "";
+  byId("groupModal").classList.remove("open");
+}
+
+function validateGroupName() {
+  const name = byId("newGroupName").value.trim();
+  const duplicated = tagGroups.some(group => group !== editingGroupName && group === name);
+  byId("groupNameError").textContent = !name ? "请输入分组名称" : duplicated ? "该分组已存在" : "";
+  byId("createGroupButton").disabled = !name || duplicated;
+  return Boolean(name && !duplicated);
+}
+
+function confirmSaveGroup() {
+  if (!validateGroupName()) return;
+  const name = byId("newGroupName").value.trim();
+  if (groupModalMode === "edit") {
+    const oldName = editingGroupName;
+    tagGroups = tagGroups.map(group => group === oldName ? name : group);
+    tags.forEach(tag => {
+      if (tag.group === oldName) tag.group = name;
+    });
+    if (activeTagGroup === oldName) {
+      activeTagGroup = name;
+      tagQuery.group = name;
+    }
+    toast(`已更新分组：${name}`);
+  } else {
+    tagGroups.push(name);
+    toast(`已创建分组：${name}`);
+  }
+  closeGroupModal();
+  editingGroupName = "";
+  renderAllTagGroupOptions();
+  renderTagList();
+}
+
+function openDeleteGroupConfirm(group) {
+  const count = tags.filter(tag => tag.group === group).length;
+  if (count > 0) {
+    toast("该分组下已有标签，不能删除");
+    return;
+  }
+  pendingDeleteGroup = group;
+  openedGroupMenu = "";
+  byId("deleteGroupName").textContent = group;
+  byId("deleteGroupModal").classList.add("open");
+  renderTagGroupTree();
+}
+
+function closeDeleteGroupConfirm() {
+  pendingDeleteGroup = "";
+  byId("deleteGroupModal").classList.remove("open");
+}
+
+function confirmDeleteGroup() {
+  if (!pendingDeleteGroup) return;
+  tagGroups = tagGroups.filter(item => item !== pendingDeleteGroup);
+  if (activeTagGroup === pendingDeleteGroup) {
+    activeTagGroup = "";
+    activeTagSubGroup = "";
+    tagQuery.group = "";
+    tagQuery.subGroup = "";
+  }
+  const deletedName = pendingDeleteGroup;
+  closeDeleteGroupConfirm();
+  renderAllTagGroupOptions();
+  renderTagList();
+  toast(`已删除分组：${deletedName}`);
+}
+
+function validateForm() {
+  const name = byId("tagName").value.trim();
+  const group = byId("tagGroup").value;
+  const duplicated = tags.some(tag => tag.name === name && tag.group === group && (!appendMode || tag.id !== currentDetailId));
+  byId("nameError").textContent = !name ? "请输入标签名称" : duplicated ? "该分组下已存在同名标签" : "";
+  byId("saveButton").disabled = !name || duplicated;
+  return Boolean(name && !duplicated);
+}
+
+function openSaveConfirm() {
+  if (!validateForm()) return;
+  byId("confirmName").textContent = byId("tagName").value.trim();
+  byId("confirmGroup").textContent = byId("tagGroup").value;
+  byId("confirmCount").textContent = selectedIds.size;
+  byId("zeroHint").classList.toggle("hidden", selectedIds.size !== 0);
+  byId("confirmModal").classList.add("open");
+}
+
+function closeSaveConfirm() {
+  byId("confirmModal").classList.remove("open");
+}
+
+function confirmSave() {
+  const now = "2026-06-26 16:30";
+  if (appendMode) {
+    const tag = tags.find(item => item.id === currentDetailId);
+    tag.name = byId("tagName").value.trim();
+    tag.group = byId("tagGroup").value;
+    tag.count = selectedIds.size;
+    tag.updated = now;
+    tag.groupIds = [...selectedIds];
+  } else {
+    const newTag = {
+      id: Date.now(),
+      name: byId("tagName").value.trim(),
+      desc: byId("tagDesc").value.trim() || "-",
+      group: byId("tagGroup").value,
+      kind: "manual",
+      count: selectedIds.size,
+      owner: "当前用户",
+      createdAt: now,
+      updated: now,
+      updateMode: "-",
+      groupIds: [...selectedIds]
+    };
+    tags.unshift(newTag);
+    currentDetailId = newTag.id;
+  }
+  closeSaveConfirm();
+  appendMode = false;
+  toast("保存成功，标签已生效");
+  showDetail(currentDetailId);
+}
+
+function renderDetail() {
+  const tag = tags.find(item => item.id === currentDetailId);
+  byId("detailHead").innerHTML = `
+    <div class="detail-head">
+      <div>
+        <div class="detail-title">
+          <h2 style="margin:0;font-size:20px;">${tag.name}</h2>
+          <span class="badge manual">手动创建</span>
+        </div>
+        <div class="subtitle">${tag.group} · ${tag.owner} 创建 · ${tag.updated} 更新</div>
+        <div class="stats">
+          <div class="stat"><div class="stat-num">${tag.count}</div><div class="stat-label">覆盖群数</div></div>
+          <div class="stat"><div class="stat-num">${coveredGroups(tag).filter(group => group.status === "正常").length}</div><div class="stat-label">正常群</div></div>
+          <div class="stat"><div class="stat-num">${coveredGroups(tag).filter(group => group.status === "已解散").length}</div><div class="stat-label">已解散群</div></div>
+          <div class="stat"><div class="stat-num">0</div><div class="stat-label">自动更新规则</div></div>
+        </div>
+      </div>
+      <button class="btn" onclick="toast('基本信息编辑可复用创建表单')">编辑信息</button>
+    </div>`;
+  renderDetailGroups();
+}
+
+function coveredGroups(tag) {
+  return groups.filter(group => tag.groupIds.includes(group.id));
+}
+
+function renderDetailGroups() {
+  const tag = tags.find(item => item.id === currentDetailId);
+  const keyword = byId("detailSearch").value.trim();
+  const rows = coveredGroups(tag).filter(group => !keyword || group.name.includes(keyword) || group.owner.includes(keyword));
+  if (!rows.length) {
+    byId("detailGroups").innerHTML = `
+      <div class="empty">
+        <h3>当前没有覆盖群</h3>
+        <div>可以点击“添加群”继续维护该标签。</div>
+      </div>`;
+    return;
+  }
+  byId("detailGroups").innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>群名称</th>
+            <th>群主</th>
+            <th>群类型</th>
+            <th>建群时间</th>
+            <th>成员数</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(group => `
+            <tr>
+              <td class="group-name"><div class="name-main">${group.name}</div></td>
+              <td>${group.owner}</td>
+              <td>${group.type}</td>
+              <td>${group.createdAt}</td>
+              <td>${group.members}</td>
+              <td><button class="btn text" onclick="openRemoveConfirm(${group.id})">移除</button></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function openRemoveConfirm(id) {
+  pendingRemoveId = id;
+  byId("removeModal").classList.add("open");
+}
+
+function closeRemoveConfirm() {
+  pendingRemoveId = null;
+  byId("removeModal").classList.remove("open");
+}
+
+function confirmRemove() {
+  const tag = tags.find(item => item.id === currentDetailId);
+  tag.groupIds = tag.groupIds.filter(id => id !== pendingRemoveId);
+  tag.count = tag.groupIds.length;
+  tag.updated = "2026-06-26 16:35";
+  closeRemoveConfirm();
+  renderDetail();
+  toast("已移除该群的标签关系");
+}
+
+function toast(message) {
+  const el = byId("toast");
+  el.textContent = message;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+renderAllTagGroupOptions("活动运营");
+renderTagList();
+</script>
+</body>
+</html>
