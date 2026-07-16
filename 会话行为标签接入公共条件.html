@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>创建会话行为标签｜交互原型</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --blue: #256ff5;
+      --blue-weak: #eaf4ff;
+      --text: #252d38;
+      --muted: #7e8794;
+      --line: #e7eaf0;
+      --bg: #f5f7fa;
+      --danger: #e5484d;
+      --warning: #9a620b;
+    }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      color: var(--text);
+      background: var(--bg);
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell { display: grid; grid-template-columns: 230px 1fr; height: 100%; }
+    .sidebar { padding: 20px 14px; color: #626b78; background: #fff; border-right: 1px solid #e6e9ef; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 22px; color: #202733; font-size: 20px; font-weight: 650; }
+    .brand-mark { width: 32px; height: 32px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg,#ef4444,#991b1b); border-radius: 9px; font-size: 12px; }
+    .nav-title, .nav-item { height: 42px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: 6px; }
+    .nav-title { color: #3d4653; font-weight: 600; }
+    .nav-item { margin-left: 18px; }
+    .nav-item.active { color: var(--blue); background: #edf4ff; }
+    .topbar { height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #fff; border-bottom: 1px solid var(--line); }
+    .crumb { color: #727b88; }
+    .crumb strong { color: #2b3340; }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: #dbeafe; }
+    .content { padding: 22px 28px; }
+    .page-tabs { display: flex; gap: 30px; border-bottom: 1px solid #e5e8ed; }
+    .page-tab { padding: 8px 2px 13px; color: #697280; }
+    .page-tab.active { color: var(--blue); border-bottom: 2px solid var(--blue); }
+    .filter-card { margin-top: 18px; padding: 18px; display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; background: #fff; border: 1px solid #ebedf2; border-radius: 6px; }
+    .ghost-input { height: 36px; background: #f5f6f8; border-radius: 4px; }
+    .list-card { margin-top: 16px; padding: 16px; background: #fff; border: 1px solid #ebedf2; border-radius: 6px; }
+    .list-actions { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .create-bg-btn { padding: 9px 16px; color: #fff; background: var(--blue); border: 0; border-radius: 4px; }
+    .fake-table { width: 100%; border-collapse: collapse; }
+    .fake-table th, .fake-table td { padding: 13px 12px; text-align: left; border-bottom: 1px solid #eef0f3; }
+    .fake-table th { color: #596270; background: #fafbfc; }
+
+    .page-mask { position: fixed; inset: 0; z-index: 10; background: rgba(24,31,42,.52); }
+    .drawer {
+      position: fixed; z-index: 20; top: 0; right: 0; bottom: 0;
+      width: 61vw; min-width: 890px; max-width: 1180px;
+      display: flex; flex-direction: column;
+      background: #fff; box-shadow: -8px 0 30px rgba(0,0,0,.16);
+    }
+    .drawer-header { height: 58px; flex: 0 0 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; border-bottom: 1px solid var(--line); font-size: 17px; font-weight: 650; }
+    .close-btn { color: #535d69; background: transparent; border: 0; font-size: 22px; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 18px 26px 110px; scroll-behavior: smooth; }
+    .drawer-footer { position: absolute; right: 0; bottom: 0; left: 0; height: 72px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 24px; background: rgba(255,255,255,.97); border-top: 1px solid var(--line); }
+    .form-row { display: grid; grid-template-columns: 94px minmax(0,1fr); align-items: start; gap: 12px; margin: 14px 0; }
+    .form-label { padding-top: 9px; color: #414955; text-align: right; white-space: nowrap; }
+    .required::before { margin-right: 4px; color: var(--danger); content: "*"; }
+    .field-wrap { min-width: 0; }
+    .input, .select, .textarea { width: 100%; color: #29313d; background: #fff; border: 1px solid #dfe3e9; border-radius: 3px; outline: none; }
+    .input, .select { height: 38px; padding: 0 11px; }
+    .textarea { height: 76px; padding: 10px 11px; resize: none; }
+    .input:focus, .select:focus, .textarea:focus, .time-trigger:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,111,245,.1); }
+    .invalid { border-color: var(--danger) !important; }
+    .count { position: relative; float: right; margin-top: -27px; margin-right: 10px; color: #9aa2ad; font-size: 12px; }
+    .hint { margin-top: 6px; color: #8a93a0; font-size: 12px; line-height: 1.6; }
+    .error { min-height: 18px; padding-top: 4px; color: var(--danger); font-size: 12px; }
+    .divider { height: 1px; margin: 22px 0; background: #edf0f3; }
+    .behavior-title { margin: 0 0 14px; font-size: 16px; font-weight: 650; }
+    .radio-line { min-height: 38px; display: flex; align-items: center; gap: 28px; }
+    .radio-label { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+    .radio-label input { accent-color: var(--blue); }
+    .info-bar { margin: 10px 0 14px; padding: 10px 14px; color: #49627e; background: #eaf4ff; border-radius: 3px; }
+    .segmented { display: inline-flex; padding: 3px; background: #f1f3f6; border-radius: 4px; }
+    .segment { min-width: 82px; height: 32px; padding: 0 13px; color: #5c6572; background: transparent; border: 0; border-radius: 3px; }
+    .segment.active { color: var(--blue); background: #fff; box-shadow: 0 1px 4px rgba(26,34,48,.12); font-weight: 600; }
+    .segment:disabled { color: #b5bbc4; cursor: not-allowed; }
+    .scope-line { min-height: 40px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .scope-btn { height: 36px; padding: 0 15px; color: var(--blue); background: #fff; border: 1px solid var(--blue); border-radius: 2px; }
+    .scope-count { color: #8a93a0; }
+    .scope-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; color: #36506d; background: #edf5ff; border-radius: 3px; font-size: 12px; }
+    .chip button { padding: 0; color: #8390a0; background: transparent; border: 0; }
+    .scope-warning { display: none; margin-top: 8px; padding: 9px 11px; color: var(--warning); background: #fff7e8; border: 1px solid #f5dbab; border-radius: 3px; font-size: 12px; }
+    .scope-warning.show { display: block; }
+
+    .rule-card { margin-top: 14px; padding: 14px 14px 16px; background: #f7f8fa; border-radius: 3px; }
+    .rule-card-head { position: relative; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #414a57; font-weight: 600; }
+    .condition-help-wrap { position: relative; display: inline-flex; }
+    .condition-help-btn { width: 19px; height: 19px; display: grid; place-items: center; padding: 0; color: #6c7b8f; background: #fff; border: 1px solid #aeb8c5; border-radius: 50%; font-size: 12px; line-height: 1; }
+    .condition-help-btn:hover { color: var(--blue); border-color: var(--blue); }
+    .condition-help-popover { display: none; position: absolute; z-index: 50; top: 27px; left: 0; width: 560px; padding: 14px 16px; color: #4b5563; background: #fff; border: 1px solid #dfe4eb; border-radius: 5px; box-shadow: 0 10px 28px rgba(29,39,55,.16); font-weight: 400; }
+    .condition-help-popover.show { display: block; }
+    .condition-help-title { margin-bottom: 9px; color: #2f3946; font-weight: 650; }
+    .condition-help-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .condition-help-list li { display: grid; grid-template-columns: 122px minmax(0,1fr); gap: 8px; line-height: 1.55; }
+    .condition-help-name { color: #34465d; font-weight: 600; }
+    .rules-list { position: relative; display: grid; gap: 10px; }
+    .rules-list.with-logic { padding-left: 38px; }
+    .condition-block { position: relative; padding: 10px 0 12px; }
+    .condition-block + .condition-block { border-top: 1px solid #e4e8ed; }
+    .sentence-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .time-trigger { width: 310px; height: 38px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; color: #3b4655; background: #fff; border: 1px solid #dfe3e9; border-radius: 3px; outline: none; }
+    .calendar-icon { color: #617085; }
+    .time-mode-tip { color: #8a93a0; font-size: 12px; }
+    .stat-object { width: 112px; }
+    .stat-object-static { min-width: 42px; font-weight: 600; text-align: center; }
+    .logic-rail { position: absolute; top: 20px; bottom: 28px; left: 10px; width: 22px; border-left: 2px solid var(--blue); }
+    .logic-rail::before, .logic-rail::after { position: absolute; left: -2px; width: 12px; height: 2px; background: var(--blue); content: ""; }
+    .logic-rail::before { top: 0; }
+    .logic-rail::after { bottom: 0; }
+    .logic-toggle { position: absolute; top: 50%; left: -13px; width: 28px; height: 28px; color: #fff; background: var(--blue); border: 2px solid #f7f8fa; border-radius: 4px; transform: translateY(-50%); font-size: 12px; }
+    .rule-row { display: grid; grid-template-columns: minmax(200px,1.35fr) minmax(128px,.75fr) minmax(108px,.7fr) 34px 28px; align-items: center; gap: 10px; }
+    .rule-row.keyword { grid-template-columns: minmax(200px,1fr) minmax(150px,.8fr) minmax(230px,1.25fr) 28px; }
+    .rule-row .select, .rule-row .input { background: #fff; }
+    .unit { color: #3f4854; }
+    .delete-rule { width: 28px; height: 32px; color: #f04444; background: transparent; border: 0; font-size: 19px; }
+    .row-error { min-height: 0; padding-top: 3px; color: var(--danger); font-size: 12px; }
+    .add-rule { display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; padding: 2px 10px; color: var(--blue); background: transparent; border: 0; }
+    .add-rule.hidden { display: none; }
+
+    .btn { height: 38px; padding: 0 18px; color: #4e5866; background: #fff; border: 1px solid #d9dee6; border-radius: 3px; }
+    .btn.primary { color: #fff; background: var(--blue); border-color: var(--blue); }
+    .btn:disabled { color: #b3bac4; background: #f4f5f7; border-color: #e4e7eb; cursor: not-allowed; }
+
+    .prototype-tools { position: fixed; z-index: 30; left: 18px; bottom: 18px; width: 250px; padding: 13px; background: rgba(255,255,255,.97); border: 1px solid #dce2ea; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .prototype-tools strong { display: block; margin-bottom: 4px; }
+    .prototype-tools p { margin: 0 0 10px; color: #7c8693; font-size: 11px; }
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    .tool-btn { min-height: 30px; color: #4f5967; background: #fff; border: 1px solid #d8dee8; border-radius: 3px; font-size: 12px; }
+    .tool-btn:hover { color: var(--blue); border-color: #8eb8f5; }
+
+    .modal-backdrop, .time-backdrop { display: none; position: fixed; z-index: 60; inset: 0; background: rgba(20,27,38,.35); }
+    .modal-backdrop.show, .time-backdrop.show { display: grid; place-items: center; }
+    .modal { width: 520px; max-height: 650px; display: flex; flex-direction: column; background: #fff; border-radius: 6px; box-shadow: 0 18px 50px rgba(0,0,0,.23); }
+    .modal-header { padding: 17px 20px; font-size: 16px; font-weight: 650; border-bottom: 1px solid var(--line); }
+    .modal-body { padding: 16px 20px; overflow-y: auto; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 9px; padding: 13px 20px; border-top: 1px solid var(--line); }
+    .search { margin-bottom: 12px; }
+    .choice-list { overflow: hidden; border: 1px solid #e6e9ee; border-radius: 4px; }
+    .choice { display: flex; align-items: center; justify-content: space-between; padding: 12px 13px; border-bottom: 1px solid #edf0f3; cursor: pointer; }
+    .choice:last-child { border-bottom: 0; }
+    .choice.unavailable { color: #a2a9b3; background: #fafafa; cursor: not-allowed; }
+    .choice-main { display: flex; align-items: center; gap: 10px; }
+    .choice input { accent-color: var(--blue); }
+    .choice-meta { color: #8a93a0; font-size: 12px; }
+
+    .time-backdrop { z-index: 70; }
+    .time-popover { width: 820px; overflow: hidden; background: #fff; border-radius: 5px; box-shadow: 0 18px 48px rgba(0,0,0,.25); }
+    .time-tabs { height: 48px; display: flex; align-items: flex-end; gap: 22px; padding: 0 20px 0 194px; border-bottom: 1px solid var(--line); }
+    .time-tab { height: 48px; padding: 0 2px; color: #596575; background: transparent; border: 0; border-bottom: 2px solid transparent; }
+    .time-tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 650; }
+    .time-header-summary { align-self: center; margin-left: auto; color: #566273; font-size: 12px; }
+    .time-body { min-height: 330px; display: grid; grid-template-columns: 180px minmax(0,1fr); }
+    .quick-panel { padding: 14px 12px; border-right: 1px solid var(--line); }
+    .quick-title { margin-bottom: 10px; color: #66717f; }
+    .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .quick-btn { min-height: 30px; padding: 3px 7px; color: #66717f; background: #f2f4f7; border: 0; border-radius: 2px; font-size: 12px; }
+    .quick-btn:hover, .quick-btn.active { color: var(--blue); background: #eaf2ff; }
+    .time-main { padding: 14px 16px; }
+    .time-selected { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; color: #536071; }
+    .date-inputs { display: grid; grid-template-columns: 1fr 20px 1fr; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .dual-calendar { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .month-title { margin-bottom: 8px; text-align: center; font-weight: 600; }
+    .week-row, .days-grid { display: grid; grid-template-columns: repeat(7,1fr); }
+    .week-row span { padding: 5px 0; color: #808996; text-align: center; font-size: 12px; }
+    .day { height: 30px; color: #303946; background: transparent; border: 0; border-radius: 0; font-size: 12px; }
+    .day.outside { color: #c1c7d0; }
+    .day.in-range { background: #edf4ff; }
+    .day.start, .day.end { color: #fff; background: var(--blue); border-radius: 50%; }
+    .dynamic-summary { margin-bottom: 14px; padding: 8px 10px; color: #526071; background: #f5f7fa; border-radius: 3px; }
+    .dynamic-columns { display: grid; grid-template-columns: 1fr 1fr; min-height: 245px; border: 1px solid #e5e8ed; }
+    .endpoint-panel { padding: 16px 12px; }
+    .endpoint-panel + .endpoint-panel { border-left: 1px solid #e5e8ed; }
+    .endpoint-title { margin-bottom: 10px; color: #5e6876; font-weight: 600; }
+    .endpoint-tabs { display: inline-flex; margin-bottom: 12px; background: #f1f3f6; border-radius: 3px; }
+    .endpoint-tab { height: 32px; padding: 0 14px; color: #67717f; background: transparent; border: 0; border-radius: 3px; }
+    .endpoint-tab.active { color: var(--blue); background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    .endpoint-field { display: flex; align-items: center; gap: 8px; }
+    .endpoint-field .input { max-width: 180px; }
+    .dynamic-note { margin-top: 12px; color: #7b8593; font-size: 12px; }
+    .time-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-top: 1px solid var(--line); }
+    .time-footer-note { color: #8a93a0; font-size: 12px; }
+
+    .toast { position: fixed; z-index: 90; top: 20px; left: 50%; min-width: 320px; padding: 12px 16px; color: #334155; background: #fff; border: 1px solid #dfe5ed; border-radius: 5px; box-shadow: 0 10px 32px rgba(0,0,0,.18); opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(-10px); transition: .2s; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error-toast { color: #a53238; background: #fff7f7; border-color: #f2c5c7; }
+    .toast.success-toast { color: #176b48; background: #f4fcf8; border-color: #bfe8d5; }
+
+    @media (max-width: 1050px) {
+      .drawer { width: 100vw; min-width: 0; }
+      .prototype-tools { display: none; }
+      .rule-row { grid-template-columns: minmax(180px,1.1fr) 120px 100px 30px 26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" aria-hidden="true">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">CDP</span>客户营销系统</div>
+      <div class="nav-title">⌂ 首页</div>
+      <div class="nav-title">◫ 全域任务总览</div>
+      <div class="nav-title">▥ 分析</div>
+      <div class="nav-title">♙ 用户画像</div>
+      <div class="nav-item active">标签列表</div>
+      <div class="nav-item">标签分组</div>
+      <div class="nav-item">用户分群</div>
+      <div class="nav-title">◉ 智能运营</div>
+      <div class="nav-title">♣ 企微运营</div>
+      <div class="nav-title">♧ 预警中心</div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <div class="crumb">首页　/　用户画像　/　标签管理　/　<strong>标签列表</strong></div>
+        <div class="avatar"></div>
+      </header>
+      <div class="content">
+        <div class="page-tabs"><span class="page-tab">全部</span><span class="page-tab active">我创建的</span></div>
+        <div class="filter-card"><div class="ghost-input"></div><div class="ghost-input"></div><div class="ghost-input"></div></div>
+        <div class="list-card">
+          <div class="list-actions"><button class="create-bg-btn">创建自定义标签</button><span>共 28 个标签</span></div>
+          <table class="fake-table">
+            <thead><tr><th>标签名称</th><th>标签类型</th><th>标签描述</th><th>更新方式</th></tr></thead>
+            <tbody>
+              <tr><td>群内高活跃客户</td><td>会话行为标签</td><td>群聊中持续发言的客户</td><td>日例行更新</td></tr>
+              <tr><td>潜在流失客户</td><td>会话行为标签</td><td>近期出现连续沉默</td><td>日例行更新</td></tr>
+              <tr><td>退款意向客户</td><td>会话行为标签</td><td>会话命中退款相关词</td><td>手动更新</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="page-mask"></div>
+
+  <aside class="drawer" aria-label="创建会话行为标签">
+    <header class="drawer-header"><span>创建标签</span><button class="close-btn" id="closeDrawerBtn" aria-label="关闭">×</button></header>
+    <div class="drawer-body" id="drawerBody">
+      <div class="form-row">
+        <label class="form-label required" for="tagName">标签名称</label>
+        <div class="field-wrap">
+          <input class="input" id="tagName" maxlength="20" value="群内重点客户">
+          <span class="count" id="nameCount"></span>
+          <div class="error" id="tagNameError"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label required" for="tagGroup">标签分组</label>
+        <div class="field-wrap">
+          <select class="select" id="tagGroup">
+            <option value="">请选择标签分组</option>
+            <option selected>客户价值</option>
+            <option>客户阶段</option>
+            <option>风险预警</option>
+          </select>
+          <div class="error" id="tagGroupError"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="tagDesc">标签描述</label>
+        <div class="field-wrap">
+          <textarea class="textarea" id="tagDesc" maxlength="200">筛选所选群聊中高活跃或连续沉默的客户</textarea>
+          <span class="count" id="descCount"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label required">更新方式</div>
+        <div class="field-wrap">
+          <div class="segmented" id="updateSegments">
+            <button class="segment" data-update="none">不更新</button>
+            <button class="segment" data-update="manual">手动更新</button>
+            <button class="segment active" data-update="daily">日例行更新</button>
+          </div>
+          <div class="hint" id="updateHint"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">状态</div>
+        <div class="field-wrap">
+          <div class="segmented">
+            <button class="segment active" id="enableBtn">启用</button>
+            <button class="segment" id="disableBtn">禁用</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <h2 class="behavior-title">企微会话行为</h2>
+
+      <div class="radio-line">
+        <label class="radio-label"><input type="radio" name="scene" value="private">个人会话</label>
+        <label class="radio-label"><input type="radio" name="scene" value="group" checked>群聊会话</label>
+      </div>
+
+      <div class="info-bar" id="scopeInfo">数据查询范围为2025年8月后</div>
+
+      <div class="form-row">
+        <div class="form-label required" id="scopeLabel">关联群聊</div>
+        <div class="field-wrap">
+          <div class="scope-line" id="scopeBox">
+            <button class="scope-btn" id="openPicker">＋ 点击添加</button>
+            <span class="scope-count" id="scopeCount"></span>
+          </div>
+          <div class="scope-chips" id="scopeChips"></div>
+          <div class="error" id="scopeError"></div>
+          <div class="scope-warning" id="scopeWarning"></div>
+        </div>
+      </div>
+
+      <div class="rule-card" id="ruleCard">
+        <div class="rule-card-head">
+          <div class="condition-help-wrap">
+            <button type="button" class="condition-help-btn" id="conditionHelpBtn" aria-label="查看会话条件说明" aria-expanded="false">?</button>
+            <div class="condition-help-popover" id="conditionHelpPopover"></div>
+          </div>
+          <span>会话条件</span>
+        </div>
+        <div class="rules-list" id="rulesList"></div>
+        <button class="add-rule" id="addRuleBtn">＋ 添加</button>
+        <div class="error" id="rulesError"></div>
+      </div>
+    </div>
+
+    <footer class="drawer-footer">
+      <button class="btn" id="cancelBtn">取消</button>
+      <button class="btn primary" id="createBtn">创建</button>
+    </footer>
+  </aside>
+
+  <div class="prototype-tools">
+    <strong>原型快捷场景</strong>
+    <p>仅用于评审切换，不属于正式产品页面</p>
+    <div class="tool-grid">
+      <button class="tool-btn" data-scenario="group">群聊单条件</button>
+      <button class="tool-btn" data-scenario="multi">群聊多条件</button>
+      <button class="tool-btn" data-scenario="personal">个人会话</button>
+      <button class="tool-btn" data-scenario="keyword">关键词</button>
+      <button class="tool-btn" data-scenario="fixed">静态时间</button>
+      <button class="tool-btn" data-scenario="dynamic">动态时间</button>
+      <button class="tool-btn" data-scenario="empty">空状态/校验</button>
+      <button class="tool-btn" data-scenario="unavailable">存档不可用</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="pickerModal">
+    <div class="modal">
+      <div class="modal-header" id="pickerTitle"></div>
+      <div class="modal-body">
+        <input class="input search" id="pickerSearch" placeholder="搜索名称">
+        <div class="choice-list" id="choiceList"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="pickerCancel">取消</button>
+        <button class="btn primary" id="pickerConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="time-backdrop" id="timeModal">
+    <div class="time-popover">
+      <div class="time-tabs">
+        <button class="time-tab" data-time-tab="fixed">静态时间 ⓘ</button>
+        <button class="time-tab" data-time-tab="dynamic">动态时间 ⓘ</button>
+        <span class="time-header-summary" id="timeHeaderSummary"></span>
+      </div>
+      <div class="time-body">
+        <div class="quick-panel" id="quickPanel"></div>
+        <div class="time-main" id="timeMain"></div>
+      </div>
+      <div class="time-footer">
+        <span class="time-footer-note" id="timeFooterNote"></span>
+        <div>
+          <button class="btn" id="timeCancel">取消</button>
+          <button class="btn primary" id="timeConfirm">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function () {
+      var conditionDefs = {
+        messageCount: { name: "消息数", unit: "条", note: "统计时间内，统计对象发送的有效消息总条数。" },
+        speakingDays: { name: "发言天数", unit: "天", note: "统计时间内，统计对象至少发送过 1 条有效消息的自然日数量。" },
+        streakSpeaking: { name: "连续发言条数", unit: "条", note: "统计时间内，统计对象单次连续发言且未被对方消息打断的有效消息条数；存在多段时取最大值。" },
+        streakSilent: { name: "连续沉默天数", unit: "天", note: "统计时间内，统计对象连续未发送有效消息的自然日数量；存在多段时取最大值。" },
+        keyword: { name: "关键词命中", unit: "", note: "统计时间内，统计对象发送的消息命中所配置关键词的情况。" }
+      };
+      var employees = [
+        { name: "李思远", meta: "销售一组 · 2,184位客户" },
+        { name: "王敏", meta: "客户成功组 · 1,367位客户" },
+        { name: "陈浩", meta: "销售二组 · 986位客户" },
+        { name: "周宁", meta: "会话存档不可用", unavailable: true }
+      ];
+      var groups = [
+        { name: "澳洲新客咨询群", meta: "386位客户" },
+        { name: "悉尼租房答疑群", meta: "247位客户" },
+        { name: "墨尔本留学交流群", meta: "319位客户" },
+        { name: "新加坡租房咨询群", meta: "会话存档不可用", unavailable: true }
+      ];
+      var nextRuleId = 3;
+      var state = {
+        scene: "group",
+        scopes: ["澳洲新客咨询群", "悉尼租房答疑群"],
+        update: "daily",
+        enabled: true,
+        logic: "or",
+        archiveStatus: "normal",
+        conditions: [
+          { id: 1, type: "messageCount", operator: "大于", threshold: "10", match: "any", keywords: "", statObject: "客户", timeMode: "fixed", start: "2026-07-10", end: "2026-07-16", dynamicStartType: "past", dynamicStartValue: 2, dynamicStartDate: "2026-07-10", dynamicEndType: "past", dynamicEndValue: 1 },
+          { id: 2, type: "streakSilent", operator: "大于等于", threshold: "3", match: "any", keywords: "", statObject: "客户", timeMode: "fixed", start: "2026-07-10", end: "2026-07-16", dynamicStartType: "past", dynamicStartValue: 7, dynamicStartDate: "2026-07-10", dynamicEndType: "today", dynamicEndValue: 0 }
+        ]
+      };
+      var timeDraft = null;
+      var activeTimeRuleId = null;
+      var toastTimer;
+
+      function el(id) { return document.getElementById(id); }
+      function all(selector) { return Array.prototype.slice.call(document.querySelectorAll(selector)); }
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+      }
+      function showToast(message, type) {
+        clearTimeout(toastTimer);
+        var node = el("toast");
+        node.textContent = message;
+        node.className = "toast show " + (type === "error" ? "error-toast" : "success-toast");
+        toastTimer = setTimeout(function () { node.className = "toast"; }, 2400);
+      }
+      function setError(id, message, targetId) {
+        if (el(id)) el(id).textContent = message || "";
+        if (targetId && el(targetId)) el(targetId).classList.toggle("invalid", !!message);
+      }
+      function defaultTime() {
+        return { timeMode: "fixed", start: "2026-07-10", end: "2026-07-16", dynamicStartType: "past", dynamicStartValue: 7, dynamicStartDate: "2026-07-10", dynamicEndType: "today", dynamicEndValue: 0 };
+      }
+      function copyTime(source) {
+        var base = source || defaultTime();
+        return {
+          timeMode: base.timeMode || "fixed",
+          start: base.start || "2026-07-10",
+          end: base.end || "2026-07-16",
+          dynamicStartType: base.dynamicStartType || "past",
+          dynamicStartValue: Number(base.dynamicStartValue == null ? 7 : base.dynamicStartValue),
+          dynamicStartDate: base.dynamicStartDate || base.start || "2026-07-10",
+          dynamicEndType: base.dynamicEndType || "today",
+          dynamicEndValue: Number(base.dynamicEndValue == null ? 0 : base.dynamicEndValue)
+        };
+      }
+      function newRule(type, sourceTime) {
+        var time = copyTime(sourceTime);
+        return {
+          id: nextRuleId++, type: type || "", operator: "大于等于", threshold: "", match: "any", keywords: "", statObject: "客户",
+          timeMode: time.timeMode, start: time.start, end: time.end,
+          dynamicStartType: time.dynamicStartType, dynamicStartValue: time.dynamicStartValue, dynamicStartDate: time.dynamicStartDate,
+          dynamicEndType: time.dynamicEndType, dynamicEndValue: time.dynamicEndValue
+        };
+      }
+      function isDayMetric(type) {
+        return type === "speakingDays" || type === "streakSilent";
+      }
+      function normalizeKeywords(value) {
+        var seen = {};
+        return String(value || "").split(/[，,]/).map(function (word) { return word.trim(); }).filter(function (word) {
+          if (!word || seen[word]) return false;
+          seen[word] = true;
+          return true;
+        });
+      }
+
+      function renderCounts() {
+        el("nameCount").textContent = el("tagName").value.length + "/20";
+        el("descCount").textContent = el("tagDesc").value.length + "/200";
+      }
+      function renderConditionHelp() {
+        el("conditionHelpPopover").innerHTML =
+          '<div class="condition-help-title">会话条件说明</div>' +
+          '<ul class="condition-help-list">' +
+            Object.keys(conditionDefs).map(function (key) {
+              return '<li><span class="condition-help-name">' + escapeHtml(conditionDefs[key].name) + '</span><span>' + escapeHtml(conditionDefs[key].note) + '</span></li>';
+            }).join("") +
+          '</ul>';
+      }
+      function renderUpdate() {
+        if (state.update === "none") state.enabled = true;
+        all("[data-update]").forEach(function (button) {
+          button.classList.toggle("active", button.dataset.update === state.update);
+        });
+        var hint = state.update === "none"
+          ? "创建时按各条件保存的时间规则计算一次，标签必须保持启用。"
+          : state.update === "manual"
+            ? "每次手动更新时重新换算各条件的时间范围并计算。"
+            : "系统每日重新换算各条件的时间范围并计算。";
+        el("updateHint").textContent = hint;
+        el("enableBtn").classList.toggle("active", state.enabled);
+        el("disableBtn").classList.toggle("active", !state.enabled);
+        el("disableBtn").disabled = state.update === "none";
+      }
+      function renderScene() {
+        all("input[name='scene']").forEach(function (radio) { radio.checked = radio.value === state.scene; });
+        var isGroup = state.scene === "group";
+        el("scopeInfo").textContent = isGroup ? "数据查询范围为2025年8月后" : "数据查询范围为添加好友时间为近半年内的客户";
+        el("scopeLabel").textContent = isGroup ? "关联群聊" : "圈选受众";
+        el("openPicker").textContent = isGroup ? "＋ 点击添加" : "＋ 选择员工";
+        el("scopeCount").textContent = "已选 " + state.scopes.length + (isGroup ? " 个" : " 人");
+        el("scopeChips").innerHTML = state.scopes.map(function (name) {
+          return '<span class="chip">' + escapeHtml(name) + '<button type="button" data-remove-scope="' + escapeHtml(name) + '">×</button></span>';
+        }).join("");
+        all("[data-remove-scope]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            state.scopes = state.scopes.filter(function (name) { return name !== button.dataset.removeScope; });
+            state.archiveStatus = "normal";
+            renderScene();
+          });
+        });
+        var warning = "";
+        if (state.archiveStatus === "partial") {
+          warning = "所选范围中有部分会话存档不可用，该部分不参与计算，也不会按 0 条消息或沉默处理。";
+        } else if (state.archiveStatus === "unavailable") {
+          warning = "所选范围的会话存档全部不可用，暂时无法创建标签。";
+        }
+        el("scopeWarning").textContent = warning;
+        el("scopeWarning").classList.toggle("show", !!warning);
+        el("ruleCard").classList.toggle("private-card", !isGroup);
+        el("addRuleBtn").classList.remove("hidden");
+        if (isGroup) {
+          state.conditions.forEach(function (rule) { rule.statObject = "客户"; });
+        }
+      }
+      function dynamicStartLabel(source) {
+        return source.dynamicStartType === "specific" ? source.dynamicStartDate : "过去" + Number(source.dynamicStartValue) + "天";
+      }
+      function dynamicEndLabel(source) {
+        if (source.dynamicEndType === "today") return "今天";
+        if (source.dynamicEndType === "yesterday") return "昨天";
+        return "过去" + Number(source.dynamicEndValue) + "天";
+      }
+      function ruleTimeText(rule) {
+        return rule.timeMode === "fixed" ? rule.start + " - " + rule.end : dynamicStartLabel(rule) + " - " + dynamicEndLabel(rule);
+      }
+      function conditionOptions(selected) {
+        var html = '<option value="">请选择会话行为条件</option>';
+        Object.keys(conditionDefs).forEach(function (key) {
+          html += '<option value="' + key + '"' + (key === selected ? " selected" : "") + '>' + conditionDefs[key].name + '</option>';
+        });
+        return html;
+      }
+      function operatorOptions(selected) {
+        return ["大于", "大于等于", "等于", "小于", "小于等于"].map(function (operator) {
+          return '<option' + (operator === selected ? " selected" : "") + '>' + operator + '</option>';
+        }).join("");
+      }
+      function renderRules() {
+        var isGroup = state.scene === "group";
+        var hasLogic = state.conditions.length > 1;
+        el("rulesList").classList.toggle("with-logic", hasLogic);
+        var logicRail = hasLogic
+          ? '<div class="logic-rail"><button type="button" class="logic-toggle" id="logicToggle" title="点击切换且/或">' + (state.logic === "and" ? "且" : "或") + '</button></div>'
+          : "";
+        el("rulesList").innerHTML = logicRail + state.conditions.map(function (rule) {
+          var typeSelect = '<select class="select" data-rule-type="' + rule.id + '">' + conditionOptions(rule.type) + '</select>';
+          var deleteButton = '<button class="delete-rule" type="button" data-delete-rule="' + rule.id + '" aria-label="删除条件">×</button>';
+          var statObject = isGroup
+            ? '<span class="stat-object-static">客户</span>'
+            : '<select class="select stat-object" data-rule-stat="' + rule.id + '">' +
+                '<option' + (rule.statObject === "客户" ? " selected" : "") + '>客户</option>' +
+                '<option' + (rule.statObject === "员工" ? " selected" : "") + '>员工</option>' +
+                '<option' + (rule.statObject === "双方" ? " selected" : "") + '>双方</option>' +
+              '</select>';
+          var timeLine = '<div class="sentence-line"><span>在</span>' +
+            '<button type="button" class="time-trigger" data-rule-time="' + rule.id + '"><span>' + escapeHtml(ruleTimeText(rule)) + '</span><span class="calendar-icon">▣</span></button>' +
+            '<span>范围内，</span>' + statObject + '<span>的</span>' +
+            (rule.timeMode === "dynamic" ? '<span class="time-mode-tip">动态时间</span>' : '') + '</div>' +
+            '<div class="row-error" id="timeError-' + rule.id + '"></div>';
+          if (rule.type === "keyword") {
+            return '<div class="condition-block" data-rule-block="' + rule.id + '">' + timeLine + '<div class="rule-row keyword">' +
+              typeSelect +
+              '<select class="select" data-rule-match="' + rule.id + '">' +
+                '<option value="any"' + (rule.match === "any" ? " selected" : "") + '>任一关键词命中</option>' +
+                '<option value="all"' + (rule.match === "all" ? " selected" : "") + '>全部关键词命中</option>' +
+              '</select>' +
+              '<input class="input" data-rule-keywords="' + rule.id + '" value="' + escapeHtml(rule.keywords) + '" placeholder="多个关键词用逗号分隔">' +
+              deleteButton +
+              '</div><div class="row-error" id="ruleError-' + rule.id + '"></div></div>';
+          }
+          var unit = rule.type ? conditionDefs[rule.type].unit : "";
+          return '<div class="condition-block" data-rule-block="' + rule.id + '">' + timeLine + '<div class="rule-row">' +
+            typeSelect +
+            '<select class="select" data-rule-operator="' + rule.id + '">' + operatorOptions(rule.operator) + '</select>' +
+            '<input class="input" type="number" min="0" data-rule-threshold="' + rule.id + '" value="' + escapeHtml(rule.threshold) + '" placeholder="请输入">' +
+            '<span class="unit">' + unit + '</span>' +
+            deleteButton +
+            '</div><div class="row-error" id="ruleError-' + rule.id + '"></div></div>';
+        }).join("");
+
+        if (el("logicToggle")) {
+          el("logicToggle").addEventListener("click", function () {
+            state.logic = state.logic === "and" ? "or" : "and";
+            renderRules();
+          });
+        }
+        all("[data-rule-time]").forEach(function (button) {
+          button.addEventListener("click", function () { openTimePicker(Number(button.dataset.ruleTime)); });
+        });
+        all("[data-rule-stat]").forEach(function (select) {
+          select.addEventListener("change", function () { findRule(Number(select.dataset.ruleStat)).statObject = select.value; });
+        });
+
+        all("[data-rule-type]").forEach(function (select) {
+          select.addEventListener("change", function () {
+            var rule = findRule(Number(select.dataset.ruleType));
+            rule.type = select.value;
+            rule.threshold = rule.type && rule.type !== "keyword" ? (isDayMetric(rule.type) ? "3" : "10") : "";
+            renderRules();
+          });
+        });
+        all("[data-rule-operator]").forEach(function (select) {
+          select.addEventListener("change", function () { findRule(Number(select.dataset.ruleOperator)).operator = select.value; });
+        });
+        all("[data-rule-threshold]").forEach(function (input) {
+          input.addEventListener("input", function () { findRule(Number(input.dataset.ruleThreshold)).threshold = input.value; });
+        });
+        all("[data-rule-match]").forEach(function (select) {
+          select.addEventListener("change", function () { findRule(Number(select.dataset.ruleMatch)).match = select.value; });
+        });
+        all("[data-rule-keywords]").forEach(function (input) {
+          input.addEventListener("input", function () { findRule(Number(input.dataset.ruleKeywords)).keywords = input.value; });
+        });
+        all("[data-delete-rule]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            state.conditions = state.conditions.filter(function (rule) { return rule.id !== Number(button.dataset.deleteRule); });
+            renderRules();
+          });
+        });
+      }
+      function findRule(id) {
+        return state.conditions.filter(function (rule) { return rule.id === id; })[0];
+      }
+      function renderAll() {
+        renderCounts();
+        renderConditionHelp();
+        renderScene();
+        renderUpdate();
+        renderRules();
+      }
+
+      function openPicker() {
+        el("pickerTitle").textContent = state.scene === "group" ? "关联群聊" : "选择员工";
+        el("pickerSearch").value = "";
+        renderChoices("");
+        el("pickerModal").classList.add("show");
+      }
+      function closePicker() { el("pickerModal").classList.remove("show"); }
+      function renderChoices(query) {
+        var source = state.scene === "group" ? groups : employees;
+        var html = source.filter(function (item) { return item.name.indexOf(query) >= 0; }).map(function (item) {
+          var checked = state.scopes.indexOf(item.name) >= 0 ? " checked" : "";
+          return '<label class="choice' + (item.unavailable ? ' unavailable' : '') + '">' +
+            '<span class="choice-main"><input type="checkbox" value="' + escapeHtml(item.name) + '"' + checked + (item.unavailable ? " disabled" : "") + '><span>' + escapeHtml(item.name) + '</span></span>' +
+            '<span class="choice-meta">' + escapeHtml(item.meta) + '</span></label>';
+        }).join("");
+        el("choiceList").innerHTML = html || '<div style="padding:24px;text-align:center;color:#8a93a0;">没有匹配结果</div>';
+      }
+
+      function dateFromKey(key) {
+        var parts = key.split("-").map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      }
+      function dateKey(date) {
+        var y = date.getFullYear();
+        var m = String(date.getMonth() + 1).padStart(2, "0");
+        var d = String(date.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + d;
+      }
+      function previewDateKey(date) {
+        return date && !Number.isNaN(date.getTime()) ? dateKey(date) : "未选择";
+      }
+      function addDays(date, amount) {
+        var result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        result.setDate(result.getDate() + amount);
+        return result;
+      }
+      function startOfWeek(date) {
+        var result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        var day = result.getDay() || 7;
+        result.setDate(result.getDate() - day + 1);
+        return result;
+      }
+      function openTimePicker(ruleId) {
+        var rule = findRule(ruleId);
+        if (!rule) return;
+        activeTimeRuleId = ruleId;
+        timeDraft = {
+          mode: rule.timeMode,
+          start: rule.start,
+          end: rule.end,
+          dynamicStartType: rule.dynamicStartType,
+          dynamicStartValue: rule.dynamicStartValue,
+          dynamicStartDate: rule.dynamicStartDate,
+          dynamicEndType: rule.dynamicEndType,
+          dynamicEndValue: rule.dynamicEndValue,
+          selectingEnd: false
+        };
+        renderTimePicker();
+        el("timeModal").classList.add("show");
+      }
+      function closeTimePicker() { el("timeModal").classList.remove("show"); }
+      function renderTimePicker() {
+        all("[data-time-tab]").forEach(function (button) {
+          button.classList.toggle("active", button.dataset.timeTab === timeDraft.mode);
+        });
+        if (timeDraft.mode === "fixed") {
+          el("timeHeaderSummary").textContent = timeDraft.start + " - " + timeDraft.end;
+          renderFixedTime();
+        } else {
+          el("timeHeaderSummary").textContent = dynamicSummary(timeDraft);
+          renderDynamicTime();
+        }
+      }
+      function renderFixedTime() {
+        var quicks = [
+          ["today","今天"],["yesterday","昨天"],["thisWeek","本周"],["lastWeek","上周"],
+          ["thisMonth","本月"],["lastMonth","上月"],["thisYear","今年"],["lastYear","去年"],
+          ["past7","过去7天"],["past30","过去30天"],["past90","过去90天"],["online","上线至今"]
+        ];
+        el("quickPanel").innerHTML = '<div class="quick-title">快捷选择</div><div class="quick-grid">' +
+          quicks.map(function (item) { return '<button class="quick-btn" data-fixed-preset="' + item[0] + '">' + item[1] + '</button>'; }).join("") +
+          '</div>';
+        var startDate = timeDraft.start ? dateFromKey(timeDraft.start) : new Date();
+        if (Number.isNaN(startDate.getTime())) startDate = new Date();
+        var firstMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        var secondMonth = new Date(firstMonth.getFullYear(), firstMonth.getMonth() + 1, 1);
+        el("timeMain").innerHTML =
+          '<div class="time-selected"><span>已选时间</span><strong>' + timeDraft.start + ' - ' + timeDraft.end + '</strong></div>' +
+          '<div class="date-inputs">' +
+            '<input class="input" type="date" id="draftStart" value="' + timeDraft.start + '">' +
+            '<span>—</span>' +
+            '<input class="input" type="date" id="draftEnd" value="' + timeDraft.end + '">' +
+          '</div>' +
+          '<div class="dual-calendar">' + calendarMonth(firstMonth) + calendarMonth(secondMonth) + '</div>';
+        el("timeFooterNote").textContent = "静态时间保存明确起止日期，后续不会随自然时间移动";
+        all("[data-fixed-preset]").forEach(function (button) {
+          button.addEventListener("click", function () { applyFixedPreset(button.dataset.fixedPreset); });
+        });
+        el("draftStart").addEventListener("change", function (event) {
+          timeDraft.start = event.target.value;
+          renderTimePicker();
+        });
+        el("draftEnd").addEventListener("change", function (event) {
+          timeDraft.end = event.target.value;
+          renderTimePicker();
+        });
+        all("[data-calendar-date]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var selected = button.dataset.calendarDate;
+            if (!timeDraft.selectingEnd) {
+              timeDraft.start = selected;
+              timeDraft.end = selected;
+              timeDraft.selectingEnd = true;
+            } else {
+              if (selected < timeDraft.start) {
+                timeDraft.end = timeDraft.start;
+                timeDraft.start = selected;
+              } else {
+                timeDraft.end = selected;
+              }
+              timeDraft.selectingEnd = false;
+            }
+            renderTimePicker();
+          });
+        });
+      }
+      function calendarMonth(monthDate) {
+        var year = monthDate.getFullYear();
+        var month = monthDate.getMonth();
+        var first = new Date(year, month, 1);
+        var gridStart = addDays(first, -first.getDay());
+        var days = "";
+        for (var i = 0; i < 42; i++) {
+          var day = addDays(gridStart, i);
+          var key = dateKey(day);
+          var classes = ["day"];
+          if (day.getMonth() !== month) classes.push("outside");
+          if (key >= timeDraft.start && key <= timeDraft.end) classes.push("in-range");
+          if (key === timeDraft.start) classes.push("start");
+          if (key === timeDraft.end) classes.push("end");
+          days += '<button type="button" class="' + classes.join(" ") + '" data-calendar-date="' + key + '">' + day.getDate() + '</button>';
+        }
+        return '<div><div class="month-title">' + year + " - " + String(month + 1).padStart(2,"0") + '</div>' +
+          '<div class="week-row"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>' +
+          '<div class="days-grid">' + days + '</div></div>';
+      }
+      function applyFixedPreset(preset) {
+        var today = new Date();
+        var start = today;
+        var end = today;
+        if (preset === "yesterday") start = end = addDays(today, -1);
+        if (preset === "thisWeek") start = startOfWeek(today);
+        if (preset === "lastWeek") { end = addDays(startOfWeek(today), -1); start = addDays(end, -6); }
+        if (preset === "thisMonth") start = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (preset === "lastMonth") { start = new Date(today.getFullYear(), today.getMonth() - 1, 1); end = new Date(today.getFullYear(), today.getMonth(), 0); }
+        if (preset === "thisYear") start = new Date(today.getFullYear(), 0, 1);
+        if (preset === "lastYear") { start = new Date(today.getFullYear() - 1, 0, 1); end = new Date(today.getFullYear() - 1, 11, 31); }
+        if (preset === "past7") start = addDays(today, -6);
+        if (preset === "past30") start = addDays(today, -29);
+        if (preset === "past90") start = addDays(today, -89);
+        if (preset === "online") start = new Date(2025, 7, 1);
+        timeDraft.start = dateKey(start);
+        timeDraft.end = dateKey(end);
+        timeDraft.selectingEnd = false;
+        renderTimePicker();
+      }
+      function resolveDynamicStart(source, baseDate) {
+        return source.dynamicStartType === "specific"
+          ? dateFromKey(source.dynamicStartDate)
+          : addDays(baseDate, -Number(source.dynamicStartValue || 0));
+      }
+      function resolveDynamicEnd(source, baseDate) {
+        if (source.dynamicEndType === "today") return baseDate;
+        if (source.dynamicEndType === "yesterday") return addDays(baseDate, -1);
+        return addDays(baseDate, -Number(source.dynamicEndValue || 0));
+      }
+      function dynamicSummary(source) {
+        var today = new Date();
+        var actualStart = resolveDynamicStart(source, today);
+        var actualEnd = resolveDynamicEnd(source, today);
+        return dynamicStartLabel(source) + " - " + dynamicEndLabel(source) + " | " + previewDateKey(actualStart) + " - " + previewDateKey(actualEnd);
+      }
+      function renderDynamicTime() {
+        var quicks = [
+          ["today","今天"],["yesterday","昨天"],["thisWeek","本周"],["lastWeek","上周"],
+          ["thisMonth","本月"],["lastMonth","上月"],["thisYear","今年"],["lastYear","去年"],
+          ["past7","过去7天"],["past30","过去30天"],["past90","过去90天"],["online","上线至今"]
+        ];
+        el("quickPanel").innerHTML = '<div class="quick-title">快捷选择</div><div class="quick-grid">' +
+          quicks.map(function (item) { return '<button class="quick-btn" data-dynamic-preset="' + item[0] + '">' + item[1] + '</button>'; }).join("") +
+          '</div>';
+        var startField = timeDraft.dynamicStartType === "specific"
+          ? '<input class="input" type="date" id="draftDynamicStartDate" value="' + timeDraft.dynamicStartDate + '">'
+          : '<input class="input" type="number" min="0" id="draftDynamicStartValue" value="' + timeDraft.dynamicStartValue + '"><span>天</span>';
+        var endField = timeDraft.dynamicEndType === "past"
+          ? '<input class="input" type="number" min="0" id="draftDynamicEndValue" value="' + timeDraft.dynamicEndValue + '"><span>天</span>'
+          : '<span class="hint" style="margin:0;">无需填写数值</span>';
+        el("timeMain").innerHTML =
+          '<div class="dynamic-summary" id="dynamicSummaryText">' + dynamicSummary(timeDraft) + '</div>' +
+          '<div class="dynamic-columns">' +
+            '<div class="endpoint-panel">' +
+              '<div class="endpoint-title">开始时间</div>' +
+              '<div class="endpoint-tabs">' +
+                '<button class="endpoint-tab' + (timeDraft.dynamicStartType === "specific" ? " active" : "") + '" data-start-type="specific">具体时间</button>' +
+                '<button class="endpoint-tab' + (timeDraft.dynamicStartType === "past" ? " active" : "") + '" data-start-type="past">过去N天</button>' +
+              '</div>' +
+              '<div class="endpoint-field">' + startField + '</div>' +
+            '</div>' +
+            '<div class="endpoint-panel">' +
+              '<div class="endpoint-title">结束时间</div>' +
+              '<div class="endpoint-tabs">' +
+                '<button class="endpoint-tab' + (timeDraft.dynamicEndType === "today" ? " active" : "") + '" data-end-type="today">今天</button>' +
+                '<button class="endpoint-tab' + (timeDraft.dynamicEndType === "yesterday" ? " active" : "") + '" data-end-type="yesterday">昨天</button>' +
+                '<button class="endpoint-tab' + (timeDraft.dynamicEndType === "past" ? " active" : "") + '" data-end-type="past">过去N天</button>' +
+              '</div>' +
+              '<div class="endpoint-field">' + endField + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="dynamic-note">保存的是开始、结束两个时间表达式；每次运行时再换算为实际日期。</div>';
+        el("timeFooterNote").textContent = "动态时间随每次计算日期变化";
+        el("timeHeaderSummary").textContent = dynamicSummary(timeDraft);
+        all("[data-start-type]").forEach(function (button) {
+          button.addEventListener("click", function () { timeDraft.dynamicStartType = button.dataset.startType; renderTimePicker(); });
+        });
+        all("[data-end-type]").forEach(function (button) {
+          button.addEventListener("click", function () { timeDraft.dynamicEndType = button.dataset.endType; renderTimePicker(); });
+        });
+        if (el("draftDynamicStartDate")) el("draftDynamicStartDate").addEventListener("change", function (event) { timeDraft.dynamicStartDate = event.target.value; renderTimePicker(); });
+        if (el("draftDynamicStartValue")) el("draftDynamicStartValue").addEventListener("input", function (event) { timeDraft.dynamicStartValue = event.target.value; refreshDynamicPreview(); });
+        if (el("draftDynamicEndValue")) el("draftDynamicEndValue").addEventListener("input", function (event) { timeDraft.dynamicEndValue = event.target.value; refreshDynamicPreview(); });
+        all("[data-dynamic-preset]").forEach(function (button) {
+          button.addEventListener("click", function () { applyDynamicPreset(button.dataset.dynamicPreset); });
+        });
+      }
+      function refreshDynamicPreview() {
+        var summary = dynamicSummary(timeDraft);
+        el("timeHeaderSummary").textContent = summary;
+        if (el("dynamicSummaryText")) el("dynamicSummaryText").textContent = summary;
+      }
+      function applyDynamicPreset(preset) {
+        var today = new Date();
+        timeDraft.dynamicStartType = "past";
+        timeDraft.dynamicEndType = "today";
+        timeDraft.dynamicEndValue = 0;
+        if (preset === "today") timeDraft.dynamicStartValue = 0;
+        if (preset === "yesterday") { timeDraft.dynamicStartValue = 1; timeDraft.dynamicEndType = "yesterday"; }
+        if (preset === "past7") timeDraft.dynamicStartValue = 7;
+        if (preset === "past30") timeDraft.dynamicStartValue = 30;
+        if (preset === "past90") timeDraft.dynamicStartValue = 90;
+        if (["thisWeek","lastWeek","thisMonth","lastMonth","thisYear","lastYear","online"].indexOf(preset) >= 0) {
+          var start = today;
+          var end = today;
+          if (preset === "thisWeek") start = startOfWeek(today);
+          if (preset === "lastWeek") { end = addDays(startOfWeek(today), -1); start = addDays(end, -6); }
+          if (preset === "thisMonth") start = new Date(today.getFullYear(), today.getMonth(), 1);
+          if (preset === "lastMonth") { start = new Date(today.getFullYear(), today.getMonth() - 1, 1); end = new Date(today.getFullYear(), today.getMonth(), 0); }
+          if (preset === "thisYear") start = new Date(today.getFullYear(), 0, 1);
+          if (preset === "lastYear") { start = new Date(today.getFullYear() - 1, 0, 1); end = new Date(today.getFullYear() - 1, 11, 31); }
+          if (preset === "online") start = new Date(2025, 7, 1);
+          timeDraft.dynamicStartType = "specific";
+          timeDraft.dynamicStartDate = dateKey(start);
+          var endOffset = Math.round((today - end) / 86400000);
+          timeDraft.dynamicEndType = endOffset === 0 ? "today" : endOffset === 1 ? "yesterday" : "past";
+          timeDraft.dynamicEndValue = Math.max(0, endOffset);
+        }
+        renderTimePicker();
+      }
+
+      function clearValidation() {
+        setError("tagNameError", "", "tagName");
+        setError("tagGroupError", "", "tagGroup");
+        setError("scopeError", "", "scopeBox");
+        el("rulesError").textContent = "";
+        all(".row-error").forEach(function (node) { node.textContent = ""; });
+        all(".time-trigger").forEach(function (node) { node.classList.remove("invalid"); });
+      }
+      function validate(showErrors) {
+        clearValidation();
+        var errors = [];
+        function add(id, message, targetId) {
+          errors.push(message);
+          if (showErrors) setError(id, message, targetId);
+        }
+        if (!el("tagName").value.trim()) add("tagNameError", "请输入标签名称", "tagName");
+        if (!el("tagGroup").value) add("tagGroupError", "请选择标签分组", "tagGroup");
+        if (!state.scopes.length) add("scopeError", state.scene === "group" ? "请至少关联一个群聊" : "请至少选择一名员工", "scopeBox");
+        else if (state.archiveStatus === "unavailable") add("scopeError", "所选范围会话存档全部不可用，请重新选择", "scopeBox");
+        if (!state.conditions.length) {
+          errors.push("请至少添加一条会话条件");
+          if (showErrors) el("rulesError").textContent = "请至少添加一条会话条件";
+        }
+        state.conditions.forEach(function (rule) {
+          var message = "";
+          var timeMessage = "";
+          var actualStart;
+          var actualEnd;
+          if (rule.timeMode === "fixed") {
+            if (!rule.start || !rule.end) timeMessage = "请选择完整的静态时间范围";
+            else if (rule.start > rule.end) timeMessage = "开始日期不能晚于结束日期";
+            else { actualStart = dateFromKey(rule.start); actualEnd = dateFromKey(rule.end); }
+          } else {
+            if (rule.dynamicStartType === "specific" && !rule.dynamicStartDate) timeMessage = "请选择动态开始时间";
+            if (rule.dynamicStartType === "past" && (!Number.isInteger(Number(rule.dynamicStartValue)) || Number(rule.dynamicStartValue) < 0)) timeMessage = "开始时间的过去N天必须为非负整数";
+            if (rule.dynamicEndType === "past" && (!Number.isInteger(Number(rule.dynamicEndValue)) || Number(rule.dynamicEndValue) < 0)) timeMessage = "结束时间的过去N天必须为非负整数";
+            if (!timeMessage) {
+              var today = new Date();
+              actualStart = resolveDynamicStart(rule, today);
+              actualEnd = resolveDynamicEnd(rule, today);
+              if (actualStart > actualEnd) timeMessage = "动态开始时间不能晚于结束时间";
+            }
+          }
+          if (timeMessage) {
+            errors.push(timeMessage);
+            if (showErrors && el("timeError-" + rule.id)) {
+              el("timeError-" + rule.id).textContent = timeMessage;
+              var trigger = document.querySelector('[data-rule-time="' + rule.id + '"]');
+              if (trigger) trigger.classList.add("invalid");
+            }
+          }
+          if (!rule.type) message = "请选择会话行为条件";
+          else if (rule.type === "keyword" && !normalizeKeywords(rule.keywords).length) message = "请至少输入 1 个关键词";
+          else if (rule.type !== "keyword") {
+            var value = Number(rule.threshold);
+            if (rule.threshold === "" || !Number.isInteger(value) || value < 0) message = "阈值必须为大于等于 0 的整数";
+            else if (!timeMessage && isDayMetric(rule.type) && actualStart && actualEnd) {
+              var windowDays = Math.floor((actualEnd - actualStart) / 86400000) + 1;
+              if (value > windowDays) message = "天数不能超过该条件时间窗口的 " + windowDays + " 天";
+            }
+          }
+          if (message) {
+            errors.push(message);
+            if (showErrors && el("ruleError-" + rule.id)) el("ruleError-" + rule.id).textContent = message;
+          }
+        });
+        return errors;
+      }
+
+      function applyScenario(name) {
+        el("tagName").value = "群内高活跃客户";
+        el("tagGroup").value = "客户价值";
+        state.archiveStatus = "normal";
+        if (name === "group") {
+          state.scene = "group";
+          state.scopes = ["澳洲新客咨询群", "悉尼租房答疑群"];
+          state.conditions = [newRule("messageCount")];
+          state.conditions[0].operator = "大于";
+          state.conditions[0].threshold = "10";
+        } else if (name === "multi") {
+          state.scene = "group";
+          state.scopes = ["澳洲新客咨询群", "悉尼租房答疑群"];
+          state.logic = "or";
+          var first = newRule("messageCount");
+          first.threshold = "10";
+          var second = newRule("streakSilent", first);
+          second.operator = "小于";
+          second.threshold = "3";
+          state.conditions = [first, second];
+        } else if (name === "personal") {
+          el("tagName").value = "近7天活跃客户";
+          state.scene = "private";
+          state.scopes = ["李思远", "王敏"];
+          var personalRule = newRule("messageCount");
+          personalRule.threshold = "10";
+          personalRule.statObject = "员工";
+          personalRule.timeMode = "dynamic";
+          personalRule.dynamicStartType = "past";
+          personalRule.dynamicStartValue = 7;
+          personalRule.dynamicEndType = "today";
+          state.conditions = [personalRule];
+        } else if (name === "keyword") {
+          el("tagName").value = "退款意向客户";
+          state.scene = "private";
+          state.scopes = ["李思远"];
+          var keywordRule = newRule("keyword");
+          keywordRule.keywords = "退款, 投诉";
+          keywordRule.statObject = "双方";
+          state.conditions = [keywordRule];
+        } else if (name === "fixed") {
+          if (!state.conditions.length) state.conditions = [newRule("messageCount")];
+          state.conditions[0].timeMode = "fixed";
+          state.conditions[0].start = "2026-07-10";
+          state.conditions[0].end = "2026-07-16";
+        } else if (name === "dynamic") {
+          if (!state.conditions.length) state.conditions = [newRule("messageCount")];
+          state.conditions[0].timeMode = "dynamic";
+          state.conditions[0].dynamicStartType = "past";
+          state.conditions[0].dynamicStartValue = 7;
+          state.conditions[0].dynamicEndType = "yesterday";
+        } else if (name === "empty") {
+          el("tagName").value = "";
+          el("tagGroup").value = "";
+          state.scene = "group";
+          state.scopes = [];
+          state.conditions = [newRule("")];
+        } else if (name === "unavailable") {
+          state.scene = "group";
+          state.scopes = ["新加坡租房咨询群"];
+          state.archiveStatus = "unavailable";
+          state.conditions = [newRule("messageCount")];
+          state.conditions[0].operator = "大于";
+          state.conditions[0].threshold = "10";
+        }
+        renderAll();
+        clearValidation();
+        if (name === "empty" || name === "unavailable") validate(true);
+      }
+
+      all("[data-update]").forEach(function (button) {
+        button.addEventListener("click", function () { state.update = button.dataset.update; renderUpdate(); });
+      });
+      all("input[name='scene']").forEach(function (radio) {
+        radio.addEventListener("change", function (event) {
+          state.scene = event.target.value;
+          state.scopes = [];
+          state.archiveStatus = "normal";
+          renderScene();
+          renderRules();
+        });
+      });
+      el("tagName").addEventListener("input", renderCounts);
+      el("tagDesc").addEventListener("input", renderCounts);
+      el("conditionHelpBtn").addEventListener("click", function () {
+        var popover = el("conditionHelpPopover");
+        var show = !popover.classList.contains("show");
+        popover.classList.toggle("show", show);
+        el("conditionHelpBtn").setAttribute("aria-expanded", show ? "true" : "false");
+      });
+      document.addEventListener("click", function (event) {
+        if (!event.target.closest(".condition-help-wrap")) {
+          el("conditionHelpPopover").classList.remove("show");
+          el("conditionHelpBtn").setAttribute("aria-expanded", "false");
+        }
+      });
+      el("enableBtn").addEventListener("click", function () { state.enabled = true; renderUpdate(); });
+      el("disableBtn").addEventListener("click", function () {
+        if (state.update === "none") return;
+        state.enabled = false;
+        renderUpdate();
+      });
+      el("openPicker").addEventListener("click", openPicker);
+      el("pickerSearch").addEventListener("input", function (event) { renderChoices(event.target.value); });
+      el("pickerCancel").addEventListener("click", closePicker);
+      el("pickerConfirm").addEventListener("click", function () {
+        state.scopes = all("#choiceList input:checked").map(function (input) { return input.value; });
+        state.archiveStatus = "normal";
+        closePicker();
+        renderScene();
+      });
+      el("pickerModal").addEventListener("click", function (event) { if (event.target === el("pickerModal")) closePicker(); });
+      all("[data-time-tab]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          timeDraft.mode = button.dataset.timeTab;
+          renderTimePicker();
+        });
+      });
+      el("timeCancel").addEventListener("click", closeTimePicker);
+      el("timeConfirm").addEventListener("click", function () {
+        var activeRule = findRule(activeTimeRuleId);
+        if (!activeRule) { closeTimePicker(); return; }
+        if (timeDraft.mode === "fixed") {
+          if (!timeDraft.start || !timeDraft.end || timeDraft.start > timeDraft.end) {
+            showToast("请选择正确的静态时间范围", "error");
+            return;
+          }
+        } else {
+          if (timeDraft.dynamicStartType === "specific" && !timeDraft.dynamicStartDate) {
+            showToast("请选择动态开始时间", "error"); return;
+          }
+          if (timeDraft.dynamicStartType === "past" && (!Number.isInteger(Number(timeDraft.dynamicStartValue)) || Number(timeDraft.dynamicStartValue) < 0)) {
+            showToast("开始时间的过去N天必须为非负整数", "error"); return;
+          }
+          if (timeDraft.dynamicEndType === "past" && (!Number.isInteger(Number(timeDraft.dynamicEndValue)) || Number(timeDraft.dynamicEndValue) < 0)) {
+            showToast("结束时间的过去N天必须为非负整数", "error"); return;
+          }
+          var today = new Date();
+          if (resolveDynamicStart(timeDraft, today) > resolveDynamicEnd(timeDraft, today)) {
+            showToast("动态开始时间不能晚于结束时间", "error"); return;
+          }
+        }
+        activeRule.timeMode = timeDraft.mode;
+        activeRule.start = timeDraft.start;
+        activeRule.end = timeDraft.end;
+        activeRule.dynamicStartType = timeDraft.dynamicStartType;
+        activeRule.dynamicStartValue = Number(timeDraft.dynamicStartValue || 0);
+        activeRule.dynamicStartDate = timeDraft.dynamicStartDate;
+        activeRule.dynamicEndType = timeDraft.dynamicEndType;
+        activeRule.dynamicEndValue = Number(timeDraft.dynamicEndValue || 0);
+        closeTimePicker();
+        renderRules();
+        renderUpdate();
+        clearValidation();
+      });
+      el("timeModal").addEventListener("click", function (event) { if (event.target === el("timeModal")) closeTimePicker(); });
+      el("addRuleBtn").addEventListener("click", function () {
+        if (state.conditions.length >= 5) {
+          showToast("原型最多添加 5 条条件", "error");
+          return;
+        }
+        var previousRule = state.conditions.length ? state.conditions[state.conditions.length - 1] : null;
+        state.conditions.push(newRule("", previousRule));
+        renderRules();
+      });
+      el("createBtn").addEventListener("click", function () {
+        if (validate(true).length) {
+          showToast("存在未完成或不合法的配置，请检查", "error");
+          return;
+        }
+        showToast("标签已创建；正式页面将返回标签列表", "success");
+      });
+      el("cancelBtn").addEventListener("click", function () { showToast("已取消；原型保留页面便于继续评审", "success"); });
+      el("closeDrawerBtn").addEventListener("click", function () { showToast("已关闭；原型保留页面便于继续评审", "success"); });
+      all("[data-scenario]").forEach(function (button) {
+        button.addEventListener("click", function () { applyScenario(button.dataset.scenario); });
+      });
+
+      renderAll();
+    })();
+  </script>
+</body>
+</html>
