@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全域任务总览与SOP部门维度 - 交互原型</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:#30384b;background:#eef3fb;font-size:14px}.app{min-width:1180px;min-height:100vh;background:#f5f7fb}.top{height:58px;background:#fff;border-bottom:1px solid #e5eaf2;display:flex;align-items:center;padding:0 22px;position:sticky;top:0;z-index:20}.brand{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:650;width:270px}.logo{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#e93434;color:#fff;font-weight:800}.crumb{color:#7b8497}.crumb b{color:#273044}.top-right{margin-left:auto;display:flex;align-items:center;gap:16px;color:#6f788b}.shell{display:flex}.side{width:230px;background:#fff;border-right:1px solid #e6ebf2;min-height:calc(100vh - 58px);padding:16px 12px}.menu{padding:11px 14px;border-radius:5px;margin-bottom:5px;color:#606a7d}.menu.active{background:#edf3ff;color:#2468f2;font-weight:600}.menu.section{font-size:12px;color:#a1a8b5;margin-top:14px}.main{flex:1;padding:20px 22px 40px;min-width:0}.prototype-switch{position:fixed;right:22px;bottom:22px;z-index:50;background:#202a3e;border-radius:12px;padding:6px;box-shadow:0 8px 28px rgba(18,32,60,.25);display:flex;gap:4px}.prototype-switch button{border:0;background:transparent;color:#cbd4e4;padding:9px 14px;border-radius:8px;cursor:pointer}.prototype-switch button.active{background:#3478f6;color:#fff}.page-head{display:flex;align-items:flex-start;margin-bottom:18px}.page-head h1{font-size:24px;margin:0 0 5px;color:#202738}.page-head p{margin:0;color:#8b94a5}.updated{margin-left:auto;color:#9aa3b2;font-size:12px}.tabs{display:flex;gap:30px;border-bottom:1px solid #dce2ec;margin-bottom:18px}.tab{padding:11px 2px;border:0;background:none;color:#5f687b;font-size:15px;cursor:pointer;border-bottom:3px solid transparent}.tab.active{color:#2468f2;border-color:#2468f2;font-weight:600}.panel{background:#fff;border:1px solid #e2e7ef;border-radius:6px;margin-bottom:16px;box-shadow:0 1px 3px rgba(26,43,74,.04)}.filter{padding:15px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.field{display:flex;align-items:center;gap:8px}.field label{white-space:nowrap;color:#5f6877}.select,.input{height:38px;border:1px solid #d8deea;border-radius:4px;background:#fff;padding:0 34px 0 12px;color:#30384b;min-width:180px;font-size:14px}.select:focus,.input:focus{outline:none;border-color:#3478f6;box-shadow:0 0 0 2px rgba(52,120,246,.1)}.select.task{min-width:300px}.select.dept{min-width:230px}.btn{height:38px;border:1px solid #d7deea;border-radius:4px;background:#fff;color:#596377;padding:0 17px;cursor:pointer}.btn.primary{background:#2468f2;border-color:#2468f2;color:#fff}.btn.link{height:auto;padding:0;border:0;color:#2468f2;background:transparent}.filter .push{margin-left:auto}.task-summary{padding:14px 16px;border-top:1px solid #edf0f5;background:#f9fbff;display:flex;align-items:center;gap:26px}.task-title{font-weight:650;color:#253047}.task-meta{font-size:12px;color:#929bab}.status{display:inline-flex;padding:2px 8px;border-radius:10px;background:#e8f7ee;color:#20884a;font-size:12px;margin-left:8px}.notice{padding:11px 14px;background:#fff8e8;border:1px solid #f7dda0;border-radius:5px;color:#986d18;margin-bottom:14px;display:none}.notice.show{display:block}.section-title{padding:13px 16px;border-bottom:1px solid #edf0f5;font-weight:650;display:flex;align-items:center;gap:9px}.section-title:before{content:"";width:3px;height:18px;background:#2874f0;border-radius:2px}.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}.metric{background:#fff;border:1px solid #e0e6ef;border-radius:6px;padding:16px;min-height:96px;box-shadow:0 1px 3px rgba(25,42,71,.04)}.metric .label{color:#697386;margin-bottom:9px}.metric .value{font-size:26px;color:#293246}.metric .sub{font-size:12px;color:#9ca4b3;margin-left:6px}.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:16px}.rank-list{padding:4px 16px 12px}.rank-row{display:flex;align-items:center;padding:11px 0;border-bottom:1px solid #f0f2f6}.rank-no{width:27px;height:27px;border-radius:50%;background:#8d98a8;color:#fff;display:grid;place-items:center;margin-right:11px}.rank-no.n1{background:#ff7800}.rank-no.n2{background:#f6b500}.rank-no.n3{background:#3c86f6}.rank-main{flex:1}.rank-main small{display:block;color:#929baa;margin-top:3px}.rank-rate{font-size:17px;color:#27a64b;font-weight:600}.rank-rate.bad{color:#e55757}.table-tools{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid #edf0f5}.table-tools .path{color:#8a93a4}.table-tools .path b{color:#2f394c}.table-tools .right{margin-left:auto;display:flex;gap:9px}table{width:100%;border-collapse:collapse}th,td{padding:12px 13px;border-right:1px solid #e5e9f0;border-bottom:1px solid #e5e9f0;text-align:left;white-space:nowrap}th{background:#f4f6f9;color:#424b5d;font-weight:600}td{color:#465064}tr:hover td{background:#f8faff}.name-cell{font-weight:600;color:#2f394b}.tree{display:inline-grid;place-items:center;width:20px;height:20px;border:1px solid #b9c3d2;border-radius:4px;margin-right:7px;color:#667286;cursor:pointer}.rate{display:flex;align-items:center;gap:8px}.bar{height:7px;width:80px;border-radius:5px;background:#e8ebf1;overflow:hidden}.bar i{display:block;height:100%;background:#35ad5c}.bar i.low{background:#ef6464}.danger{color:#e24f4f}.empty{padding:70px 20px;text-align:center;color:#9ca5b3}.empty .icon{font-size:40px;margin-bottom:8px}.drawer-mask{display:none;position:fixed;inset:0;background:rgba(23,32,50,.35);z-index:80}.drawer-mask.show{display:block}.drawer{position:absolute;right:0;top:0;height:100%;width:72%;min-width:900px;background:#fff;box-shadow:-8px 0 30px rgba(20,32,54,.15);overflow:auto}.drawer-head{position:sticky;top:0;background:#fff;z-index:2;border-bottom:1px solid #e5e9f0;padding:17px 20px;display:flex;align-items:center}.drawer-head h2{margin:0;font-size:18px}.close{margin-left:auto;border:0;background:none;font-size:24px;color:#7d8797;cursor:pointer}.drawer-body{padding:18px 20px}.sop-top-select{margin-left:auto}.subtle{font-size:12px;color:#9099a8}.hidden{display:none!important}.sop-context{padding:13px 16px;display:flex;gap:45px}.sop-context b{color:#293347}.sop-filters{padding:13px 16px;display:flex;gap:12px;align-items:center}.tag{display:inline-flex;padding:3px 8px;border-radius:12px;background:#eef4ff;color:#2468f2;font-size:12px}.action{color:#2468f2;cursor:pointer}.badge-warn{display:inline-flex;padding:2px 7px;background:#fff1f0;color:#d94b4b;border-radius:10px;font-size:12px}.footnote{font-size:12px;color:#8f98a8;padding:10px 16px;background:#fafbfc;border-top:1px solid #edf0f5}.multi-task{position:relative}.multi-trigger{height:38px;width:330px;border:1px solid #d8deea;border-radius:4px;background:#fff;padding:0 34px 0 12px;text-align:left;color:#30384b;cursor:pointer;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.multi-trigger:after{content:"⌄";position:absolute;right:11px;color:#8993a5}.multi-pop{display:none;position:absolute;top:44px;left:0;width:390px;background:#fff;border:1px solid #dce2eb;border-radius:6px;box-shadow:0 8px 26px rgba(33,48,76,.18);z-index:60}.multi-pop.show{display:block}.multi-search{padding:10px;border-bottom:1px solid #edf0f5}.multi-search input{width:100%;height:34px;border:1px solid #d8deea;border-radius:4px;padding:0 10px}.multi-list{max-height:250px;overflow:auto;padding:5px 0}.multi-item{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;cursor:pointer}.multi-item:hover{background:#f5f8ff}.multi-item input{margin-top:3px}.multi-item span{display:block}.multi-item small{display:block;color:#929baa;margin-top:2px}.multi-actions{display:flex;align-items:center;padding:9px 11px;border-top:1px solid #edf0f5}.multi-actions .count{color:#7c8596;font-size:12px}.multi-actions .right{margin-left:auto;display:flex;gap:7px}.mini{height:30px;padding:0 11px}
+@media(max-width:1300px){.metrics{grid-template-columns:repeat(3,1fr)}.analysis-grid{grid-template-columns:1fr}.side{width:200px}.select.task{min-width:250px}}
+.multi-empty{padding:28px 16px;text-align:center;color:#9aa3b2;line-height:1.6}.multi-actions .count.error{color:#df4d4d}.multi-trigger:disabled{background:#f5f6f8;color:#9da5b3;cursor:not-allowed}.field#customDateRange .input{min-width:145px;width:145px;padding-right:8px}
+.section-caption{font-size:15px;font-weight:650;color:#313b4e;margin:16px 0 10px;padding-left:10px;border-left:3px solid #2874f0}.sop-metrics{grid-template-columns:repeat(4,1fr)}.sop-target-metrics{grid-template-columns:repeat(3,1fr)}.help{display:inline-grid;place-items:center;width:16px;height:16px;border:1px solid #8d98aa;border-radius:50%;font-size:11px;color:#748096;cursor:help;margin-left:3px}.sop-metrics .metric,.sop-target-metrics .metric{min-height:100px}.sop-target-metrics .metric{max-width:none}.filter-note{width:100%;color:#8a93a4;font-size:12px;margin-top:-4px;padding-left:88px}.sort-mark{color:#2468f2;font-size:12px;margin-left:4px}.summary-label{color:#7c8698;margin-right:8px}.summary-names{font-weight:650;color:#283247;display:inline-block;max-width:960px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}.global-table th:last-child,.global-table td:last-child{position:sticky;right:0;z-index:2;min-width:150px;background:#fff;box-shadow:-5px 0 8px rgba(39,55,83,.08)}.global-table th:last-child{z-index:3;background:#f4f6f9}.global-table tr:hover td:last-child{background:#f8faff}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><span class="logo">A</span>CDP客户营销系统</div>
+    <div class="crumb">首页&nbsp;&nbsp;/&nbsp;&nbsp;<b id="crumbTitle">全域任务总览</b></div>
+    <div class="top-right"><span>⚙</span><span>⛶</span><span>帮助</span><b>单世权⌄</b></div>
+  </header>
+  <div class="shell">
+    <aside class="side">
+      <div class="menu">⌂&nbsp;&nbsp;首页</div>
+      <div class="menu active" id="sideActive">◉&nbsp;&nbsp;全域任务总览</div>
+      <div class="menu section">分析</div>
+      <div class="menu">▥&nbsp;&nbsp;行为分析</div>
+      <div class="menu">◇&nbsp;&nbsp;事件分析</div>
+      <div class="menu section">企微运营</div>
+      <div class="menu">客户SOP任务</div>
+      <div class="menu">朋友圈任务</div>
+      <div class="menu">群发工具</div>
+    </aside>
+    <main class="main">
+      <section id="globalPage">
+        <div class="page-head"><div><h1>全域任务总览</h1><p>所有触达渠道的任务汇总 · 营销维度全局监控</p></div><span class="updated">数据更新时间：2026-08-17 10:30</span></div>
+        <div class="tabs"><button class="tab">任务维度</button><button class="tab active">部门维度</button></div>
+        <div class="panel">
+          <div class="filter">
+            <div class="field"><label>任务类型</label><select class="select" id="globalType"><option value="customer">客户SOP</option><option value="group">群SOP</option><option value="moments">朋友圈任务</option><option value="mass">客户群发</option></select></div>
+            <div class="field"><label>任务创建时间</label><select class="select" id="globalTime"><option value="" selected>全部时间</option><option value="today">今天</option><option value="week">本周</option><option value="month">本月</option><option value="custom">自定义</option></select></div>
+            <div class="field hidden" id="customDateRange"><input type="date" class="input" value="2026-08-01"><span>—</span><input type="date" class="input" value="2026-08-17"></div>
+            <div class="field"><label>具体任务</label><div class="multi-task" id="taskMulti"><button class="multi-trigger" id="taskTrigger">全部任务</button><div class="multi-pop" id="taskPop"><div class="multi-search"><input id="taskSearch" placeholder="搜索任务名称"></div><div class="multi-list" id="taskList"></div><div class="multi-actions"><span class="count" id="taskCount">已选0个，最多10个</span><div class="right"><button class="btn mini" id="clearTasks">清空</button><button class="btn primary mini" id="confirmTasks">确定</button></div></div></div></div></div>
+            <div class="field"><label>部门</label><select class="select dept"><option>全部部门</option><option>推广运营部</option><option>用户运营部</option><option>澳洲事业部</option></select></div>
+            <button class="btn primary" id="searchGlobal">搜索</button><button class="btn" id="resetGlobal">重置</button>
+          </div>
+          <div class="task-summary hidden" id="globalSummary"><div><span class="summary-label">所选任务</span><span class="summary-names" id="taskSummaryTitle"></span></div></div>
+        </div>
+        <div id="globalNormal">
+          <div class="analysis-grid">
+            <div class="panel"><div class="section-title">部门执行率排行</div><div class="rank-list" id="deptRanks"></div></div>
+            <div class="panel"><div class="section-title">员工执行率 Top 10</div><div class="rank-list" id="employeeRanks"></div></div>
+          </div>
+          <div class="panel">
+            <div class="section-title">部门明细</div>
+            <div class="table-tools"><span class="path"><b>全部统计部门</b></span></div>
+            <div style="overflow:auto"><table class="global-table"><thead><tr><th>名称</th><th>应下发任务数 <span class="help" title="计划下发给员工的任务数量">?</span></th><th>下发成功任务数 <span class="help" title="成功下发给员工的任务数量">?</span></th><th>下发失败任务数 <span class="help" title="计划下发但未成功送达员工的任务数量">?</span></th><th>完成任务数（未逾期） <span class="help" title="在规定时间内完成的任务数量">?</span></th><th>未完成任务数 <span class="help" title="下发成功但尚未完成的任务数量">?</span></th><th>逾期任务数 <span class="help" title="逾期未完成与逾期且已完成的任务数量合计">?</span></th><th><span id="globalSendHeader">发送客户数</span> <span class="help" title="客户/群SOP：子任务中完成发送的客户/群数量合计，不去重">?</span></th><th>目标达成数 <span class="help" title="客户/群SOP：子任务中触达客户/群并达成目标的数量合计，不去重">?</span></th><th>目标达成率 <span class="help" title="客户/群SOP：目标达成数 ÷ 发送客户/群数；无有效分母时展示“-”">?</span></th><th>执行率 <span class="help" title="完成任务数 ÷ 下发成功任务数">?</span><span class="sort-mark">↓</span></th></tr></thead><tbody id="globalDeptRows"></tbody></table></div>
+          </div>
+        </div>
+        <div class="panel hidden" id="globalEmpty"><div class="empty"><div class="icon">▣</div><div>所选任务暂无可统计的部门数据</div><div class="subtle">请确认任务是否已生成员工执行记录</div></div></div>
+      </section>
+
+      <section id="sopPage" class="hidden">
+        <div class="page-head"><div><h1>客户/群SOP任务数据分析</h1><p>按部门汇总SOP任务的执行统计与目标统计</p></div></div>
+        <div class="tabs" id="sopTabs"><button class="tab" data-sop="task">任务维度</button><button class="tab active" data-sop="dept">部门维度</button><button class="tab" data-sop="employee">员工维度</button></div>
+        <div id="sopDeptView">
+          <div class="panel"><div class="filter">
+            <div class="field"><label>部门</label><div class="multi-task" id="sopDeptMulti"><button class="multi-trigger" id="sopDeptTrigger">全部部门</button><div class="multi-pop" id="sopDeptPop"><div class="multi-list"><label class="multi-item"><input type="checkbox" name="sopDeptChoice" value="推广运营部"><span>推广运营部</span></label><label class="multi-item" style="padding-left:32px"><input type="checkbox" name="sopDeptChoice" value="推广运营1组"><span>推广运营1组</span></label><label class="multi-item" style="padding-left:32px"><input type="checkbox" name="sopDeptChoice" value="推广运营2组"><span>推广运营2组</span></label><label class="multi-item"><input type="checkbox" name="sopDeptChoice" value="用户运营部"><span>用户运营部</span></label><label class="multi-item" style="padding-left:32px"><input type="checkbox" name="sopDeptChoice" value="闲置组"><span>闲置组</span></label><label class="multi-item"><input type="checkbox" name="sopDeptChoice" value="澳洲事业部"><span>澳洲事业部</span></label></div><div class="multi-actions"><span class="count" id="sopDeptCount">已选0个</span><div class="right"><button class="btn mini" id="clearSopDepts">清空</button><button class="btn primary mini" id="confirmSopDepts">确定</button></div></div></div></div></div>
+            <div class="field"><label>任务</label><div class="multi-task" id="sopTaskMulti"><button class="multi-trigger" id="sopTaskTrigger">品牌UGC营销-已预订</button><div class="multi-pop" id="sopTaskPop"><div class="multi-search"><input id="sopTaskSearch" placeholder="搜索任务名称"></div><div class="multi-list"><label class="multi-item" data-sop-task="品牌UGC营销-已预订"><input type="checkbox" name="sopTaskChoice" value="品牌UGC营销-已预订" checked><span>品牌UGC营销-已预订</span></label><label class="multi-item" data-sop-task="测试英国拉群"><input type="checkbox" name="sopTaskChoice" value="测试英国拉群"><span>测试英国拉群</span></label><label class="multi-item" data-sop-task="留学行前提醒"><input type="checkbox" name="sopTaskChoice" value="留学行前提醒"><span>留学行前提醒</span></label><label class="multi-item" data-sop-task="澳洲新客首次触达"><input type="checkbox" name="sopTaskChoice" value="澳洲新客首次触达"><span>澳洲新客首次触达</span></label></div><div class="multi-actions"><span class="count" id="sopTaskCount">已选1个</span><div class="right"><button class="btn mini" id="clearSopTasks">清空</button><button class="btn primary mini" id="confirmSopTasks">确定</button></div></div></div></div></div>
+            <div class="field"><label>任务创建时间</label><input type="date" class="input" id="sopStartTime"><span>—</span><input type="date" class="input" id="sopEndTime"></div><button class="btn primary" id="searchSop">搜索</button><button class="btn" id="resetSop">重置</button>
+          </div></div>
+          <div class="section-caption">执行统计</div><div class="metrics sop-metrics" id="sopExecutionMetrics"></div>
+          <div class="section-caption">目标统计</div><div class="metrics sop-target-metrics" id="sopTargetMetrics"></div>
+          <div class="panel">
+            <div class="section-title">部门明细</div>
+            <div style="overflow:auto"><table><thead><tr><th>部门</th><th>执行员工数（去重） <span class="help" title="接收到子任务的员工数量合计，按员工去重">?</span></th><th>应触达（发送）客户/群数（去重） <span class="help" title="员工接收子任务中应触达的客户/群数量，按客户/群去重">?</span></th><th>接收子任务数 <span class="help" title="按员工子任务计数；同一员工的一个子任务需发送多个客户时仅计1个">?</span></th><th>完成子任务数 <span class="help" title="按员工子任务计数；同一员工子任务下全部客户完成发送后计1个完成">?</span></th><th>子任务未完成数 <span class="help" title="员工接收子任务中未完成的数量；任一客户未完成发送，该员工子任务即未完成">?</span></th><th>逾期子任务数 <span class="help" title="逾期未完成和逾期且已完成的员工子任务数量合计">?</span></th><th>执行率 <span class="help" title="完成子任务数 ÷ 接收子任务数">?</span></th><th>发送客户/群数（不去重） <span class="help" title="员工子任务中触达（发送）的客户/群数量合计，不去重">?</span></th><th>目标达成数（不去重） <span class="help" title="员工子任务中触达客户/群并完成目标的数量合计，不去重">?</span></th><th>目标达成率 <span class="help" title="目标达成数 ÷ 发送客户/群数">?</span></th></tr></thead><tbody id="sopDeptRows"></tbody></table></div>
+          </div>
+        </div>
+        <div id="sopEmployeeView" class="hidden"></div>
+        <div id="sopPlaceholder" class="panel hidden"><div class="empty"><div class="icon">▤</div><div>该页签沿用现有页面，本原型重点验证新增的部门维度及下钻链路。</div></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="prototype-switch"><button class="active" data-page="global">全域任务总览</button><button data-page="sop">SOP部门维度</button></div>
+
+<div class="drawer-mask" id="drawerMask"><div class="drawer"><div class="drawer-head"><h2 id="drawerTitle">员工明细</h2><button class="close" id="closeDrawer">×</button></div><div class="drawer-body"><div class="metrics" id="drawerMetrics"></div><div class="panel"><div class="section-title">员工执行数据</div><div style="overflow:auto"><table><thead><tr><th>员工</th><th>企微直属部门</th><th>统计部门</th><th>应执行数</th><th>完成数</th><th>未完成数</th><th>逾期数</th><th>完成率</th><th>操作</th></tr></thead><tbody id="drawerRows"></tbody></table></div></div></div></div></div>
+
+<script>
+const departmentData=[
+ {name:'推广运营部',children:5,people:10,total:184,done:156,overdue:18,failed:3,rate:84.78},
+ {name:'用户运营部',children:8,people:9,total:149,done:101,overdue:35,failed:4,rate:69.66},
+ {name:'澳洲事业部',children:4,people:5,total:82,done:45,overdue:29,failed:2,rate:56.25},
+ {name:'英国事业部',children:3,people:3,total:44,done:0,overdue:41,failed:3,rate:0}
+];
+const employees={
+ '推广运营部':[['张清敏','推广运营1组',38,36,2,1],['方静伊','推广运营3组',35,30,5,3],['铁嘉伦','推广运营2组',32,27,5,4],['张银松','推广运营2组',29,24,5,5]],
+ '用户运营部':[['王新慧','闲置组',41,18,23,19],['卢鹏飞','用户运营经理',38,17,21,18],['曹孟霞','闲置组',35,15,20,16]],
+ '澳洲事业部':[['彭熙晶','澳洲一组',32,12,20,17],['王婉莹','澳洲组',28,11,17,12],['郭梦瑶','梦雨组',22,8,14,12]],
+ '英国事业部':[['刘倩文','凯强组',18,0,18,17],['张硕','用户运营8组',15,0,15,14],['杜政政','晋哲组',11,0,11,10]]
+};
+const metric=(label,value,sub='')=>`<div class="metric"><div class="label">${label}</div><span class="value">${value}</span>${sub?`<span class="sub">${sub}</span>`:''}</div>`;
+function renderRanks(){
+ document.getElementById('deptRanks').innerHTML=[...departmentData].sort((a,b)=>b.rate-a.rate).map((d,i)=>`<div class="rank-row"><span class="rank-no n${i+1}">${i+1}</span><div class="rank-main">${d.name}<small>完成 ${d.done}/${d.total-d.failed} · 下发失败 ${d.failed}</small></div><span class="rank-rate ${d.rate<50?'bad':''}">${d.rate.toFixed(2)}%</span></div>`).join('');
+ const people=[['张清敏','推广运营部/推广运营1组','94.74%'],['方静伊','推广运营部/推广运营3组','85.71%'],['铁嘉伦','推广运营部/推广运营2组','84.38%'],['王新慧','用户运营部/闲置组','43.90%']];
+ document.getElementById('employeeRanks').innerHTML=people.map((p,i)=>`<div class="rank-row"><span class="rank-no n${i+1}">${i+1}</span><div class="rank-main">${p[0]}<small>${p[1]}</small></div><span class="rank-rate ${parseFloat(p[2])<50?'bad':''}">${p[2]}</span></div>`).join('')
+}
+function rowRate(d){const cls=d.rate<50?'low':'';return `<div class="rate"><div class="bar"><i class="${cls}" style="width:${d.rate}%"></i></div><span class="${d.rate<50?'danger':''}">${d.rate.toFixed(2)}%</span></div>`}
+function renderGlobalRows(){
+ const sent=[156,111,74,36],targetDone=[82,46,18,0],isSop=['customer','group'].includes(document.getElementById('globalType').value);
+ const rows=departmentData.map((d,i)=>{const success=d.total-d.failed,unfinished=success-d.done,executeRate=success?d.done/success*100:0,targetRate=sent[i]?targetDone[i]/sent[i]*100:null;return {...d,success,unfinished,executeRate,sent:sent[i],targetDone:targetDone[i],targetRate}}).sort((a,b)=>b.executeRate-a.executeRate);
+ document.getElementById('globalDeptRows').innerHTML=rows.map(d=>`<tr><td class="name-cell"><span class="tree">›</span>${d.name}</td><td>${d.total}</td><td>${d.success}</td><td>${d.failed}</td><td>${d.done}</td><td class="${d.unfinished>0?'danger':''}">${d.unfinished}</td><td class="${d.overdue>0?'danger':''}">${d.overdue}</td><td>${isSop?d.sent:'-'}</td><td>${isSop?d.targetDone:'-'}</td><td>${isSop&&d.targetRate!==null?`${d.targetRate.toFixed(2)}%`:'-'}</td><td>${rowRate({...d,rate:d.executeRate})}</td></tr>`).join('')
+}
+function updateGlobalSendHeader(){const type=document.getElementById('globalType').value;document.getElementById('globalSendHeader').textContent=type==='group'?'发送群数':type==='customer'?'发送客户数':'发送客户/群数'}
+function openEmployees(dept){
+ const list=employees[dept]||[['待配置员工','未识别直属部门',18,3,10,8]];document.getElementById('drawerTitle').textContent=`${dept} · 员工明细`;
+ const totals=list.reduce((a,x)=>[a[0]+x[2],a[1]+x[3],a[2]+x[4],a[3]+x[5]],[0,0,0,0]);
+ document.getElementById('drawerMetrics').innerHTML=metric('员工数',list.length)+metric('应执行数',totals[0])+metric('完成数',totals[1])+metric('未完成数',totals[2])+metric('逾期数',totals[3])+metric('完成率',totals[0]?`${(totals[1]/totals[0]*100).toFixed(2)}%`:'-');
+ document.getElementById('drawerRows').innerHTML=list.map(e=>{const rate=e[2]?e[3]/e[2]*100:0;return `<tr><td class="name-cell">${e[0]}</td><td>${e[1]}</td><td>${dept}</td><td>${e[2]}</td><td>${e[3]}</td><td class="danger">${e[4]}</td><td class="danger">${e[5]}</td><td>${rate.toFixed(2)}%</td><td><span class="action">查看任务明细</span></td></tr>`}).join('');document.getElementById('drawerMask').classList.add('show')
+}
+function renderSop(){
+ const sopMetric=(label,value,tip)=>`<div class="metric"><div class="label">${label} <span class="help" title="${tip}">?</span></div><span class="value">${value}</span></div>`;
+ document.getElementById('sopExecutionMetrics').innerHTML=sopMetric('执行员工数（去重）','27','接收到子任务的员工数量合计，按员工去重')+sopMetric('应触达（发送）客户/群数（去重）','154','员工接收子任务中应触达的客户/群数量，按客户/群去重')+sopMetric('接收子任务数','92','按员工子任务计数；同一员工的一个子任务触达多个客户时仅计1个')+sopMetric('完成子任务数','61','同一员工子任务下全部客户完成发送后计1个完成')+sopMetric('子任务未完成数','31','任一客户未完成发送，该员工子任务即未完成')+sopMetric('逾期子任务数','18','逾期未完成和逾期且已完成的员工子任务数量合计')+sopMetric('执行率','66.30%','完成子任务数 ÷ 接收子任务数');
+ document.getElementById('sopTargetMetrics').innerHTML=sopMetric('发送客户/群数（不去重）','129','员工子任务中触达（发送）的客户/群数量合计，不去重')+sopMetric('目标达成数（不去重）','72','触达客户/群并完成目标的数量合计，不去重')+sopMetric('目标达成率','55.81%','目标达成数 ÷ 发送客户/群数');
+ const received=[32,26,20,14],completed=[25,17,12,7],unfinished=[7,9,8,7],overdue=[3,5,4,6],reach=[56,45,32,21],sent=[48,36,27,18],targets=[31,21,14,6];
+ document.getElementById('sopDeptRows').innerHTML=departmentData.map((d,i)=>{const executeRate=received[i]?completed[i]/received[i]*100:0,targetRate=sent[i]?targets[i]/sent[i]*100:0;return `<tr><td class="name-cell">${d.name}</td><td>${d.people}</td><td>${reach[i]}</td><td>${received[i]}</td><td>${completed[i]}</td><td class="danger">${unfinished[i]}</td><td class="danger">${overdue[i]}</td><td>${executeRate.toFixed(2)}%</td><td>${sent[i]}</td><td>${targets[i]}</td><td>${targetRate.toFixed(2)}%</td></tr>`}).join('')
+}
+function setGlobalState(state){
+ const empty=state==='empty';document.getElementById('globalNormal').classList.toggle('hidden',empty);document.getElementById('globalEmpty').classList.toggle('hidden',!empty);document.getElementById('globalSummary').classList.toggle('hidden',state==='all');
+ if(!empty)renderGlobalRows()
+}
+const taskCatalog=[
+ {id:'c1',name:'品牌UGC营销-已预订',type:'customer',ranges:['today','week','month']},{id:'c2',name:'留学行前提醒',type:'customer',ranges:['week','month']},{id:'c3',name:'英国租房回访',type:'customer',ranges:['week','month']},{id:'c4',name:'英国行前材料提醒',type:'customer',ranges:['month']},{id:'c5',name:'澳洲学长IP视频推送6',type:'customer',ranges:['month']},{id:'c6',name:'澳洲学长IP视频推送7',type:'customer',ranges:['month']},{id:'c7',name:'品牌UGC营销-已入住',type:'customer',ranges:['month']},{id:'c8',name:'品牌UGC营销-已咨询',type:'customer',ranges:['month']},{id:'c9',name:'英国新客首次触达',type:'customer',ranges:['month']},{id:'c10',name:'澳洲新客首次触达',type:'customer',ranges:['month']},{id:'c11',name:'留学生租房签约回访',type:'customer',ranges:['month']},{id:'c12',name:'沉默客户重新激活',type:'customer',ranges:['month']},
+ {id:'g1',name:'新客入群欢迎SOP',type:'group',ranges:['today','week','month']},{id:'g2',name:'租房群每周内容推送',type:'group',ranges:['week','month']},{id:'g3',name:'老客群活动提醒',type:'group',ranges:['month']},{id:'m1',name:'八月租房案例朋友圈',type:'moments',ranges:['month']}
+];
+const taskTrigger=document.getElementById('taskTrigger'),taskPop=document.getElementById('taskPop'),taskList=document.getElementById('taskList'),taskCount=document.getElementById('taskCount');
+let currentTaskOptions=[];
+function selectedTasks(){return [...document.querySelectorAll('[name="taskChoice"]:checked')].map(x=>x.value)}
+function taskName(id){return (taskCatalog.find(x=>x.id===id)||{}).name||''}
+function updateTaskCount(message=''){
+ const n=selectedTasks().length;taskCount.textContent=message||`已选${n}个，最多10个`;taskCount.classList.toggle('error',Boolean(message))
+}
+function bindTaskChecks(){document.querySelectorAll('[name="taskChoice"]').forEach(x=>x.addEventListener('change',e=>{if(selectedTasks().length>10){e.target.checked=false;updateTaskCount('最多选择10个任务')}else updateTaskCount()}))}
+function refreshTaskOptions({preserveSelection=false}={}){
+ const selectedBefore=preserveSelection?selectedTasks():[],type=document.getElementById('globalType').value,range=document.getElementById('globalTime').value;currentTaskOptions=taskCatalog.filter(x=>x.type===type&&(!range||range==='custom'||x.ranges.includes(range)));
+ document.getElementById('taskSearch').value='';taskPop.classList.remove('show');document.getElementById('globalSummary').classList.add('hidden');
+ if(currentTaskOptions.length===0){taskList.innerHTML='<div class="multi-empty">当前任务类型和创建时间范围内暂无任务</div>';taskTrigger.textContent='当前任务类型和创建时间范围内暂无任务';taskTrigger.disabled=true;taskCount.textContent='暂无可选任务';document.getElementById('globalSummary').classList.add('hidden')}
+ else{taskList.innerHTML=currentTaskOptions.map(x=>`<label class="multi-item" data-name="${x.name}"><input type="checkbox" name="taskChoice" value="${x.id}" ${selectedBefore.includes(x.id)?'checked':''}><span>${x.name}</span></label>`).join('');taskTrigger.textContent=selectedBefore.length===0?'全部任务':selectedBefore.length===1?taskName(selectedBefore[0]):`已选${selectedBefore.length}个任务`;taskTrigger.disabled=false;updateTaskCount();bindTaskChecks()}
+}
+function applyTaskSelection(){
+ const ids=selectedTasks(),names=ids.map(taskName);if(ids.length){document.getElementById('globalTime').value='';document.getElementById('customDateRange').classList.add('hidden');refreshTaskOptions({preserveSelection:true})}taskTrigger.textContent=ids.length===0?'全部任务':ids.length===1?names[0]:`已选${ids.length}个任务`;
+ const shown=names.slice(0,5).join('、');document.getElementById('taskSummaryTitle').textContent=`${shown}${names.length>5?'……':''}`;
+ document.getElementById('globalSummary').classList.toggle('hidden',ids.length===0);taskPop.classList.remove('show');setGlobalState('normal')
+}
+taskTrigger.addEventListener('click',e=>{e.stopPropagation();if(!taskTrigger.disabled)taskPop.classList.toggle('show')});
+document.getElementById('taskSearch').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('#taskList .multi-item').forEach(x=>x.classList.toggle('hidden',!x.dataset.name.toLowerCase().includes(q)))});
+document.getElementById('clearTasks').addEventListener('click',()=>{document.querySelectorAll('[name="taskChoice"]').forEach(x=>x.checked=false);updateTaskCount()});
+document.getElementById('confirmTasks').addEventListener('click',applyTaskSelection);
+document.addEventListener('click',e=>{if(!document.getElementById('taskMulti').contains(e.target))taskPop.classList.remove('show')});
+document.getElementById('globalType').addEventListener('change',()=>{updateGlobalSendHeader();refreshTaskOptions()});
+document.getElementById('globalTime').addEventListener('change',e=>{document.getElementById('customDateRange').classList.toggle('hidden',e.target.value!=='custom');refreshTaskOptions()});
+document.getElementById('searchGlobal').addEventListener('click',()=>setGlobalState(currentTaskOptions.length===0?'empty':'normal'));
+document.getElementById('resetGlobal').addEventListener('click',()=>{document.getElementById('globalType').value='customer';document.getElementById('globalTime').value='';document.getElementById('customDateRange').classList.add('hidden');refreshTaskOptions();setGlobalState('all')});
+function setupSopMulti({root,trigger,pop,choice,count,clear,confirm,emptyText}){
+ const rootEl=document.getElementById(root),triggerEl=document.getElementById(trigger),popEl=document.getElementById(pop),countEl=document.getElementById(count);
+ const choices=()=>[...document.querySelectorAll(`[name="${choice}"]:checked`)];
+ const update=()=>{countEl.textContent=`已选${choices().length}个`};
+ document.querySelectorAll(`[name="${choice}"]`).forEach(x=>x.addEventListener('change',update));
+ triggerEl.addEventListener('click',e=>{e.stopPropagation();popEl.classList.toggle('show')});
+ document.getElementById(clear).addEventListener('click',()=>{choices().forEach(x=>x.checked=false);update()});
+ document.getElementById(confirm).addEventListener('click',()=>{const names=choices().map(x=>x.value);triggerEl.textContent=names.length===0?emptyText:names.length===1?names[0]:`已选${names.length}个`;popEl.classList.remove('show')});
+ document.addEventListener('click',e=>{if(!rootEl.contains(e.target))popEl.classList.remove('show')})
+}
+setupSopMulti({root:'sopDeptMulti',trigger:'sopDeptTrigger',pop:'sopDeptPop',choice:'sopDeptChoice',count:'sopDeptCount',clear:'clearSopDepts',confirm:'confirmSopDepts',emptyText:'全部部门'});
+setupSopMulti({root:'sopTaskMulti',trigger:'sopTaskTrigger',pop:'sopTaskPop',choice:'sopTaskChoice',count:'sopTaskCount',clear:'clearSopTasks',confirm:'confirmSopTasks',emptyText:'全部任务'});
+document.getElementById('sopTaskSearch').addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();document.querySelectorAll('[data-sop-task]').forEach(x=>x.classList.toggle('hidden',!x.dataset.sopTask.toLowerCase().includes(q)))});
+document.getElementById('searchSop').addEventListener('click',renderSop);
+document.getElementById('resetSop').addEventListener('click',()=>{document.querySelectorAll('[name="sopDeptChoice"]').forEach(x=>x.checked=false);document.querySelectorAll('[name="sopTaskChoice"]').forEach((x,i)=>x.checked=i===0);document.getElementById('sopDeptTrigger').textContent='全部部门';document.getElementById('sopTaskTrigger').textContent='品牌UGC营销-已预订';document.getElementById('sopDeptCount').textContent='已选0个';document.getElementById('sopTaskCount').textContent='已选1个';document.getElementById('sopStartTime').value='';document.getElementById('sopEndTime').value='';renderSop()});
+document.getElementById('closeDrawer').onclick=()=>document.getElementById('drawerMask').classList.remove('show');document.getElementById('drawerMask').addEventListener('click',e=>{if(e.target.id==='drawerMask')e.currentTarget.classList.remove('show')});
+document.querySelectorAll('.prototype-switch button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.prototype-switch button').forEach(x=>x.classList.toggle('active',x===b));const sop=b.dataset.page==='sop';document.getElementById('globalPage').classList.toggle('hidden',sop);document.getElementById('sopPage').classList.toggle('hidden',!sop);document.getElementById('crumbTitle').textContent=sop?'客户/群SOP任务数据分析':'全域任务总览';document.getElementById('sideActive').textContent=sop?'客户SOP任务':'◉  全域任务总览'}));
+document.querySelectorAll('#sopTabs .tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#sopTabs .tab').forEach(x=>x.classList.toggle('active',x===b));const view=b.dataset.sop;document.getElementById('sopDeptView').classList.toggle('hidden',view!=='dept');document.getElementById('sopEmployeeView').classList.add('hidden');document.getElementById('sopPlaceholder').classList.toggle('hidden',view==='dept')}));
+renderRanks();renderGlobalRows();renderSop();updateGlobalSendHeader();refreshTaskOptions();setGlobalState('all');
+</script>
+</body>
+</html>
