@@ -234,6 +234,7 @@
 
     <script>
         const STATIC_PROTOTYPES = [
+ { name: "CDP_任务A-B实验.html", type: "file", createdAt: "2026-10-10T00:00:00Z" },
             { name: "话术库标签原型.html", type: "file", createdAt: "2026-05-27T04:02:45Z" },
             { name: "任务执行-交互原型.html", type: "file", createdAt: "2026-06-03T01:37:14Z" },
             { name: "标签同步.html", type: "file", createdAt: "2026-06-17T08:14:33Z" },
@@ -340,7 +341,7 @@
                 link.rel = "noopener";
 
                 const title = document.createElement("h3");
-                title.textContent = fileTitle(file.name);
+                title.textContent = file.name === "CDP_任务A-B实验.html" ? "CDP_ 任务A/B 实验" : fileTitle(file.name);
 
                 const meta = document.createElement("span");
                 meta.textContent = "创建于 " + formatDate(file.createdAt) + " · " + file.name;
