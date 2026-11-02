@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>企微账号选择与城市刷新 · CDP客户营销系统</title>
+<style>
+/* 公共视觉基准。按需使用组件，不代表需要在页面加入对应功能。 */
+:root {
+  --cdp-primary:#165dff; --cdp-primary-soft:#e8f3ff;
+  --cdp-text:#303133; --cdp-secondary:#606b7b; --cdp-muted:#98a2b1;
+  --cdp-page:#f5f7fc; --cdp-field:#f2f3f5; --cdp-border:#ebeef5;
+  --cdp-danger:#f53f3f; --cdp-success:#00b42a;
+  --cdp-font:14px; --cdp-small:12px; --cdp-title:16px;
+  --cdp-control:32px; --cdp-radius:2px;
+  --cdp-space-1:8px; --cdp-space-2:16px; --cdp-space-3:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--cdp-text);background:var(--cdp-page);font:var(--cdp-font)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+:focus-visible{outline:2px solid var(--cdp-primary);outline-offset:2px}
+[hidden]{display:none!important}
+.cdp-workspace{padding:16px;min-width:0}
+.cdp-panel{background:white;padding:16px;min-width:0}
+.cdp-split{display:grid;grid-template-columns:240px minmax(0,1fr);gap:12px}
+.cdp-sidebar{background:white;border-right:1px solid var(--cdp-border)}
+.cdp-nav-item{padding:12px 16px;color:var(--cdp-secondary)}
+.cdp-nav-item.is-active{color:var(--cdp-primary);background:var(--cdp-field)}
+.cdp-tabs{display:flex;gap:32px;border-bottom:1px solid var(--cdp-border);margin-bottom:16px}
+.cdp-tab{position:relative;border:0;background:none;padding:0 0 12px;color:var(--cdp-secondary)}
+.cdp-tab[aria-selected=true]{color:var(--cdp-primary);font-weight:500}
+.cdp-tab[aria-selected=true]::after{content:"";height:2px;background:var(--cdp-primary);position:absolute;inset:auto 0 -1px}
+.cdp-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 24px;padding:0 0 16px;border-bottom:1px solid var(--cdp-border)}
+.cdp-field{display:flex;gap:16px;align-items:center;min-width:0}
+.cdp-label{flex:0 0 96px;text-align:right;color:var(--cdp-secondary)}
+.cdp-required::before{content:"* ";color:var(--cdp-danger)}
+.cdp-control{height:var(--cdp-control);min-width:0;width:100%;background:var(--cdp-field);border:1px solid transparent;border-radius:var(--cdp-radius);padding:5px 12px;color:var(--cdp-text)}
+.cdp-control::placeholder{color:var(--cdp-muted)}
+.cdp-control:focus{outline:none;border-color:var(--cdp-primary)}
+.cdp-control:focus-visible{outline:2px solid var(--cdp-primary);outline-offset:1px}
+.cdp-control:disabled{color:var(--cdp-muted);cursor:not-allowed}
+textarea.cdp-control{height:96px;resize:vertical;padding-bottom:20px}
+.cdp-counted{position:relative;flex:1;min-width:0}
+.cdp-counted input{padding-right:64px}
+.cdp-count{position:absolute;right:12px;bottom:7px;color:var(--cdp-muted);font-size:var(--cdp-small);pointer-events:none}
+.cdp-form{display:grid;gap:24px}
+.cdp-form .cdp-field{align-items:flex-start}
+.cdp-form .cdp-label{padding-top:5px}
+.cdp-options{display:flex;align-items:center;flex-wrap:wrap;gap:24px;min-height:32px}
+.cdp-options label{display:inline-flex;align-items:center;gap:8px}
+input[type=radio],input[type=checkbox]{accent-color:var(--cdp-primary)}
+.cdp-button{height:32px;padding:0 16px;border:1px solid var(--cdp-border);border-radius:var(--cdp-radius);background:white;color:var(--cdp-secondary);white-space:nowrap}
+.cdp-button--primary{color:white;background:var(--cdp-primary);border-color:var(--cdp-primary)}
+.cdp-button--plain{color:var(--cdp-primary);border-color:var(--cdp-primary)}
+.cdp-button--muted{background:var(--cdp-field);border-color:var(--cdp-field)}
+.cdp-button:disabled{opacity:.4}
+.cdp-link{border:0;background:none;padding:0;color:var(--cdp-primary);text-decoration:none}
+.cdp-link:disabled{opacity:.35}
+.cdp-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:12px 0}
+.cdp-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.cdp-table-wrap{overflow:auto;border:1px solid var(--cdp-border);border-radius:4px}
+.cdp-table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+.cdp-table th{background:var(--cdp-field);font-weight:600}
+.cdp-table th,.cdp-table td{height:40px;padding:8px 16px;border-right:1px solid var(--cdp-border);border-bottom:1px solid var(--cdp-border)}
+.cdp-table tr:last-child td{border-bottom:0}
+.cdp-table th:last-child,.cdp-table td:last-child{border-right:0}
+.cdp-table .cdp-sticky-actions{position:sticky;right:0;background:white;box-shadow:-5px 0 8px #00000008}
+.cdp-table th.cdp-sticky-actions{background:var(--cdp-field)}
+.cdp-ellipsis{display:block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cdp-pagination{display:flex;align-items:center;justify-content:flex-end;gap:16px;padding-top:12px}
+.cdp-pagination [aria-current=page]{background:var(--cdp-primary-soft);color:var(--cdp-primary)}
+.cdp-overlay{position:fixed;inset:0;background:#0008;z-index:100;display:flex;align-items:center;justify-content:center}
+.cdp-drawer{position:absolute;right:0;top:0;bottom:0;width:60vw;max-width:100vw;background:white;display:flex;flex-direction:column;min-width:0}
+.cdp-dialog{width:480px;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);background:white;border-radius:4px;display:flex;flex-direction:column}
+.cdp-container-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border-bottom:1px solid var(--cdp-border);flex-shrink:0}
+.cdp-container-title{font-size:var(--cdp-title);font-weight:600;margin:0}
+.cdp-close{border:0;background:none;color:var(--cdp-secondary);font-size:20px;line-height:24px;padding:0 4px}
+.cdp-container-body{padding:16px;overflow:auto;min-height:0;flex:1}
+.cdp-container-foot{display:flex;justify-content:flex-end;gap:12px;padding:16px;border-top:1px solid var(--cdp-border);flex-shrink:0;background:white}
+.cdp-error{font-size:var(--cdp-small);color:var(--cdp-danger);margin-top:4px}
+.cdp-help{font-size:var(--cdp-small);color:var(--cdp-muted)}
+.cdp-control[aria-invalid=true]{border-color:var(--cdp-danger)}
+.cdp-empty{padding:48px 16px;text-align:center;color:var(--cdp-muted)}
+.cdp-tag{display:inline-block;font-size:12px;padding:2px 8px;color:var(--cdp-primary);background:var(--cdp-primary-soft);border-radius:2px}
+
+:root{color-scheme:light}
+body{min-width:1000px;height:100vh;overflow:hidden}
+button{transition:background .12s,border-color .12s}
+button:hover:not(:disabled){filter:brightness(.98)}
+button:disabled{cursor:not-allowed}
+.shell{height:100vh;display:grid;grid-template-columns:216px minmax(0,1fr)}
+.sidebar{border-right:1px solid var(--cdp-border);background:#fff;overflow:auto}
+.brand{height:72px;display:flex;align-items:center;padding:0 20px;font-size:18px;font-weight:600;white-space:nowrap}
+.nav-row{display:flex;align-items:center;gap:12px;padding:13px 20px;color:var(--cdp-secondary)}
+.nav-icon{width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;color:var(--cdp-muted)}
+.nav-row.section{color:var(--cdp-primary);margin-top:8px}
+.nav-sub{display:block;padding:12px 20px 12px 54px;width:calc(100% - 16px);margin:0 8px;text-align:left;border:0;background:transparent;color:var(--cdp-secondary);border-radius:2px}
+.nav-sub.active{color:var(--cdp-primary);background:var(--cdp-field);font-weight:500}
+.nav-small{padding:11px 20px 11px 54px;color:var(--cdp-muted)}
+.workspace{min-width:0;display:flex;flex-direction:column}
+.topbar{height:56px;background:#fff;border-bottom:1px solid var(--cdp-border);display:flex;align-items:center;gap:16px;padding:0 24px;color:var(--cdp-secondary)}
+.breadcrumb{display:flex;align-items:center;gap:14px}.slash{color:#c9cdd4}.top-user{margin-left:auto;font-size:12px;color:var(--cdp-muted)}
+.page-tabs{height:44px;background:#fff;border-bottom:1px solid var(--cdp-border);display:flex;align-items:stretch}
+.page-tab{padding:12px 24px;border-right:1px solid var(--cdp-border);color:var(--cdp-secondary);font-size:13px}.page-tab.current{color:var(--cdp-primary)}
+.main-scroll{padding:16px;overflow:auto;flex:1}
+.list-panel{background:#fff;min-height:calc(100vh - 148px);padding:16px 24px}
+.business-tabs{height:44px;margin-bottom:24px;display:flex;gap:32px;border-bottom:1px solid var(--cdp-border)}
+.business-tab{height:44px;padding:0 0 12px;color:var(--cdp-secondary);position:relative}.business-tab.selected{color:var(--cdp-primary)}
+.business-tab.selected:after{position:absolute;content:"";height:2px;background:var(--cdp-primary);bottom:-1px;left:0;right:0}
+.filters{display:grid;grid-template-columns:1fr 1fr auto;gap:16px 24px;margin:8px 0 24px;align-items:center}
+.filter-field{display:flex;gap:16px;align-items:center}.filter-field label{white-space:nowrap;color:var(--cdp-secondary)}
+.description-strip{padding:12px 16px;color:#6980a1;background:#f5f8fc;margin-bottom:24px}
+.list-toolbar{display:flex;gap:8px;margin-bottom:16px}
+.task-table{table-layout:fixed}.task-table th,.task-table td{height:52px;font-weight:400}.task-table th{font-weight:500}
+.task-table .name-cell{overflow:hidden;text-overflow:ellipsis}.table-ops{display:flex;gap:16px}.status-dot{display:inline-flex;gap:6px;align-items:center}.status-dot:before{content:"";width:6px;height:6px;background:#00b42a;border-radius:50%}.status-dot.draft:before{background:#98a2b1}
+.screen-mask{position:fixed;inset:0;background:rgba(24,30,39,.48);z-index:10}
+.task-drawer{position:fixed;right:0;top:0;height:100vh;width:min(1180px,82vw);background:#fff;z-index:11;display:flex;flex-direction:column;box-shadow:-8px 0 24px #00000008}
+.task-drawer.compact{width:min(920px,76vw)}
+.drawer-head{height:60px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--cdp-border);flex-shrink:0}
+.drawer-title{font-size:16px;font-weight:600;margin:0}
+.drawer-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 286px;gap:24px;overflow:hidden;padding:0 24px}
+.drawer-main.no-preview{grid-template-columns:minmax(0,1fr);padding-right:48px}
+.task-form{padding:24px 4px 24px 0;overflow:auto;min-width:0;scrollbar-gutter:stable}
+.form-row{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px}
+.form-label{color:var(--cdp-secondary);width:112px;flex:0 0 112px;text-align:right;line-height:32px}
+.form-content{min-width:0;flex:1}.required:before{content:"* ";color:var(--cdp-danger)}
+.static-options{display:flex;align-items:center;gap:24px;min-height:32px;flex-wrap:wrap;color:var(--cdp-text)}
+.static-option{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}.radio-dot{display:inline-block;width:14px;height:14px;border:1px solid #d8dce4;border-radius:50%;flex-shrink:0}.radio-dot.on{border:4px solid var(--cdp-primary)}
+.read-only-control{background:var(--cdp-field);height:32px;padding:5px 12px;display:flex;align-items:center;justify-content:space-between;color:var(--cdp-text);border-radius:2px}
+.read-only-control .chev{font-size:12px;color:#8a95a5}
+.account-section{margin-top:8px;background:#f7f8fa;padding:16px}
+.account-section-label{margin-bottom:12px;color:var(--cdp-secondary)}
+.account-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.plus{font-size:18px;line-height:16px;margin-right:5px;font-weight:300}
+.refresh-icon{display:inline-block;font-size:16px;margin-right:5px;line-height:16px;vertical-align:-1px}
+.spinning{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.help-dot{border:1px solid #b6bfcb;color:#8e99a8;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;height:14px;width:14px;font-size:10px;cursor:help}
+.account-summary{display:flex;align-items:center;gap:12px;min-height:24px;color:var(--cdp-muted);font-size:12px;margin-bottom:8px;flex-wrap:wrap}
+.account-summary b{color:var(--cdp-primary);font-weight:500}
+.city-associations{display:flex;align-items:flex-start;gap:8px;min-height:26px;margin-bottom:8px;font-size:12px;color:var(--cdp-secondary)}
+.city-associations-label{padding:2px 0;flex-shrink:0}.city-pills{display:flex;gap:6px;flex-wrap:wrap}
+.city-pill{display:inline-flex;align-items:center;background:#eaf1ff;color:#165dff;padding:2px 8px;border-radius:2px;font-size:12px;white-space:nowrap}
+.account-box{background:#fff;border:1px solid var(--cdp-border);padding:12px;max-height:232px;min-height:92px;overflow:auto;display:flex;align-content:flex-start;gap:8px;flex-wrap:wrap}
+.account-chip{display:inline-flex;align-items:center;gap:8px;padding:4px 8px;background:#f2f3f5;border:1px solid transparent;border-radius:2px;max-width:100%;font-size:12px;min-height:28px}
+.account-chip.just-added{background:#eef4ff;border-color:#b4ceff;color:#165dff}
+.account-chip .chip-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.remove-chip{border:0;background:none;color:inherit;padding:0;line-height:16px;font-size:15px;opacity:.75}
+.account-empty{width:100%;padding:16px 0;text-align:center;color:var(--cdp-muted);font-size:12px}
+.refresh-feedback{font-size:12px;color:#b85151;font-weight:400;line-height:20px;margin-bottom:8px}
+.form-error{color:var(--cdp-danger);font-size:12px;margin-top:8px}
+.drawer-foot{height:68px;display:flex;gap:12px;align-items:center;justify-content:flex-end;padding:0 24px;border-top:1px solid var(--cdp-border);flex-shrink:0;background:#fff}
+.phone-preview{padding-top:56px;display:flex;align-items:flex-start;justify-content:center;overflow:hidden}
+.phone{border:9px solid #272a2d;border-radius:36px;width:266px;height:544px;background:#fff;position:relative;overflow:hidden;box-shadow:0 1px 2px #0002}
+.phone-status{padding:12px 16px 16px;font-size:10px;display:flex;justify-content:space-between;position:relative}.phone-island{position:absolute;width:78px;height:18px;background:#272a2d;border-radius:12px;left:84px;top:8px}
+.phone-title{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:1px solid #f4f4f4;font-size:13px;font-weight:500}
+.phone-post{padding:16px 12px;font-size:12px;line-height:1.9}.post-head{display:flex;gap:8px;align-items:center;margin-bottom:12px}.post-avatar{height:28px;width:28px;background:#edf0f3;display:grid;place-items:center;font-weight:600;color:#798796}.post-name{color:#4f6388;font-weight:500}.post-copy{white-space:pre-wrap}.post-image{width:88px;height:88px;background:#eef0ed;margin-top:12px;position:relative;overflow:hidden}.building{position:absolute;bottom:0;left:12px;width:64px;height:70px;background:#b3bcb4;border-top:5px solid #7c8d83;display:grid;grid-template-columns:repeat(3,10px);grid-auto-rows:12px;gap:7px;padding:8px}.building i{background:#e3e8df}.phone-home{position:absolute;bottom:7px;left:84px;height:4px;width:88px;background:#222;border-radius:4px}
+.selector-mask{position:fixed;inset:0;background:rgba(24,30,39,.3);z-index:20}
+.selector-drawer{position:fixed;right:0;top:0;height:100vh;width:min(880px,calc(100vw - 180px));z-index:21;background:white;display:flex;flex-direction:column;box-shadow:-8px 0 24px #00000009}
+.selector-head{height:60px;padding:0 20px;border-bottom:1px solid var(--cdp-border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.selector-head h2{font-size:16px;margin:0;font-weight:600}
+.selector-body{flex:1;min-height:0;display:grid;grid-template-columns:340px minmax(0,1fr)}
+.selector-left{border-right:1px solid var(--cdp-border);display:flex;flex-direction:column;min-height:0}
+.selector-tabs{height:52px;padding:0 16px;display:flex;gap:28px;border-bottom:1px solid var(--cdp-border);flex-shrink:0}
+.selector-tab{position:relative;color:var(--cdp-secondary);background:none;border:0;padding:0 0 1px;font-size:14px}
+.selector-tab[aria-selected=true]{color:var(--cdp-primary);font-weight:500}.selector-tab[aria-selected=true]:after{content:"";position:absolute;bottom:-1px;left:0;right:0;background:var(--cdp-primary);height:2px}
+.selector-search{margin:16px;position:relative;flex-shrink:0}.selector-search input{padding-right:36px}.search-symbol{position:absolute;right:12px;top:6px;color:#8d99a9;font-size:16px;pointer-events:none}
+.tree{overflow:auto;min-height:0;flex:1;padding:0 12px 24px}
+.tree-row{display:flex;align-items:center;min-height:40px;gap:8px;border-radius:2px;padding:4px 8px}
+.tree-row:hover{background:#f7f9fc}.tree-row label{display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;min-width:0}
+.tree-row input{width:15px;height:15px;margin:0;cursor:pointer;flex-shrink:0}
+.tree-row .tree-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree-row.leaf{padding-left:42px}.tree-row.nested{padding-left:24px}.tree-row.leaf.deep{padding-left:60px}
+.expand{border:0;background:none;width:14px;height:20px;display:flex;align-items:center;justify-content:center;color:#788393;font-size:10px;padding:0;flex-shrink:0}.expand.placeholder{cursor:default}
+.tree-row.root{font-weight:500}.tree-row.root label{padding-left:22px}
+
+.leaf-name{display:flex;flex-direction:column;min-width:0}.tree-city-empty{font-size:12px;color:var(--cdp-muted);padding:8px 0 12px 58px}
+.no-results{text-align:center;padding:40px 16px;color:var(--cdp-muted);font-size:13px}
+.selector-right{display:flex;flex-direction:column;min-width:0;min-height:0}
+.selected-heading{min-height:58px;display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--cdp-border)}
+.selected-heading b{font-weight:500;color:var(--cdp-primary);padding:0 4px}
+.clear-link{color:var(--cdp-danger);font-size:13px}.clear-link:disabled{color:#c6cbd4;opacity:1}
+.selector-city-strip{padding:12px 16px 4px;flex-shrink:0}.selector-city-strip .city-associations{margin:0}
+.selected-list{padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:12px;overflow:auto;flex:1;min-height:0}
+.selected-card{border:1px solid var(--cdp-border);height:36px;padding:7px 10px;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.selected-card .selected-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.selected-card .remove-chip{color:#7d8898;flex-shrink:0}.selected-empty{grid-column:1/-1;text-align:center;padding:56px 0;color:var(--cdp-muted);font-size:13px}
+.selector-foot{height:68px;border-top:1px solid var(--cdp-border);padding:0 20px;display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-shrink:0}
+.toast{position:fixed;z-index:100;top:24px;left:50%;transform:translateX(-50%);background:white;padding:10px 20px;border:1px solid var(--cdp-border);box-shadow:0 4px 18px #00000012;border-radius:4px;display:flex;align-items:center;gap:8px;font-size:13px;max-width:75vw}.toast-dot{color:var(--cdp-success)}
+.date-show{font-size:12px;color:var(--cdp-muted)}
+@media(max-width:1200px){.shell{grid-template-columns:184px minmax(0,1fr)}.brand{font-size:16px;padding:0 16px}.task-drawer{width:calc(100vw - 160px)}.drawer-main{grid-template-columns:minmax(0,1fr) 240px;gap:16px;padding:0 16px}.phone{transform:scale(.88);transform-origin:top center}.form-label{flex-basis:104px;width:104px}.static-options{gap:16px}.phone-preview{overflow:visible}.selector-body{grid-template-columns:320px minmax(0,1fr)}}
+@media(max-height:760px){.phone-preview{padding-top:24px}.phone{transform:scale(.82);transform-origin:top center}.task-form{padding-top:16px}.form-row{margin-bottom:12px}.account-box{max-height:188px}}
+@media(max-width:999px){body{min-width:0}.shell{grid-template-columns:168px minmax(0,1fr)}.brand{font-size:14px;padding:0 12px}.list-panel{min-width:680px}.main-scroll{overflow:auto}.topbar{padding:0 16px;white-space:nowrap;overflow:hidden}.top-user{display:none}.task-drawer,.task-drawer.compact{width:100vw}.drawer-main,.drawer-main.no-preview{display:block;padding:0 16px}.phone-preview{display:none}.task-form{height:100%;padding-right:0}.form-label{width:88px;flex-basis:88px;font-size:13px}.form-row{gap:12px}.static-options{gap:12px;font-size:13px}.account-section{padding:12px}.account-tools{gap:8px}.account-tools .cdp-button{padding:0 10px;font-size:12px}.drawer-head,.drawer-foot{padding-left:16px;padding-right:16px}.selector-drawer{width:100vw}.selector-body{grid-template-columns:45% minmax(0,1fr)}.selector-tabs{padding:0 12px;gap:16px}.selector-tab{font-size:12px}.selector-search{margin:12px}.tree{padding:0 4px 16px;font-size:12px}.tree-row{padding-left:4px;gap:4px}.tree-row.leaf{padding-left:28px}.tree-row.nested{padding-left:12px}.tree-row.leaf.deep{padding-left:40px}.selected-list{grid-template-columns:minmax(0,1fr);padding:12px;gap:8px}.selected-heading{padding:12px;font-size:13px}.selected-card{font-size:12px;padding:7px 8px}.selector-city-strip{padding:12px 12px 0}.city-associations{flex-wrap:wrap}.cdp-count{font-size:11px}}
+
+/* 本轮补齐：账号次要操作、折叠名单、朋友圈内容、会话行为标签。 */
+.account-tools{gap:12px;margin-bottom:8px;align-items:center}
+.account-count{font-size:12px;color:var(--cdp-muted);white-space:nowrap}
+.account-count b{font-weight:400;color:var(--cdp-muted)}
+.account-fold{font-size:13px;white-space:nowrap;min-height:24px;display:inline-flex;align-items:center;gap:4px}
+.fold-arrow{font-size:11px;display:inline-block;transition:transform .12s}.fold-arrow.up{transform:rotate(180deg)}
+.account-secondary{margin-left:auto;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.refresh-secondary{border:0;background:transparent;color:var(--cdp-secondary);font-size:12px;line-height:28px;padding:0 2px;height:28px;white-space:nowrap}
+.refresh-secondary:hover:not(:disabled){color:var(--cdp-primary)}.refresh-secondary:disabled{color:#aeb6c2;cursor:not-allowed}
+.refresh-secondary .refresh-icon{font-size:13px;margin-right:3px}
+.account-summary:empty{display:none}.account-summary{margin-bottom:8px}
+.account-box[hidden]{display:none}.account-box{max-height:216px}.account-section .city-associations{margin-top:4px}
+.help-wrap{display:inline-flex;position:relative;align-items:center;vertical-align:middle}
+button.help-dot{padding:0;background:transparent;font-family:inherit;flex-shrink:0}
+.help-tip{position:absolute;right:0;bottom:calc(100% + 10px);width:280px;max-width:calc(100vw - 48px);padding:10px 12px;background:#fff;border:1px solid var(--cdp-border);border-radius:3px;box-shadow:0 3px 14px #00000014;font-size:12px;line-height:1.7;color:var(--cdp-secondary);font-weight:400;white-space:normal;z-index:30;visibility:hidden;opacity:0;transition:opacity .1s;text-align:left}
+.help-tip:after{content:"";position:absolute;right:4px;bottom:-5px;width:8px;height:8px;background:#fff;border-bottom:1px solid var(--cdp-border);border-right:1px solid var(--cdp-border);transform:rotate(45deg)}
+.help-wrap:hover .help-tip,.help-wrap:focus-within .help-tip,.help-wrap.is-open .help-tip{visibility:visible;opacity:1}
+.customer-tags{border-top:1px solid #edf0f5;margin-top:16px;padding-top:16px}
+.customer-tag-caption{color:var(--cdp-muted);font-size:12px;margin:0 0 8px}.customer-tag-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.customer-tag-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.customer-tag-chip{display:inline-flex;gap:8px;align-items:center;background:white;border:1px solid var(--cdp-border);padding:3px 8px;font-size:12px}
+.customer-tag-picker{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;background:#fff;border:1px solid var(--cdp-border);padding:12px;font-size:12px}.customer-tag-picker label{display:flex;align-items:center;gap:4px}
+.moment-editor{position:relative}.editor-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:8px;position:relative}
+.emoji-button{height:26px;padding:0 10px;font-size:12px}.emoji-picker{display:flex;gap:4px;position:absolute;top:32px;left:0;border:1px solid var(--cdp-border);padding:8px;background:#fff;box-shadow:0 3px 12px #0001;z-index:2}.emoji-picker button{font-size:20px;width:30px;height:30px;border:0;background:none}
+textarea.moment-text{height:272px;min-height:200px;line-height:1.8;resize:vertical;padding:12px 12px 28px}
+.moment-editor .cdp-count{bottom:10px;right:12px}
+.media-toolbar{display:flex;flex-wrap:wrap;margin-top:12px;background:var(--cdp-primary);border-radius:2px;overflow:hidden}
+.media-tool{color:white;padding:8px 12px;font-size:13px;display:flex;align-items:center;justify-content:center;gap:4px;flex:1;white-space:nowrap;border-right:1px solid #ffffff30;cursor:default}.media-tool:last-child{border-right:0}
+.post-copy{max-height:350px;overflow:auto;white-space:pre-wrap;word-break:break-word}.phone-preview{padding-top:64px}
+.tag-form .form-row{margin-bottom:24px}.tag-form .form-label{width:88px;flex-basis:88px}.tag-short-control{max-width:400px}.tag-description{position:relative}.tag-description textarea{height:100px}
+.tag-help-copy{color:var(--cdp-muted);font-size:12px;line-height:1.7;margin-top:6px}
+.segmented{display:inline-flex;align-items:center;padding:3px;background:var(--cdp-field);border-radius:2px;min-height:32px}
+.segmented button{border:0;background:transparent;color:var(--cdp-secondary);padding:3px 12px;height:26px;white-space:nowrap}
+.segmented button[aria-pressed=true]{background:white;color:var(--cdp-primary)}.segmented button:disabled{color:#bbc2cd}
+.tag-section-title{font-size:14px;font-weight:500;margin:24px 0 16px}.chat-options{display:flex;gap:24px;margin-bottom:24px}.chat-options label{display:flex;gap:8px;align-items:center}
+.tag-info-band{background:#e8f3ff;padding:12px 16px;margin-bottom:16px;font-size:13px}
+.audience-row .form-label{white-space:nowrap}.audience-row .account-box{margin-top:8px;min-height:0}.audience-row .account-tools{margin-top:0;margin-bottom:8px}
+.audience-row .city-associations{margin-bottom:8px}.audience-row .form-content{padding-top:0}
+.condition-panel{background:#f7f8fa;padding:12px;margin-bottom:16px}.condition-item{margin-bottom:16px}.condition-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.condition-term{white-space:nowrap;font-size:13px}.condition-date{display:flex;align-items:center;gap:6px;background:var(--cdp-field);padding:0 8px;min-width:0;flex:1;height:32px}.condition-date input{border:0;background:transparent;min-width:0;width:50%;font-size:12px;color:var(--cdp-secondary);font-family:inherit;outline:none}.condition-select{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;min-height:32px;background:var(--cdp-field);color:var(--cdp-muted);font-size:12px;min-width:0;flex:1;white-space:nowrap;gap:16px}.condition-select.wide{flex:1.2}.condition-line{display:flex;gap:8px}.condition-remove{border:0;background:none;color:var(--cdp-danger);padding:0 2px;font-size:18px;line-height:24px}.condition-add{height:30px;padding:0 12px}
+.tag-form .audience-row{margin-top:0}
+@media(min-width:1000px){.task-drawer.tag-drawer{width:min(1040px,78vw)}.tag-drawer .drawer-main.no-preview{padding-right:24px}.tag-form .task-name-row .form-content{max-width:400px}}
+@media(max-width:1200px){.account-secondary{margin-left:0}.account-tools{gap:8px}.media-tool{font-size:12px;padding:8px}}
+@media(max-width:999px){.account-secondary{margin-left:0}.account-tools .cdp-button{font-size:12px}.account-fold{font-size:12px}.tag-form .form-label{width:80px;flex-basis:80px}.tag-form .form-row{gap:8px}.tag-info-band{padding:10px 12px;font-size:12px}.condition-top{flex-wrap:wrap}.condition-date{flex-basis:70%}.condition-select{min-width:90px}.condition-line{flex-wrap:wrap}.media-tool{flex:1 1 30%}textarea.moment-text{height:240px}.segmented button{padding:3px 8px;font-size:12px}.tag-form .account-tools{gap:8px}.tag-form .form-label{font-size:12px}}
+
+
+/* 原型切换与客户 SOP 筛选区。 */
+.prototype-controls{position:fixed;left:16px;bottom:16px;top:auto;right:auto;z-index:70;width:360px;max-width:calc(100vw - 32px);padding:14px 16px;font-size:12px;background:#fff;border:1px solid var(--cdp-border);border-radius:4px;box-shadow:0 4px 20px #00000014}
+.prototype-title{margin:0 0 12px;font-size:13px;line-height:20px;font-weight:500;color:var(--cdp-secondary)}
+.prototype-panel{position:static;width:100%;padding:0;background:transparent}
+.prototype-row{display:grid;grid-template-columns:32px minmax(0,1fr);gap:8px;align-items:center}.prototype-row+.prototype-row{margin-top:16px}.prototype-label{color:var(--cdp-muted)}
+.prototype-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.prototype-options button{height:30px;border:1px solid var(--cdp-border);border-radius:2px;background:#fff;color:var(--cdp-secondary);font-size:12px;white-space:nowrap;padding:0 4px}
+.prototype-options button[aria-pressed=true]{color:var(--cdp-primary);border-color:#b7ccff;background:#eef4ff}.prototype-options button:disabled{color:#b9c0cb;background:#f8f9fb}
+.expand{width:24px;height:28px;color:#566276;border-radius:3px;flex:0 0 24px;display:inline-flex;align-items:center;justify-content:center}
+.expand:hover{background:#eaf0fa}.expand-chevron{display:block;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .12s}
+.expand[aria-expanded=true] .expand-chevron{transform:rotate(45deg)}
+.tree-row.leaf{padding-left:50px}.tree-row.leaf.deep{padding-left:68px}.fold-arrow{font-size:14px}
+.sop-estimated{min-height:32px;display:flex;align-items:center;gap:8px;color:var(--cdp-secondary)}.sop-estimated .estimated-value{color:var(--cdp-muted)}
+.sop-scope-block{margin-top:20px}.sop-scope-title{margin-bottom:10px;color:var(--cdp-secondary)}.sop-exclude-hint{font-size:12px;color:var(--cdp-muted);margin:-4px 0 10px}
+.sop-scope-options{display:flex;gap:24px;align-items:center;margin-bottom:10px;flex-wrap:wrap}.sop-scope-options label{display:flex;align-items:center;gap:6px;cursor:pointer}.sop-scope-options input{margin:0}
+.sop-scope-toolbar{display:flex;gap:12px;align-items:center}.sop-scope-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.sop-option-picker{display:flex;flex-wrap:wrap;gap:12px;background:#fff;border:1px solid var(--cdp-border);padding:12px;margin-top:8px;font-size:12px}.sop-option-picker label{display:flex;align-items:center;gap:4px}
+.sop-next-view:disabled{opacity:.65}.sop-description{position:relative}.sop-description textarea{height:72px;padding-bottom:22px}
+@media(max-width:999px){.prototype-controls{left:12px;bottom:12px;right:auto;width:336px;padding:12px}.prototype-panel{padding:0}.prototype-options button{font-size:11px}.prototype-row{grid-template-columns:28px minmax(0,1fr);gap:6px}.tree-row.leaf{padding-left:38px}.tree-row.leaf.deep{padding-left:56px}.sop-scope-options{gap:16px}}
+
+@media(max-width:640px){.prototype-controls{left:8px;bottom:8px;width:calc(100vw - 16px);max-width:none}}
+
+/* 账号树：类型图标、命中高亮、搜索路径。 */
+.tree-row,.tree-row.nested,.tree-row.leaf,.tree-row.leaf.deep{padding-left:calc(8px + var(--tree-level,0)*18px);gap:6px}
+.tree[data-mode="org"] .tree-row{min-width:calc(224px + var(--tree-level,0)*18px)}
+.tree-row.root label{padding-left:30px}
+.tree-node-label{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.tree-row.context .tree-node-label{color:var(--cdp-secondary);cursor:default}
+.tree-check-slot{width:15px;flex:0 0 15px}
+.tree-icon{display:inline-flex;width:16px;height:16px;flex:0 0 16px;align-items:center;justify-content:center;color:#7e8a9b}
+.tree-icon svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.tree-row.department .tree-label{font-weight:500}.tree-row.context .tree-label{font-weight:400}
+.tree-label mark{padding:0;background:#eaf1ff;color:var(--cdp-primary);font-weight:600}
+.expand.placeholder{visibility:hidden;pointer-events:none}
+@media(max-width:999px){.task-drawer,.task-drawer.compact,.selector-drawer{height:calc(100vh - 148px)}.tree-row,.tree-row.nested,.tree-row.leaf,.tree-row.leaf.deep{padding-left:calc(4px + var(--tree-level,0)*16px);gap:4px}.tree-row.root label{padding-left:28px}.tree-node-label,.tree-row label{gap:6px}}
+@media(max-width:999px){.tree[data-mode="org"] .tree-row{min-width:calc(200px + var(--tree-level,0)*16px)}}
+</style>
+</head>
+<body>
+<div class="shell">
+ <aside class="sidebar">
+  <div class="brand">CDP客户营销系统</div>
+  <div class="nav-row"><span class="nav-icon">⌂</span>首页</div>
+  <div class="nav-row"><span class="nav-icon">◴</span>全域任务总览</div>
+  <div class="nav-row"><span class="nav-icon">▥</span>分析</div>
+  <div class="nav-small">行为分析</div><div class="nav-small">用户分析</div>
+  <div class="nav-row section"><span class="nav-icon">♧</span>用户画像</div>
+  <div class="nav-small">标签中心</div><div class="nav-small">用户标签</div>
+  <button class="nav-sub" data-entry="tag">标签列表</button>
+  <div class="nav-small">标签分组</div><div class="nav-small">标签同步</div>
+  <div class="nav-row"><span class="nav-icon">□</span>智能运营</div>
+  <div class="nav-row section"><span class="nav-icon">◉</span>企微运营</div>
+  <button class="nav-sub" data-entry="sop">SOP任务</button>
+  <button class="nav-sub active" data-entry="moments">朋友圈任务</button>
+  <div class="nav-small">群发工具</div><div class="nav-row"><span class="nav-icon">♧</span>预警计划</div>
+ </aside>
+ <section class="workspace">
+  <header class="topbar"><span>☰</span><div class="breadcrumb" id="breadcrumb"></div><span class="top-user">运营工作台</span></header>
+  <div class="page-tabs"><div class="page-tab">首页</div><div class="page-tab" id="page-tab-sop">SOP任务</div><div class="page-tab current" id="page-tab-moments">朋友圈任务</div><div class="page-tab" id="page-tab-tag">标签列表</div></div>
+  <main class="main-scroll"><section class="list-panel" id="list-panel"></section></main>
+ </section>
+</div>
+<div class="screen-mask" id="task-mask" hidden></div>
+<section class="task-drawer" id="task-drawer" role="dialog" aria-modal="true" aria-labelledby="task-title" hidden>
+ <header class="drawer-head"><h1 class="drawer-title" id="task-title">创建任务</h1><button class="cdp-close" id="close-task" aria-label="关闭任务">×</button></header>
+ <div class="drawer-main" id="drawer-main"><form class="task-form" id="task-form" novalidate></form><aside class="phone-preview" id="phone-preview" aria-label="朋友圈预览"></aside></div>
+ <footer class="drawer-foot" id="drawer-foot"></footer>
+</section>
+<div class="selector-mask" id="selector-mask" hidden></div>
+<section class="selector-drawer" id="selector-drawer" role="dialog" aria-modal="true" aria-labelledby="selector-title" hidden>
+ <header class="selector-head"><h2 id="selector-title">选择账号</h2><button class="cdp-close" id="close-selector" aria-label="关闭账号选择">×</button></header>
+ <div class="selector-body">
+  <div class="selector-left">
+   <div class="selector-tabs" role="tablist" aria-label="账号选择方式"><button class="selector-tab" role="tab" aria-selected="true" data-selector-tab="org">按部门</button><button class="selector-tab" role="tab" aria-selected="false" data-selector-tab="city">按城市</button></div>
+   <div class="selector-search"><input class="cdp-control" id="account-search" aria-label="搜索账号" placeholder="请输入账号名称"><span class="search-symbol">⌕</span></div>
+   <div class="tree" id="account-tree" role="tabpanel"></div>
+  </div>
+  <div class="selector-right"><div class="selected-heading"><span>选中 <b id="selected-count">0</b> 个</span><button class="cdp-link clear-link" id="clear-selected">清空</button></div><div class="selector-city-strip" id="selector-city-strip" hidden></div><div class="selected-list" id="selected-list"></div></div>
+ </div>
+ <footer class="selector-foot"><button class="cdp-button cdp-button--muted" id="cancel-selector">取消</button><button class="cdp-button cdp-button--primary" id="confirm-selector">确定</button></footer>
+</section>
+
+<div class="prototype-controls" id="prototype-controls" role="region" aria-labelledby="prototype-title">
+ <h2 class="prototype-title" id="prototype-title">原型切换</h2>
+ <div class="prototype-panel" id="prototype-panel" aria-label="原型切换">
+  <div class="prototype-row"><span class="prototype-label">页面</span><div class="prototype-options"><button type="button" data-prototype-entry="sop">客户 SOP</button><button type="button" data-prototype-entry="moments">朋友圈</button><button type="button" data-prototype-entry="tag">会话标签</button></div></div>
+  <div class="prototype-row"><span class="prototype-label">场景</span><div class="prototype-options"><button type="button" data-prototype-mode="create">新建</button><button type="button" data-prototype-mode="copy">复制</button><button type="button" data-prototype-mode="editDraft">草稿</button></div></div>
+ </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden><span class="toast-dot">✓</span><span id="toast-text"></span></div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cities = [{id:'glasgow',name:'格拉斯哥'},{id:'london',name:'伦敦'},{id:'manchester',name:'曼彻斯特'},{id:'sydney',name:'悉尼'},{id:'melbourne',name:'墨尔本'},{id:'adelaide',name:'阿德莱德'}];
+const historicalCityNames={edinburgh:'爱丁堡'};
+const departments = [
+ {id:'operation',name:'运营城市号'},
+ {id:'functional',name:'职能部门'},
+ {id:'resource',name:'流量资源号',children:[
+  {id:'resource-xhs',name:'小红书矩阵',children:[
+   {id:'resource-media1',name:'新媒体一部',children:[{id:'resource-consult',name:'咨询服务组'}]}
+  ]}
+ ]},
+ {id:'advisors',name:'用户运营部',children:[
+  {id:'u1',name:'用户运营一部',children:[
+   {id:'u1-chunyu',name:'春玉组',children:[{id:'u1-chunyu-uk',name:'英国服务组'},{id:'u1-chunyu-au',name:'澳洲服务组'}]},
+   {id:'u1-yaqi',name:'亚琪组'},
+   {id:'u1-ziyan',name:'紫艳组'},
+   {id:'u1-lulu',name:'陆陆组'},
+   {id:'u1-yuxiao',name:'煜晓组'},
+   {id:'u1-mengyu',name:'梦雨组'}
+  ]},
+  {id:'u2',name:'用户运营二部',children:[{id:'u2-uk',name:'英国顾问组'}]},
+  {id:'u3',name:'用户运营三部',children:[{id:'u3-uk',name:'英国顾问组'},{id:'u3-au',name:'澳洲顾问组'}]},
+  {id:'u4',name:'用户运营四部',children:[{id:'u4-uk',name:'英国服务组'}]},
+  {id:'u5',name:'用户运营五部',children:[{id:'u5-uk',name:'英国顾问组'},{id:'u5-au',name:'澳洲顾问组'}]}
+ ]},
+ {id:'partners',name:'合作方'}
+];
+const employees = [];
+function employee(id,name,dept,city=null,active=true){employees.push({id,accountId:'wecom-'+id,name,dept,city,active});}
+[['g1','沈知远英国','u1-chunyu-uk'],['g2','林予安英国','u3-uk'],['g3','陈望舒英国','u4-uk'],['g4','周景明英国','u1-chunyu-uk'],['g5','许清禾英国','u3-uk'],['g6','苏云舟英国','u4-uk'],['g7','叶嘉宁英国','u1-yaqi'],['g8','顾星澜英国','u3-uk']].forEach(x=>employee(...x,'glasgow'));
+employee('gone','程以南英国','u4-uk','glasgow',false);
+[['l1','江亦辰英国','u1-ziyan'],['l2','唐书宁英国','u3-uk'],['l3','陆知夏英国','u1-lulu'],['l4','季明川英国','u4-uk'],['l5','白予晴英国','u2-uk']].forEach(x=>employee(...x,'london'));
+[['m1','温景行英国','u1-yuxiao'],['m2','宋知遥英国','u5-uk'],['m3','许言澈英国','u3-uk']].forEach(x=>employee(...x,'manchester'));
+[['s1','林沐晴澳洲','u1-chunyu-au'],['s2','秦予川澳洲','u3-au'],['s3','夏清越澳洲','u5-au'],['s4','陈舒然澳洲','u3-au']].forEach(x=>employee(...x,'sydney'));
+[['b1','周慕白澳洲','u5-au'],['b2','程星予澳洲','u3-au'],['b3','沈嘉言澳洲','u1-mengyu']].forEach(x=>employee(...x,'melbourne'));
+[['o1','SDR全球服务','operation'],['o2','SDR英国#手机号','operation'],['o3','SDR租房助理','operation'],['o4','SDR英澳小帮手','operation'],['o5','集好家官方客服','resource'],['o6','海外租房小管家','resource'],['o7','SDR安心租房','resource-consult'],['f1','客户支持服务号','functional'],['p1','品牌合作服务号','partners']].forEach(x=>employee(...x));
+const byId = new Map(employees.map(e=>[e.id,e]));
+const currentEmployees = () => employees.filter(e=>e.active);
+const cityEmployees = id => currentEmployees().filter(e=>e.city===id);
+const cityName = id => cities.find(c=>c.id===id)?.name || historicalCityNames[id] || id;
+function queryCityAccounts(cityId){
+ const city=cities.find(c=>c.id===cityId);
+ if(!city||city.queryable===false)throw new Error('City query unavailable');
+ return cityEmployees(cityId).map(e=>e.id);
+}
+function validUnique(ids){const seen=new Set();return [...new Set(ids)].filter(id=>{const e=byId.get(id);if(!e?.active||seen.has(e.accountId))return false;seen.add(e.accountId);return true;});}
+function captureCityAccounts(model,previous={}){
+ const selected=new Set(model.employeeIds);
+ return Object.fromEntries(model.cityIds.map(city=>[city,validUnique([
+  ...(previous[city]||[]).filter(id=>selected.has(id)),
+  ...model.employeeIds.filter(id=>byId.get(id)?.city===city)
+ ])]));
+}
+const ops=['o1','o2','o3','o4','o5','o6','o7'];
+const records={
+ moments:[{id:'mom1',name:'格拉斯哥朋友圈1030-带',employeeIds:['g1','g2','g3','g4','g5','gone',...ops],cityIds:['glasgow'],status:'已启用',description:''},{id:'mom2',name:'伦敦朋友圈1030',employeeIds:['l1','l2','l3','o1','o2','o5'],cityIds:['london'],status:'已启用',description:''},{id:'mom3',name:'悉尼朋友圈1029',employeeIds:['s1','s2','o1','o3'],cityIds:[],status:'已启用',description:''}],
+ sop:[{id:'sop1',name:'格拉斯哥新客跟进',employeeIds:['g1','g2','g3','gone','o1','o3'],cityIds:['glasgow'],status:'已启用',description:'新客咨询跟进'},{id:'sop2',name:'伦敦客户服务提醒',employeeIds:['l1','l2','o2'],cityIds:['london'],status:'草稿',description:''},{id:'sopMissingCity',name:'爱丁堡客户服务提醒',employeeIds:['g1','g2','o1'],cityIds:['edinburgh'],cityAccounts:{edinburgh:['g1','g2']},status:'草稿',description:''}],
+ tag:[{id:'tag1',name:'格拉斯哥会话咨询',employeeIds:['g1','g2','g3','g4','g5','g6','g7','g8','o1'],cityIds:['glasgow'],status:'启用',description:''}]
+};
+
+const seedMomentContent='格拉找房，提前了解才不慌！\n\n想住格大周边，了解最新租房信息。\n\n步行约 7–10 分钟到格拉斯哥大学，欢迎咨询。';
+records.moments.forEach(r=>{r.content=seedMomentContent;r.customerTags=['英国咨询'];});
+records.moments.push({id:'momDraft',name:'格拉斯哥朋友圈1102-草稿',employeeIds:['g1','g2','g3','g4','g5',...ops],cityIds:['glasgow'],status:'草稿',description:'',content:seedMomentContent,customerTags:['英国咨询']});
+
+
+records.tag[0].tagGroup='客户会话';
+records.tag[0].updateMode='manual';
+records.sop.forEach(r=>{r.includeMode='tag';r.includeItems=['租房咨询'];r.excludeMode='tag';r.excludeItems=[];});
+Object.values(records).flat().forEach(r=>{r.cityAccounts=captureCityAccounts(r,r.cityAccounts);});
+// 模拟保存快照后人员调城：账号仍在企微中，进入复制或草稿时保留，主动刷新时更新城市范围。
+byId.get('g3').city='london';
+
+const state={entry:'sop',draft:null,selector:null,filter:'',expanded:new Set(),lastPrototypeMode:'create',newlyAdded:new Set(),refreshing:false,refreshVersion:0,toastTimer:null,returnFocus:null};
+const config={moments:{page:'朋友圈任务',button:'创建任务',name:'任务名称',account:'客户所属账号'},sop:{page:'SOP任务',button:'创建任务',name:'任务名称',account:'关联账号'},tag:{page:'标签列表',button:'创建自定义标签',name:'标签名称',account:'圈选受众'}};
+function notify(message){clearTimeout(state.toastTimer);$('toast-text').textContent=message;$('toast').hidden=false;state.toastTimer=setTimeout(()=>$('toast').hidden=true,3200);}
+function renderShell(){document.querySelectorAll('[data-entry]').forEach(b=>b.classList.toggle('active',b.dataset.entry===state.entry));Object.keys(config).forEach(k=>$('page-tab-'+k).classList.toggle('current',k===state.entry));$('breadcrumb').innerHTML=`<span>首页</span><span class="slash">/</span><span>${state.entry==='tag'?'用户画像 / 标签中心 / 用户标签':'企微运营'}</span><span class="slash">/</span><strong>${config[state.entry].page}</strong>`;renderList();}
+function renderList(){const c=config[state.entry],isTag=state.entry==='tag';const shown=records[state.entry].filter(r=>!state.filter||r.name.toLowerCase().includes(state.filter.toLowerCase()));$('list-panel').innerHTML=`
+ <div class="business-tabs">${state.entry==='sop'?'<span class="business-tab">群SOP</span><span class="business-tab selected">客户SOP</span>':'<span class="business-tab selected">全部</span><span class="business-tab">我创建的</span>'}</div>
+ <div class="filters"><div class="filter-field"><label for="list-search">${c.name}</label><input id="list-search" class="cdp-control" placeholder="请输入${c.name}" value="${esc(state.filter)}"></div><div class="filter-field"><label>更新时间</label><div class="read-only-control" style="flex:1;color:#98a2b1">开始日期　－　结束日期</div></div><div class="cdp-actions"><button class="cdp-button cdp-button--primary" id="search-list">搜索</button><button class="cdp-button cdp-button--muted" id="reset-list">重置</button></div></div>
+ <div class="list-toolbar"><button class="cdp-button cdp-button--primary" id="create-record">${c.button}</button></div>
+ <div class="cdp-table-wrap"><table class="cdp-table task-table"><thead><tr><th style="width:34%">${c.name}</th><th style="width:17%">${isTag?'标签类型':'营销类型'}</th><th style="width:12%">账号数量</th><th style="width:13%">状态</th><th style="width:12%">更新时间</th><th style="width:12%">操作</th></tr></thead><tbody>${shown.map(r=>`<tr><td class="name-cell" title="${esc(r.name)}">${esc(r.name)}</td><td>${isTag?'会话行为标签':'房源推广'}</td><td>${r.employeeIds.length}</td><td><span class="status-dot ${r.status==='草稿'?'draft':''}">${esc(r.status)}</span></td><td class="date-show">2026-10-30</td><td><div class="table-ops">${!isTag&&r.status==='草稿'?`<button class="cdp-link" data-edit-draft="${r.id}">编辑</button>`:''}<button class="cdp-link" data-copy="${r.id}">复制</button></div></td></tr>`).join('')||'<tr><td colspan="6" class="cdp-empty">暂无符合条件的记录</td></tr>'}</tbody></table></div><div class="cdp-pagination"><span class="cdp-help">共 ${shown.length} 条</span><button class="cdp-button" aria-current="page">1</button><span class="cdp-help">20 条/页</span></div>`;
+ $('create-record').onclick=()=>openDraft();$('search-list').onclick=()=>{state.filter=$('list-search').value.trim();renderList();};$('list-search').onkeydown=e=>{if(e.key==='Enter')$('search-list').click();};$('reset-list').onclick=()=>{state.filter='';renderList();};document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>openDraft(records[state.entry].find(r=>r.id===b.dataset.copy),'copy'));document.querySelectorAll('[data-edit-draft]').forEach(b=>b.onclick=()=>openDraft(records[state.entry].find(r=>r.id===b.dataset.editDraft),'editDraft'));
+}
+function option(text,on=false){return `<span class="static-option"><i class="radio-dot ${on?'on':''}"></i>${text}</span>`;}
+function row(label,content,required=false){return `<div class="form-row"><div class="form-label ${required?'required':''}">${label}</div><div class="form-content">${content}</div></div>`;}
+
+function openDraft(source=null,mode=source?'copy':'create'){
+ const ids=source?validUnique(source.employeeIds):[];
+ const cityIds=[...(source?.cityIds||[])];
+ const originalName=source?.name||'';
+ state.draft={
+  mode,sourceId:source?.id||null,name:source?(mode==='copy'?originalName.slice(0,state.entry==='tag'?17:47)+'-副本':originalName):'',
+  includeMode:source?.includeMode||'tag',includeItems:[...(source?.includeItems||[])],excludeMode:source?.excludeMode||'tag',excludeItems:[...(source?.excludeItems||[])],description:source?.description||'',content:source?.content||'',customerTags:[...(source?.customerTags||[])],
+  employeeIds:ids,cityIds,cityAccounts:captureCityAccounts({employeeIds:ids,cityIds},source?.cityAccounts),
+  copied:mode==='copy',accountsExpanded:false,feedback:[],
+  tagGroup:source?.tagGroup||'',updateMode:source?.updateMode||'none',tagStatus:source?.tagStatus||'enabled',conversationType:source?.conversationType||'personal',
+  conditions:(source?.conditions||[{from:'2026-10-27',to:'2026-11-02'}]).map(c=>({...c}))
+ };
+ state.refreshing=false;state.newlyAdded.clear();state.refreshVersion++;state.lastPrototypeMode=mode;
+ document.querySelector('.shell').inert=true;document.querySelector('.shell').setAttribute('aria-hidden','true');
+ $('task-mask').hidden=false;$('task-drawer').hidden=false;renderDraft();$('task-form').scrollTop=0;
+ renderPrototypeSwitcher();requestAnimationFrame(()=>$('record-name')?.focus({preventScroll:true}));
+}
+function helpMarkup(id,text){return `<span class="help-wrap"><button type="button" class="help-dot" id="${id}" aria-label="${id==='refresh-help'?'刷新城市账号说明':'说明'}" aria-describedby="${id}-tip">?</button><span class="help-tip" id="${id}-tip" role="tooltip">${esc(text)}</span></span>`;}
+function renderDraft(){
+ const isTag=state.entry==='tag',isMom=state.entry==='moments',d=state.draft;if(!d)return;
+ $('task-drawer').classList.toggle('compact',!isMom);$('task-drawer').classList.toggle('tag-drawer',isTag);
+ $('drawer-main').classList.toggle('no-preview',!isMom);$('task-form').classList.toggle('tag-form',isTag);
+ $('task-title').textContent=isTag?'创建标签':(d.mode==='editDraft'?'编辑草稿':'创建任务');
+ $('close-task').setAttribute('aria-label',isTag?'关闭标签创建':'关闭任务');$('phone-preview').hidden=!isMom;
+ const nameMax=isTag?20:50;
+ const nameInput=`<div class="cdp-counted ${isTag?'tag-short-control':''}"><input class="cdp-control" id="record-name" aria-label="${config[state.entry].name}" maxlength="${nameMax}" value="${esc(d.name)}" placeholder="请输入${config[state.entry].name}"><span class="cdp-count" id="name-count">${d.name.length}/${nameMax}</span></div><div class="form-error" id="name-error" hidden>请输入${config[state.entry].name}</div>`;
+ let fields=row(config[state.entry].name,nameInput,true);
+ if(isTag){
+  fields+=row('标签分组',`<select class="cdp-control tag-short-control" id="tag-group" aria-label="标签分组"><option value="">请选择标签分组</option>${['运营常用标签','客户会话','咨询跟进'].map(v=>`<option value="${v}" ${d.tagGroup===v?'selected':''}>${v}</option>`).join('')}</select><div class="form-error" id="group-error" hidden>请选择标签分组</div>`,true);
+  fields+=row('标签描述',`<div class="tag-description cdp-counted"><textarea class="cdp-control" id="record-description" maxlength="200" aria-label="标签描述" placeholder="请输入标签描述">${esc(d.description)}</textarea><span class="cdp-count" id="description-count">${d.description.length}/200</span></div>`);
+  fields+=row(`更新方式&nbsp;${helpMarkup('update-help','不更新：创建时执行一次；手动更新与日例行更新按对应方式更新标签。')}`,`<div class="segmented" aria-label="更新方式">${[['none','不更新'],['manual','手动更新'],['daily','日例行更新']].map(([v,label])=>`<button type="button" data-update-mode="${v}" aria-pressed="${d.updateMode===v}">${label}</button>`).join('')}</div><div class="tag-help-copy" id="update-mode-hint"></div>`);
+  fields+=row(`状态&nbsp;${helpMarkup('status-help','选择“不更新”时，创建成功后立即执行打标，仅支持启用状态。')}`,`<div class="segmented" aria-label="标签状态"><button type="button" data-tag-status="enabled" aria-pressed="${d.tagStatus==='enabled'}">启用</button><button type="button" data-tag-status="disabled" aria-pressed="${d.tagStatus==='disabled'}">禁用</button></div><div class="tag-help-copy" id="tag-status-hint"></div>`);
+  fields+=`<div class="tag-section-title">企微会话行为</div><div class="chat-options"><label><input type="radio" name="conversation-type" value="personal" ${d.conversationType==='personal'?'checked':''}>个人会话</label><label><input type="radio" name="conversation-type" value="group" ${d.conversationType==='group'?'checked':''}>群聊会话</label></div><div class="tag-info-band">数据查询范围为添加好友时间为近半年内的客户</div>`;
+  fields+=`<div class="form-row audience-row"><div class="form-label required">圈选受众</div><div class="form-content"><div id="account-area"></div><div class="form-error" id="account-error" hidden>请至少选择一个账号</div></div></div><div class="condition-panel" id="condition-panel"></div>`;
+ }else{
+  if(!isMom)fields+=row('任务描述',`<div class="sop-description cdp-counted"><textarea class="cdp-control" id="record-description" maxlength="50" placeholder="请输入任务描述">${esc(d.description)}</textarea><span class="cdp-count" id="description-count">${d.description.length}/50</span></div>`);
+  if(isMom)fields+=row('任务类型',`<div class="static-options">${option('员工一键发送',true)}${option('通知员工发送')}</div>`);
+  fields+=row('完成任务条件',`<div class="static-options">${option('发送即完成',true)}</div>`);
+  if(isMom)fields+=row('发布时间',`<div class="static-options">${option('立即发布',true)}${option('固定时间发布')}</div>`);
+  fields+=row('任务逾期设置',`<div class="static-options">${option('当天有效',true)}${option('自定义')}</div>`);
+  fields+=row('营销类型','<div class="read-only-control">房源推广<span class="chev">⌄</span></div>',true);
+  fields+=isMom?row('筛选客户',`<div class="static-options">${option('全部客户')}${option('按照条件筛选客户',true)}</div>`):row('筛选客户','<div class="sop-estimated">预计可触达客户：<span class="estimated-value">－</span>位客户</div>');
+  fields+=`<div class="form-row"><div class="form-label"></div><div class="form-content"><div class="account-section"><div class="account-section-label required">${config[state.entry].account}${!isMom?'&nbsp;'+helpMarkup('sop-account-help','选择本次客户 SOP 任务关联的企微账号。'):''}</div><div id="account-area"></div><div class="form-error" id="account-error" hidden>请至少选择一个账号</div>${isMom?'<div class="customer-tags"><div class="account-section-label required">客户标签</div><div class="customer-tag-caption">仅可选择企微标签</div><div id="customer-tags-area"></div><div class="form-error" id="customer-tags-error" hidden>请选择客户标签</div></div>':'<div id="sop-filter-area"></div>'}</div></div></div>`;
+  if(isMom)fields+=row('朋友圈内容',`<div class="editor-toolbar"><button type="button" class="cdp-button cdp-button--primary emoji-button" id="insert-emoji">插入表情</button><div class="emoji-picker" id="emoji-picker" hidden>${['😊','🏠','📍','✨','🔑','🎁'].map(v=>`<button type="button" data-emoji="${v}" aria-label="插入 ${v}">${v}</button>`).join('')}</div></div><div class="moment-editor cdp-counted"><textarea class="cdp-control moment-text" id="moment-content" aria-label="朋友圈内容" maxlength="1000" placeholder="请输入朋友圈内容">${esc(d.content)}</textarea><span class="cdp-count" id="moment-count">${d.content.length}/1000</span></div><div class="form-error" id="content-error" hidden>请输入朋友圈内容</div><div class="media-toolbar" aria-label="朋友圈素材类型">${['图片','视频','链接','小程序','从素材库选择'].map(v=>`<span class="media-tool">＋ ${v}</span>`).join('')}</div>`,true);
+ }
+ $('task-form').innerHTML=fields;$('task-form').onsubmit=e=>e.preventDefault();
+ $('record-name').oninput=e=>{d.name=e.target.value;$('name-count').textContent=d.name.length+'/'+nameMax;$('name-error').hidden=true;e.target.removeAttribute('aria-invalid');};
+ if($('record-description'))$('record-description').oninput=e=>{d.description=e.target.value;if($('description-count'))$('description-count').textContent=d.description.length+'/'+(isTag?200:50);};
+ if(isTag){
+  $('tag-group').onchange=e=>{d.tagGroup=e.target.value;$('group-error').hidden=true;};
+  document.querySelectorAll('[data-update-mode]').forEach(b=>b.onclick=()=>{d.updateMode=b.dataset.updateMode;if(d.updateMode==='none')d.tagStatus='enabled';renderTagPolicy();});
+  document.querySelectorAll('[data-tag-status]').forEach(b=>b.onclick=()=>{d.tagStatus=b.dataset.tagStatus;renderTagPolicy();});
+  document.querySelectorAll('[name="conversation-type"]').forEach(input=>input.onchange=()=>d.conversationType=input.value);
+  renderTagPolicy();renderConditions();
+ }
+ if(isMom){
+  $('moment-content').oninput=e=>{d.content=e.target.value;$('moment-count').textContent=d.content.length+'/1000';$('content-error').hidden=true;updatePhoneContent();};
+  $('insert-emoji').onclick=()=>{$('emoji-picker').hidden=!$('emoji-picker').hidden;d.emojiCursor=$('moment-content').selectionStart;};
+  document.querySelectorAll('[data-emoji]').forEach(b=>b.onclick=()=>{const pos=d.emojiCursor??d.content.length;d.content=(d.content.slice(0,pos)+b.dataset.emoji+d.content.slice(pos)).slice(0,1000);$('moment-content').value=d.content;$('moment-count').textContent=d.content.length+'/1000';$('emoji-picker').hidden=true;updatePhoneContent();$('moment-content').focus();});
+  renderCustomerTags();
+ }
+ $('drawer-foot').innerHTML=`<button class="cdp-button" id="cancel-task">取消</button>${state.entry==='sop'?'<button class="cdp-button cdp-button--plain sop-next-view" type="button" disabled title="后续步骤不在本次原型演示范围">下一步</button><button class="cdp-button cdp-button--plain" id="save-draft">保存草稿</button>':`${isTag?'':`<button class="cdp-button cdp-button--plain" id="save-draft">保存草稿</button>`}<button class="cdp-button cdp-button--primary" id="save-record">${isTag?'创建':'保存并应用'}</button>`}`;
+ $('cancel-task').onclick=closeDraft;if($('save-record'))$('save-record').onclick=()=>saveRecord(false);if($('save-draft'))$('save-draft').onclick=()=>saveRecord(true);
+ renderAccountArea();if(state.entry==='sop')renderSopFilters();renderPhone();bindHelpTips();
+}
+function bindHelpTips(){document.querySelectorAll('.help-wrap .help-dot').forEach(b=>b.onclick=()=>b.closest('.help-wrap').classList.toggle('is-open'));}
+function renderTagPolicy(){
+ const d=state.draft;if(!d)return;
+ document.querySelectorAll('[data-update-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.updateMode===d.updateMode)));
+ document.querySelectorAll('[data-tag-status]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.tagStatus===d.tagStatus));b.disabled=d.updateMode==='none'&&b.dataset.tagStatus==='disabled';if(b.disabled)b.title='不更新模式下，创建时立即打标，仅支持启用';else b.removeAttribute('title');});
+ $('update-mode-hint').textContent=d.updateMode==='none'?'方式为“不更新”时，创建后不支持编辑，仅允许修改更新方式；如需编辑内容，请改为“日例行更新”或“手动更新”。':'';
+ $('tag-status-hint').textContent=d.updateMode==='none'?'当前更新模式为：不更新。创建成功后立即执行打标，不支持在禁用状态下创建标签。':'';
+}
+function renderConditions(){
+ const d=state.draft;if(!d)return;
+ $('condition-panel').innerHTML=d.conditions.map((condition,index)=>`<div class="condition-item"><div class="condition-top"><span class="condition-term">在</span><div class="condition-date"><input type="date" aria-label="条件${index+1}开始日期" value="${esc(condition.from)}" data-date-index="${index}" data-date-key="from"><span>－</span><input type="date" aria-label="条件${index+1}结束日期" value="${esc(condition.to)}" data-date-index="${index}" data-date-key="to"></div><span class="condition-term">范围内，</span><div class="condition-select">请选择<span>⌄</span></div><span class="condition-term">的</span><button type="button" class="condition-remove" data-remove-condition="${index}" aria-label="删除条件${index+1}">×</button></div><div class="condition-line"><div class="condition-select wide">请选择会话类型<span>⌄</span></div><div class="condition-select">请选择<span>⌄</span></div><div class="condition-select">请选择<span>⌄</span></div></div></div>`).join('')+'<button type="button" class="cdp-button cdp-button--plain condition-add" id="add-condition">＋ 添加</button>';
+ $('add-condition').onclick=()=>{d.conditions.push({from:'2026-10-27',to:'2026-11-02'});renderConditions();};
+ document.querySelectorAll('[data-remove-condition]').forEach(b=>b.onclick=()=>{d.conditions.splice(Number(b.dataset.removeCondition),1);renderConditions();});
+ document.querySelectorAll('[data-date-index]').forEach(input=>input.onchange=()=>{d.conditions[Number(input.dataset.dateIndex)][input.dataset.dateKey]=input.value;});
+}
+
+function renderCustomerTags(){
+ const d=state.draft;if(!d)return;
+ const options=['英国咨询','格拉斯哥意向','租房咨询'];
+ if(d.customerTags.length&&$('customer-tags-error'))$('customer-tags-error').hidden=true;
+ $('customer-tags-area').innerHTML=`<div class="customer-tag-tools"><button type="button" class="cdp-button cdp-button--plain" id="add-customer-tag">＋ 添加标签</button><span class="account-count">已选 ${d.customerTags.length} 个</span></div><div class="customer-tag-chips">${d.customerTags.map(tag=>`<span class="customer-tag-chip">${esc(tag)}<button type="button" class="remove-chip" aria-label="移除标签 ${esc(tag)}" data-remove-tag="${esc(tag)}">×</button></span>`).join('')}</div><div class="customer-tag-picker" id="customer-tag-picker" hidden>${options.map(tag=>`<label><input type="checkbox" data-customer-tag="${esc(tag)}" ${d.customerTags.includes(tag)?'checked':''}>${esc(tag)}</label>`).join('')}</div>`;
+ $('add-customer-tag').onclick=()=>$('customer-tag-picker').hidden=!$('customer-tag-picker').hidden;
+ document.querySelectorAll('[data-customer-tag]').forEach(input=>input.onchange=()=>{input.checked?d.customerTags.push(input.dataset.customerTag):d.customerTags=d.customerTags.filter(t=>t!==input.dataset.customerTag);renderCustomerTags();$('customer-tag-picker').hidden=false;});
+ document.querySelectorAll('[data-remove-tag]').forEach(b=>b.onclick=()=>{d.customerTags=d.customerTags.filter(t=>t!==b.dataset.removeTag);renderCustomerTags();});
+}
+function renderPhone(){
+ $('phone-preview').innerHTML=`<div class="phone"><div class="phone-status"><span>9:25</span><i class="phone-island"></i><span>▴ ▰</span></div><div class="phone-title"><span>‹</span><span>朋友圈</span><span>···</span></div><div class="phone-post"><div class="post-head"><div class="post-avatar">A</div><span class="post-name">AweHome</span></div><div class="post-copy" id="phone-content"></div></div><div class="phone-home"></div></div>`;
+ updatePhoneContent();
+}
+function updatePhoneContent(){if($('phone-content'))$('phone-content').textContent=state.draft?.content||'';}
+function associationMarkup(cityIds){return `<div class="city-associations"><span class="city-associations-label">关联城市</span><div class="city-pills">${cityIds.map(id=>`<span class="city-pill">${esc(cityName(id))}</span>`).join('')}</div></div>`;}
+
+function renderAccountArea(){
+ const d=state.draft;if(!d)return;
+ const isTag=state.entry==='tag',canRefresh=['copy','editDraft'].includes(d.mode);
+ const refreshHint='刷新后，补齐当前关联城市下最新的全部账号';
+ $('account-area').innerHTML=`
+ <div class="account-tools"><button type="button" class="cdp-button cdp-button--plain" id="add-accounts" ${state.refreshing?'disabled title="正在获取城市账号，请稍候"':''}><span class="plus">＋</span>${isTag?'选择顾问':'添加账号'}</button><span class="account-count">已选 <b id="form-account-count">${d.employeeIds.length}</b> 个</span>${d.employeeIds.length?`<button type="button" class="cdp-link account-fold" id="toggle-accounts" aria-expanded="${d.accountsExpanded}" aria-controls="selected-account-box">${d.accountsExpanded?'收起':'展开'}<span class="fold-arrow ${d.accountsExpanded?'up':''}">⌄</span></button>`:''}${canRefresh?`<span class="account-secondary"><button type="button" class="refresh-secondary" id="refresh-cities" ${!d.cityIds.length||state.refreshing?'disabled':''} title="${esc(refreshHint)}"><span class="refresh-icon ${state.refreshing?'spinning':''}">⟳</span>${state.refreshing?'正在刷新…':'刷新城市账号'}</button>${helpMarkup('refresh-help',refreshHint)}</span>`:''}</div>
+ ${d.cityIds.length?associationMarkup(d.cityIds):''}
+ ${d.feedback.length?`<div class="refresh-feedback" role="status">${d.feedback.map(esc).join('；')}</div>`:''}
+ <div class="account-box" id="selected-account-box" aria-label="已选账号名单" ${!d.accountsExpanded||!d.employeeIds.length?'hidden':''}>${d.employeeIds.map(id=>`<span class="account-chip ${state.newlyAdded.has(id)?'just-added':''}" ${state.newlyAdded.has(id)?'title="本次刷新新增"':''}><span class="chip-text">${esc(byId.get(id).name)}</span><button type="button" class="remove-chip" aria-label="移除 ${esc(byId.get(id).name)}" data-remove-draft="${id}" ${state.refreshing?'disabled':''}>×</button></span>`).join('')}</div>`;
+ $('add-accounts').onclick=openSelector;
+ if($('refresh-cities'))$('refresh-cities').onclick=refreshCities;
+ if($('toggle-accounts'))$('toggle-accounts').onclick=()=>{d.accountsExpanded=!d.accountsExpanded;renderAccountArea();$('toggle-accounts')?.focus({preventScroll:true});};
+ document.querySelectorAll('[data-remove-draft]').forEach(b=>b.onclick=()=>{d.employeeIds=d.employeeIds.filter(id=>id!==b.dataset.removeDraft);pruneCities(d);d.feedback=[];state.newlyAdded.delete(b.dataset.removeDraft);renderAccountArea();});
+ if($('save-record'))$('save-record').disabled=state.refreshing;if($('save-draft'))$('save-draft').disabled=state.refreshing;bindHelpTips();
+}
+function pruneCities(model){model.cityIds=model.cityIds.filter(city=>{const members=cityEmployees(city);return !members.length||members.some(e=>model.employeeIds.includes(e.id));});model.cityAccounts=captureCityAccounts(model,model.cityAccounts);}
+
+async function refreshCities(){
+ const d=state.draft;
+ if(!d||!['copy','editDraft'].includes(d.mode)||!d.cityIds.length||state.refreshing)return;
+ const version=++state.refreshVersion;
+ const accountKey=id=>byId.get(id)?.accountId||'missing:'+id;
+ const before=new Set(d.employeeIds.map(accountKey));
+ state.refreshing=true;d.feedback=[];state.newlyAdded.clear();clearTimeout(state.toastTimer);$('toast').hidden=true;renderAccountArea();
+ await new Promise(resolve=>setTimeout(resolve,650));
+ if(state.draft!==d||version!==state.refreshVersion)return;
+ let queried;
+ try{queried=d.cityIds.flatMap(queryCityAccounts);}
+ catch{
+  d.feedback=['刷新失败，请重新操作'];state.refreshing=false;renderAccountArea();return;
+ }
+ const latest=new Set(queried.map(accountKey));
+ const cityAccounts=captureCityAccounts(d,d.cityAccounts);
+ const managed=new Set(Object.values(cityAccounts).flat().map(accountKey));
+ const retained=d.employeeIds.filter(id=>!managed.has(accountKey(id))||latest.has(accountKey(id)));
+ const combined=validUnique([...retained,...queried]);
+ const after=new Set(combined.map(accountKey));
+ const changed=before.size!==after.size||[...before].some(id=>!after.has(id));
+ const added=combined.filter(id=>!before.has(accountKey(id)));
+ const removed=[...before].filter(id=>!after.has(id));
+ if(changed&&state.entry==='moments'&&d.customerTags.length){d.customerTags=[];}
+ if(changed&&state.entry==='sop'){
+  for(const kind of ['include','exclude']){
+   if(d[kind+'Mode']==='tag'&&d[kind+'Items'].length){d[kind+'Items']=[];}
+  }
+ }
+ d.employeeIds=combined;d.cityAccounts=captureCityAccounts(d);d.accountsExpanded=true;state.newlyAdded=new Set(added);
+ const changes=[];
+ if(added.length)changes.push(`本次新增${added.length}个账号`);
+ if(removed.length)changes.push(`本次移除${removed.length}个账号`);
+ d.feedback=changes;state.refreshing=false;
+ renderAccountArea();
+ if(state.entry==='moments')renderCustomerTags();
+ if(state.entry==='sop')renderSopFilters();
+}
+function closeDraft(){state.refreshVersion++;state.refreshing=false;state.draft=null;state.selector=null;$('task-drawer').inert=false;$('task-drawer').removeAttribute('aria-hidden');document.querySelector('.shell').inert=false;document.querySelector('.shell').removeAttribute('aria-hidden');['task-mask','task-drawer','selector-mask','selector-drawer'].forEach(id=>$(id).hidden=true);$('create-record')?.focus({preventScroll:true});}
+
+function saveRecord(asDraft){
+ const d=state.draft;if(!d||state.refreshing)return;let target=null;
+ if(!d.name.trim()){$('name-error').hidden=false;$('record-name').setAttribute('aria-invalid','true');target=$('record-name');}
+ if(state.entry==='tag'&&!d.tagGroup){$('group-error').hidden=false;target=target||$('tag-group');}
+ if(!d.employeeIds.length){$('account-error').hidden=false;target=target||$('add-accounts');}
+ if(state.entry==='moments'&&!asDraft&&!d.customerTags.length){$('customer-tags-error').hidden=false;target=target||$('add-customer-tag');}
+ if(state.entry==='moments'&&!asDraft&&!d.content.trim()){$('content-error').hidden=false;target=target||$('moment-content');}
+ if(target){target.focus();target.scrollIntoView({block:'nearest'});return;}
+ const saved={id:d.mode==='editDraft'?d.sourceId:'saved-'+Date.now(),name:d.name.trim(),includeMode:d.includeMode,includeItems:[...d.includeItems],excludeMode:d.excludeMode,excludeItems:[...d.excludeItems],description:d.description,content:d.content,customerTags:[...d.customerTags],employeeIds:[...d.employeeIds],cityIds:[...d.cityIds],cityAccounts:captureCityAccounts(d,d.cityAccounts),tagGroup:d.tagGroup,updateMode:d.updateMode,tagStatus:d.tagStatus,conversationType:d.conversationType,conditions:d.conditions.map(c=>({...c})),status:state.entry==='tag'?(d.tagStatus==='disabled'?'禁用':'启用'):(asDraft?'草稿':'已启用')};
+ if(d.mode==='editDraft'){const index=records[state.entry].findIndex(r=>r.id===d.sourceId);records[state.entry][index]=saved;}else records[state.entry].unshift(saved);
+ closeDraft();state.filter='';renderList();notify(state.entry==='tag'?'标签创建成功':(asDraft?'草稿保存成功':'任务保存成功'));
+}
+function openSelector(){if(!state.draft||state.refreshing)return;state.selector={employeeIds:[...state.draft.employeeIds],cityIds:[...state.draft.cityIds],cityAccounts:captureCityAccounts(state.draft,state.draft.cityAccounts),tab:'org',search:'',searchExpanded:new Map()};state.returnFocus=$('add-accounts');$('task-drawer').inert=true;$('task-drawer').setAttribute('aria-hidden','true');$('selector-mask').hidden=false;$('selector-drawer').hidden=false;state.expanded.clear();$('account-search').value='';renderSelector();$('account-search').focus({preventScroll:true});}
+function closeSelector(){state.selector=null;$('task-drawer').inert=false;$('task-drawer').removeAttribute('aria-hidden');$('selector-mask').hidden=true;$('selector-drawer').hidden=true;state.returnFocus?.focus({preventScroll:true});}
+function confirmSelector(){const s=state.selector,d=state.draft;if(!s||!d)return;d.employeeIds=validUnique(s.employeeIds);d.cityIds=[...s.cityIds];d.cityAccounts=captureCityAccounts(s,s.cityAccounts);d.accountsExpanded=d.employeeIds.length>0;d.feedback=[];state.newlyAdded.clear();$('account-error').hidden=true;closeSelector();renderAccountArea();$('add-accounts').focus({preventScroll:true});}
+function setIndividuals(ids,checked,city=null){const s=state.selector;if(!s)return;if(checked){s.employeeIds=validUnique([...s.employeeIds,...ids]);if(city&&!s.cityIds.includes(city))s.cityIds.push(city);}else{s.employeeIds=s.employeeIds.filter(id=>!ids.includes(id));pruneCities(s);}s.cityAccounts=captureCityAccounts(s,s.cityAccounts);renderSelector();}
+function setCity(city,checked){const s=state.selector;if(!s)return;const ids=cityEmployees(city).map(e=>e.id);if(checked){s.employeeIds=validUnique([...s.employeeIds,...ids]);if(!s.cityIds.includes(city))s.cityIds.push(city);}else{const removed=new Set([...ids,...(s.cityAccounts[city]||[])]);s.employeeIds=s.employeeIds.filter(id=>!removed.has(id));s.cityIds=s.cityIds.filter(id=>id!==city);}s.cityAccounts=captureCityAccounts(s,s.cityAccounts);renderSelector();}
+function checkboxState(ids,allowEmpty=false){const s=state.selector;const count=ids.filter(id=>s.employeeIds.includes(id)).length;return {checked:ids.length?count===ids.length:allowEmpty,partial:count>0&&count<ids.length};}
+function makeCheckbox(label,ids,handler,emptyChecked=false){const c=document.createElement('input');c.type='checkbox';c.setAttribute('aria-label',label);const status=checkboxState(ids,emptyChecked);c.checked=status.checked;c.indeterminate=status.partial;c.onchange=()=>handler(c.checked);return c;}
+function makeExpand(key,expanded,name=key){
+ const b=document.createElement('button');b.className='expand';b.type='button';b.dataset.expandKey=key;
+ const arrow=document.createElement('span');arrow.className='expand-chevron';arrow.setAttribute('aria-hidden','true');b.append(arrow);
+ b.setAttribute('aria-label',(expanded?'收起 ':'展开 ')+name.replace('city-',''));b.setAttribute('aria-expanded',String(expanded));
+ b.onclick=()=>{
+  const s=state.selector;if(!s)return;
+  if(s.search.trim())s.searchExpanded.set(key,!expanded);
+  else expanded?state.expanded.delete(key):state.expanded.add(key);
+  renderTree();[...$('account-tree').querySelectorAll('[data-expand-key]')].find(el=>el.dataset.expandKey===key)?.focus({preventScroll:true});
+ };return b;
+}
+function expandPlaceholder(){const slot=document.createElement('span');slot.className='expand placeholder';slot.setAttribute('aria-hidden','true');return slot;}
+function treeIcon(type){
+ const icon=document.createElement('span');icon.className='tree-icon';icon.dataset.icon=type;icon.setAttribute('aria-hidden','true');
+ const paths={department:'<rect x="8" y="3" width="8" height="6" rx="1"/><path d="M12 9v4M5 17v-4h14v4"/><rect x="2" y="17" width="6" height="4" rx="1"/><rect x="16" y="17" width="6" height="4" rx="1"/>',account:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',city:'<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>'};
+ icon.innerHTML=`<svg viewBox="0 0 24 24" focusable="false">${paths[type]}</svg>`;return icon;
+}
+function treeName(name,query=''){
+ const text=document.createElement('span');text.className='tree-label';text.title=name;
+ if(!query){text.textContent=name;return text;}
+ const lower=name.toLowerCase();let from=0,index=lower.indexOf(query);
+ while(index!==-1){text.append(document.createTextNode(name.slice(from,index)));const hit=document.createElement('mark');hit.textContent=name.slice(index,index+query.length);text.append(hit);from=index+query.length;index=lower.indexOf(query,from);}
+ text.append(document.createTextNode(name.slice(from)));return text;
+}
+function treeExpanded(key,automatic=false){const s=state.selector;return s.search.trim()?(s.searchExpanded.has(key)?s.searchExpanded.get(key):automatic):state.expanded.has(key);}
+function appendLeaf(container,e,level=1,city=null,query=''){
+ const row=document.createElement('div');row.className='tree-row leaf';row.dataset.accountId=e.id;row.style.setProperty('--tree-level',level);row.append(expandPlaceholder());
+ const label=document.createElement('label');label.append(makeCheckbox(e.name,[e.id],checked=>setIndividuals([e.id],checked,city)),treeIcon('account'),treeName(e.name,query));row.append(label);container.append(row);
+}
+function appendBranch(container,{key,name,level,expanded,expandable=true,ids,selectable,checked=false,type='department',handler,query}){
+ const row=document.createElement('div');row.className='tree-row '+type+(selectable?'':' context');row.dataset.nodeKey=key;row.style.setProperty('--tree-level',level);
+ row.append(expandable?makeExpand(key,expanded,name):expandPlaceholder());
+ const label=document.createElement(selectable?'label':'span');label.className='tree-node-label';
+ if(selectable){const input=makeCheckbox(name,ids,handler,checked);input.title=type==='department'?'选择此部门及子部门的全部可选账号':'选择此城市的全部可选账号';label.append(input);}
+ else{const slot=document.createElement('span');slot.className='tree-check-slot';slot.setAttribute('aria-hidden','true');label.append(slot);}
+ label.append(treeIcon(type),treeName(name,query));row.append(label);container.append(row);
+}
+function renderSelector(){if(!state.selector)return;document.querySelectorAll('[data-selector-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.selectorTab===state.selector.tab)));$('account-search').placeholder=state.selector.tab==='city'?'请输入城市或账号名称':'请输入部门或账号名称';$('account-search').setAttribute('aria-label',state.selector.tab==='city'?'搜索城市或账号':'搜索部门或账号');renderTree();renderSelected();}
+function renderTree(){
+ const s=state.selector;if(!s)return;const tree=$('account-tree');tree.innerHTML='';tree.dataset.mode=s.tab;
+ const query=s.search.trim().toLowerCase(),matches=name=>!!query&&name.toLowerCase().includes(query);let visible=0;
+ if(s.tab==='org'){
+  const accounts=currentEmployees();
+  if(!query){const allRow=document.createElement('div');allRow.className='tree-row root';const label=document.createElement('label');label.append(makeCheckbox('全部部门账号',accounts.map(e=>e.id),checked=>setIndividuals(accounts.map(e=>e.id),checked)),document.createTextNode('全部'));allRow.append(label);tree.append(allRow);}
+  function describeDept(dept){
+   const children=(dept.children||[]).map(describeDept),members=accounts.filter(e=>e.dept===dept.id);
+   const ids=[...members.map(e=>e.id),...children.flatMap(child=>child.ids)],selfMatch=matches(dept.name);
+   const descendantMatch=members.some(e=>matches(e.name))||children.some(child=>child.hasMatch);
+   return {dept,children,members,ids,selfMatch,descendantMatch,hasMatch:selfMatch||descendantMatch};
+  }
+  function drawDept(node,level=0,reveal=false){
+   if(query&&!reveal&&!node.hasMatch)return;visible++;
+   const expanded=treeExpanded(node.dept.id,!!query&&!reveal&&!node.selfMatch&&node.descendantMatch);
+   appendBranch(tree,{key:node.dept.id,name:node.dept.name,level,expanded,expandable:node.children.length>0||node.members.length>0,ids:node.ids,selectable:!query||reveal||node.selfMatch,handler:checked=>setIndividuals(node.ids,checked),query});
+   if(!expanded)return;
+   const revealChildren=reveal||!!query&&node.selfMatch&&s.searchExpanded.get(node.dept.id)===true;
+   node.children.forEach(child=>drawDept(child,level+1,revealChildren));
+   node.members.filter(e=>!query||revealChildren||matches(e.name)).forEach(e=>appendLeaf(tree,e,level+1,null,query));
+  }
+  departments.map(describeDept).forEach(node=>drawDept(node));
+ }else{
+  cities.forEach(city=>{
+   const members=cityEmployees(city.id),selfMatch=matches(city.name),accountMatch=members.some(e=>matches(e.name));
+   if(query&&!selfMatch&&!accountMatch)return;visible++;
+   const key='city-'+city.id,expanded=treeExpanded(key,!!query&&!selfMatch&&accountMatch);
+   appendBranch(tree,{key,name:city.name,level:0,expanded,ids:members.map(e=>e.id),selectable:!query||selfMatch,checked:s.cityIds.includes(city.id),type:'city',handler:checked=>setCity(city.id,checked),query});
+   if(!expanded)return;
+   const shown=members.filter(e=>!query||selfMatch||matches(e.name));
+   if(shown.length)shown.forEach(e=>appendLeaf(tree,e,1,city.id,query));
+   else{const empty=document.createElement('div');empty.className='tree-city-empty';empty.textContent='暂无关联账号';tree.append(empty);}
+  });
+ }
+ if(!visible){tree.innerHTML='<div class="no-results">未找到匹配的'+(s.tab==='city'?'城市或账号':'部门或账号')+'</div>';}
+}
+function renderSelected(){const s=state.selector;if(!s)return;$('selected-count').textContent=s.employeeIds.length;$('clear-selected').disabled=!s.employeeIds.length&&!s.cityIds.length;$('selector-city-strip').hidden=!s.cityIds.length;$('selector-city-strip').innerHTML=s.cityIds.length?associationMarkup(s.cityIds):'';const list=$('selected-list');list.innerHTML=s.employeeIds.map(id=>`<div class="selected-card"><span class="selected-name" title="${esc(byId.get(id).name)}">${esc(byId.get(id).name)}</span><button class="remove-chip" aria-label="删除已选 ${esc(byId.get(id).name)}" data-remove-selection="${id}">×</button></div>`).join('')||'<div class="selected-empty">暂未选择账号</div>';list.querySelectorAll('[data-remove-selection]').forEach(b=>b.onclick=()=>setIndividuals([b.dataset.removeSelection],false));}
+
+function renderSopFilters(){
+ const d=state.draft;if(!d||!$('sop-filter-area'))return;
+ $('sop-filter-area').innerHTML=['include','exclude'].map(kind=>{
+  const mode=d[kind+'Mode'],items=d[kind+'Items'];
+  const options=mode==='tag'?['租房咨询','格拉斯哥意向','新客咨询']:['英国新客','近期咨询客户','澳洲意向客户'];
+  return `<div class="sop-scope-block"><div class="sop-scope-title ${kind==='include'?'required':''}">${kind==='include'?'选择客户':'排除客户'}</div>${kind==='exclude'?'<div class="sop-exclude-hint">包含以下标签或分群的不执行该 SOP</div>':''}<div class="sop-scope-options"><label><input type="radio" name="sop-${kind}-mode" data-sop-scope="${kind}" value="tag" ${mode==='tag'?'checked':''}>按标签选择</label><label><input type="radio" name="sop-${kind}-mode" data-sop-scope="${kind}" value="group" ${mode==='group'?'checked':''}>按分群选择</label></div><div class="sop-scope-toolbar"><button type="button" class="cdp-button cdp-button--plain" data-sop-picker="${kind}">＋ 添加${mode==='tag'?'标签':'分群'}</button><span class="account-count">已选 ${items.length} 个</span></div><div class="sop-scope-chips">${items.map(item=>`<span class="customer-tag-chip">${esc(item)}<button type="button" class="remove-chip" data-sop-remove-kind="${kind}" data-sop-remove-item="${esc(item)}" aria-label="移除${kind==='include'?'选择':'排除'}条件 ${esc(item)}">×</button></span>`).join('')}</div><div class="sop-option-picker" id="sop-${kind}-picker" hidden>${options.map(item=>`<label><input type="checkbox" data-sop-item-kind="${kind}" data-sop-item="${esc(item)}" ${items.includes(item)?'checked':''}>${esc(item)}</label>`).join('')}</div></div>`;
+ }).join('');
+ document.querySelectorAll('[data-sop-scope]').forEach(input=>input.onchange=()=>{d[input.dataset.sopScope+'Mode']=input.value;d[input.dataset.sopScope+'Items']=[];renderSopFilters();});
+ document.querySelectorAll('[data-sop-picker]').forEach(b=>b.onclick=()=>{const picker=$('sop-'+b.dataset.sopPicker+'-picker');picker.hidden=!picker.hidden;});
+ document.querySelectorAll('[data-sop-item-kind]').forEach(input=>input.onchange=()=>{const kind=input.dataset.sopItemKind,key=kind+'Items';d[key]=input.checked?[...new Set([...d[key],input.dataset.sopItem])]:d[key].filter(v=>v!==input.dataset.sopItem);renderSopFilters();$('sop-'+kind+'-picker').hidden=false;});
+ document.querySelectorAll('[data-sop-remove-kind]').forEach(b=>b.onclick=()=>{const key=b.dataset.sopRemoveKind+'Items';d[key]=d[key].filter(v=>v!==b.dataset.sopRemoveItem);renderSopFilters();});
+}
+function renderPrototypeSwitcher(){
+ if(!$('prototype-controls'))return;
+ const mode=state.draft?.mode||state.lastPrototypeMode||'create';
+ document.querySelectorAll('[data-prototype-entry]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.prototypeEntry===state.entry)));
+ document.querySelectorAll('[data-prototype-mode]').forEach(b=>{const unsupported=state.entry==='tag'&&b.dataset.prototypeMode==='editDraft';b.disabled=unsupported;b.setAttribute('aria-pressed',String(b.dataset.prototypeMode===mode&&!unsupported));if(unsupported)b.title='会话标签不支持保存草稿';else b.removeAttribute('title');});
+}
+
+function launchPrototype(entry,mode){
+ if(entry==='tag'&&mode==='editDraft')mode='create';
+ if(state.draft)closeDraft();
+ state.entry=entry;state.filter='';renderShell();
+ let source=null;
+ if(mode==='copy'){const id={moments:'mom1',sop:'sop1',tag:'tag1'}[entry];source=records[entry].find(r=>r.id===id);}
+ if(mode==='editDraft'){const id={moments:'momDraft',sop:'sop2'}[entry];source=records[entry].find(r=>r.id===id)||records[entry].find(r=>r.status==='草稿');}
+ openDraft(source,mode);renderPrototypeSwitcher();
+}
+document.querySelectorAll('[data-prototype-entry]').forEach(b=>b.onclick=()=>launchPrototype(b.dataset.prototypeEntry,state.draft?.mode||state.lastPrototypeMode));
+document.querySelectorAll('[data-prototype-mode]').forEach(b=>b.onclick=()=>launchPrototype(state.entry,b.dataset.prototypeMode));
+
+$('close-task').onclick=closeDraft;$('close-selector').onclick=closeSelector;$('cancel-selector').onclick=closeSelector;$('confirm-selector').onclick=confirmSelector;
+$('clear-selected').onclick=()=>{if(!state.selector)return;state.selector.employeeIds=[];state.selector.cityIds=[];state.selector.cityAccounts={};renderSelector();};
+$('account-search').oninput=e=>{const s=state.selector;if(s){if(s.search.trim().toLowerCase()!==e.target.value.trim().toLowerCase())s.searchExpanded.clear();s.search=e.target.value;renderTree();$('account-tree').scrollTop=0;}};
+document.querySelectorAll('[data-selector-tab]').forEach(b=>b.onclick=()=>{if(!state.selector)return;state.selector.tab=b.dataset.selectorTab;state.selector.search='';state.selector.searchExpanded.clear();$('account-search').value='';renderSelector();$('account-tree').scrollTop=0;});
+document.querySelectorAll('[data-entry]').forEach(b=>b.onclick=()=>{state.entry=b.dataset.entry;state.filter='';renderShell();});
+
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){if(state.selector)closeSelector();else if(state.draft)closeDraft();}
+ if(e.key==='Tab'&&(state.selector||state.draft)){
+  const dialog=state.selector?$('selector-drawer'):$('task-drawer');
+  const focusables=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]'),...$('prototype-controls').querySelectorAll('button:not(:disabled)')].filter(el=>el.getClientRects().length);
+  const first=focusables[0],last=focusables[focusables.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}
+ }
+});
+renderShell();openDraft();
+</script>
+</body></html>
