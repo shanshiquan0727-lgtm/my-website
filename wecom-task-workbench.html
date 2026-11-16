@@ -1,0 +1,1448 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>企微任务通知与预警处理 · CDP 交互原型</title>
+<style>
+/* 公共视觉基准。按需使用组件，不代表需要在页面加入对应功能。 */
+:root {
+  --cdp-primary:#165dff; --cdp-primary-soft:#e8f3ff;
+  --cdp-text:#303133; --cdp-secondary:#606b7b; --cdp-muted:#98a2b1;
+  --cdp-page:#f5f7fc; --cdp-field:#f2f3f5; --cdp-border:#ebeef5;
+  --cdp-danger:#f53f3f; --cdp-success:#00b42a;
+  --cdp-font:14px; --cdp-small:12px; --cdp-title:16px;
+  --cdp-control:32px; --cdp-radius:2px;
+  --cdp-space-1:8px; --cdp-space-2:16px; --cdp-space-3:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--cdp-text);background:var(--cdp-page);font:var(--cdp-font)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+:focus-visible{outline:2px solid var(--cdp-primary);outline-offset:2px}
+[hidden]{display:none!important}
+.cdp-workspace{padding:16px;min-width:0}
+.cdp-panel{background:white;padding:16px;min-width:0}
+.cdp-split{display:grid;grid-template-columns:240px minmax(0,1fr);gap:12px}
+.cdp-sidebar{background:white;border-right:1px solid var(--cdp-border)}
+.cdp-nav-item{padding:12px 16px;color:var(--cdp-secondary)}
+.cdp-nav-item.is-active{color:var(--cdp-primary);background:var(--cdp-field)}
+.cdp-tabs{display:flex;gap:32px;border-bottom:1px solid var(--cdp-border);margin-bottom:16px}
+.cdp-tab{position:relative;border:0;background:none;padding:0 0 12px;color:var(--cdp-secondary)}
+.cdp-tab[aria-selected=true]{color:var(--cdp-primary);font-weight:500}
+.cdp-tab[aria-selected=true]::after{content:"";height:2px;background:var(--cdp-primary);position:absolute;inset:auto 0 -1px}
+.cdp-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 24px;padding:0 0 16px;border-bottom:1px solid var(--cdp-border)}
+.cdp-field{display:flex;gap:16px;align-items:center;min-width:0}
+.cdp-label{flex:0 0 96px;text-align:right;color:var(--cdp-secondary)}
+.cdp-required::before{content:"* ";color:var(--cdp-danger)}
+.cdp-control{height:var(--cdp-control);min-width:0;width:100%;background:var(--cdp-field);border:1px solid transparent;border-radius:var(--cdp-radius);padding:5px 12px;color:var(--cdp-text)}
+.cdp-control::placeholder{color:var(--cdp-muted)}
+.cdp-control:focus{outline:none;border-color:var(--cdp-primary)}
+.cdp-control:focus-visible{outline:2px solid var(--cdp-primary);outline-offset:1px}
+.cdp-control:disabled{color:var(--cdp-muted);cursor:not-allowed}
+textarea.cdp-control{height:96px;resize:vertical;padding-bottom:20px}
+.cdp-counted{position:relative;flex:1;min-width:0}
+.cdp-counted input{padding-right:64px}
+.cdp-count{position:absolute;right:12px;bottom:7px;color:var(--cdp-muted);font-size:var(--cdp-small);pointer-events:none}
+.cdp-form{display:grid;gap:24px}
+.cdp-form .cdp-field{align-items:flex-start}
+.cdp-form .cdp-label{padding-top:5px}
+.cdp-options{display:flex;align-items:center;flex-wrap:wrap;gap:24px;min-height:32px}
+.cdp-options label{display:inline-flex;align-items:center;gap:8px}
+input[type=radio],input[type=checkbox]{accent-color:var(--cdp-primary)}
+.cdp-button{height:32px;padding:0 16px;border:1px solid var(--cdp-border);border-radius:var(--cdp-radius);background:white;color:var(--cdp-secondary);white-space:nowrap}
+.cdp-button--primary{color:white;background:var(--cdp-primary);border-color:var(--cdp-primary)}
+.cdp-button--plain{color:var(--cdp-primary);border-color:var(--cdp-primary)}
+.cdp-button--muted{background:var(--cdp-field);border-color:var(--cdp-field)}
+.cdp-button:disabled{opacity:.4}
+.cdp-link{border:0;background:none;padding:0;color:var(--cdp-primary);text-decoration:none}
+.cdp-link:disabled{opacity:.35}
+.cdp-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:12px 0}
+.cdp-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.cdp-table-wrap{overflow:auto;border:1px solid var(--cdp-border);border-radius:4px}
+.cdp-table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+.cdp-table th{background:var(--cdp-field);font-weight:600}
+.cdp-table th,.cdp-table td{height:40px;padding:8px 16px;border-right:1px solid var(--cdp-border);border-bottom:1px solid var(--cdp-border)}
+.cdp-table tr:last-child td{border-bottom:0}
+.cdp-table th:last-child,.cdp-table td:last-child{border-right:0}
+.cdp-table .cdp-sticky-actions{position:sticky;right:0;background:white;box-shadow:-5px 0 8px #00000008}
+.cdp-table th.cdp-sticky-actions{background:var(--cdp-field)}
+.cdp-ellipsis{display:block;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cdp-pagination{display:flex;align-items:center;justify-content:flex-end;gap:16px;padding-top:12px}
+.cdp-pagination [aria-current=page]{background:var(--cdp-primary-soft);color:var(--cdp-primary)}
+.cdp-overlay{position:fixed;inset:0;background:#0008;z-index:100;display:flex;align-items:center;justify-content:center}
+.cdp-drawer{position:absolute;right:0;top:0;bottom:0;width:60vw;max-width:100vw;background:white;display:flex;flex-direction:column;min-width:0}
+.cdp-dialog{width:480px;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);background:white;border-radius:4px;display:flex;flex-direction:column}
+.cdp-container-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border-bottom:1px solid var(--cdp-border);flex-shrink:0}
+.cdp-container-title{font-size:var(--cdp-title);font-weight:600;margin:0}
+.cdp-close{border:0;background:none;color:var(--cdp-secondary);font-size:20px;line-height:24px;padding:0 4px}
+.cdp-container-body{padding:16px;overflow:auto;min-height:0;flex:1}
+.cdp-container-foot{display:flex;justify-content:flex-end;gap:12px;padding:16px;border-top:1px solid var(--cdp-border);flex-shrink:0;background:white}
+.cdp-error{font-size:var(--cdp-small);color:var(--cdp-danger);margin-top:4px}
+.cdp-help{font-size:var(--cdp-small);color:var(--cdp-muted)}
+.cdp-control[aria-invalid=true]{border-color:var(--cdp-danger)}
+.cdp-empty{padding:48px 16px;text-align:center;color:var(--cdp-muted)}
+.cdp-tag{display:inline-block;font-size:12px;padding:2px 8px;color:var(--cdp-primary);background:var(--cdp-primary-soft);border-radius:2px}
+:root{--ink:#202e41;--muted:#617086;--line:#e4eaf2;--blue:#165dff;--surface:#f5f7fa}
+body{color:var(--ink);overflow:hidden}
+h1,h2,h3,p,dl,dd{margin:0}
+h1{font-size:22px;line-height:1.35;font-weight:650}
+h2{font-size:16px;font-weight:650}
+h3{font-size:14px;font-weight:650}
+small,.sub{font-size:12px;color:var(--muted)}
+svg{width:18px;height:18px;vertical-align:middle;flex:none}
+button{color:inherit}
+button:hover:not(:disabled){filter:brightness(.97)}
+.icon-button{display:inline-grid;place-items:center;background:#fff;border:1px solid var(--line);border-radius:5px;width:32px;height:32px;color:#496078}
+.row{display:flex;align-items:center;gap:8px;min-width:0}
+.between{justify-content:space-between}
+.stack{display:grid;gap:12px}
+.grow{flex:1;min-width:0}
+.dim{color:var(--muted)}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.desktop{height:100vh;display:grid;grid-template-columns:208px minmax(0,1fr);grid-template-rows:54px minmax(0,1fr)}
+.brand{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--line);padding:0 20px}
+.logo{display:grid;place-items:center;width:30px;height:30px;border-radius:7px;background:var(--blue);color:white}
+.brand strong{font-size:15px}
+.brand .divider{height:17px;border-left:1px solid var(--line);margin:0 6px}
+.brand-meta{font-size:12px;color:var(--muted)}
+.left{background:white;border-right:1px solid var(--line);padding:18px 12px 190px;overflow:auto}
+.rail-title{font-size:11px;letter-spacing:.08em;font-weight:650;color:#6a798d;padding:0 9px;margin:0 0 11px}
+.scene-panel{position:fixed;bottom:12px;left:12px;width:184px;z-index:110;padding:9px;background:#f4f7fc;border:1px solid #dce5f3;border-radius:5px}
+.scene-panel .rail-title{padding:0 5px;margin:0 0 4px}
+.rail-action{border:0;width:100%;text-align:left;background:transparent;display:flex;gap:7px;align-items:center;padding:7px 8px;border-radius:4px;font-size:12px;color:#435770}
+.rail-action[aria-current=true]{background:#e6efff;color:#165dff;font-weight:650}
+.main{min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--surface)}
+.main-head{height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border-bottom:1px solid var(--line);padding:0 22px;flex:none}
+.main-head h1{font-size:17px}
+.scroll{overflow:auto;min-height:0}
+.inbox-body{padding:24px;flex:1}
+.feed{max-width:1080px;margin:auto}
+.section-head{margin-bottom:15px;display:flex;align-items:baseline;gap:10px}
+.section-head:not(:first-child){margin-top:26px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;padding:16px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.card h2{line-height:1.4}
+.card .card-foot{border-top:1px solid var(--line);padding-top:10px;margin-top:auto}
+.card .sub{line-height:1.6}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:9px 0;background:#f6f8fc;border-radius:4px}
+.kpis>div{text-align:center;border-right:1px solid var(--line)}
+.kpis>div:last-child{border:0}
+.kpis strong{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.kpis small{font-size:11px}
+.tag{font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:3px;line-height:17px;white-space:nowrap;background:#edf1f6;color:#4c5e75}
+.tag.blue{background:#eaf1ff;color:#1a55bd}
+.tag.green{background:#e7f6ee;color:#19764d}
+.tag.amber{background:#fff2dc;color:#935506}
+.tag.red{background:#fdebec;color:#b02b36}
+.avatar{width:34px;height:34px;border-radius:6px;display:grid;place-items:center;flex:none;font-weight:650;background:#e6eefc;color:#345eaa}
+.avatar.group{background:#e3f4ef;color:#16745b}
+.conv{width:100%;background:white;border:0;text-align:left;padding:10px 8px;display:flex;align-items:center;gap:8px;border-radius:5px;margin-bottom:3px}
+.conv[aria-current=true]{background:#e9f1ff}
+.conv:disabled{opacity:.72}
+.chat-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,374px);flex:1;min-height:0}
+.chat{min-width:0;background:#edf2f7;display:flex;flex-direction:column;border-right:1px solid var(--line)}
+.transcript{flex:1;padding:22px;display:flex;flex-direction:column;gap:17px}
+.timestamp{align-self:center;color:#697a8e;font-size:12px;margin:0 0 5px}
+.bubble-row{display:flex;gap:8px;align-items:flex-start}
+.bubble-row.sent{justify-content:flex-end}
+.bubble{background:white;border:1px solid #e1e8f2;border-radius:6px;padding:9px 12px;max-width:min(430px,77%);overflow-wrap:anywhere}
+.sent .bubble{background:#e0edff;border-color:#d2e3ff}
+.composer{height:97px;background:#fff;padding:10px 16px;border-top:1px solid var(--line);color:#647488}
+.composer .icons{display:flex;gap:14px;margin-bottom:10px}
+.side{background:#fff;display:flex;flex-direction:column;min-height:0}
+.side-tabs{display:flex;border-bottom:1px solid var(--line);flex:none;padding:0 12px;gap:12px}
+.side-tabs button{font-size:12px;white-space:nowrap;border:0;border-bottom:2px solid transparent;background:white;padding:12px 4px;color:var(--muted)}
+.side-tabs button[aria-selected=true]{border-color:var(--blue);color:var(--blue);font-weight:650}
+.side-body{flex:1;padding:14px}
+.side-foot{border-top:1px solid var(--line);padding:10px 14px;background:#fff}
+.side-foot button{width:100%}
+.box{border:1px solid var(--line);border-radius:5px;background:white;padding:13px;min-width:0}
+.summary-box{background:#f5f8ff;border-color:#e0eaff}
+progress{width:100%;height:6px;display:block;border:0;appearance:none;border-radius:6px;overflow:hidden;background:#e1e8f4}
+progress::-webkit-progress-bar{background:#e1e8f4}
+progress::-webkit-progress-value{background:#2469ef}
+progress::-moz-progress-bar{background:#2469ef}
+.content-tile{border:1px solid var(--line);border-radius:4px;padding:10px;margin-top:8px;overflow-wrap:anywhere}
+.attachment{display:flex;gap:8px;align-items:center;background:#f4f7fb;padding:8px;border-radius:4px}
+.material-image{display:block;width:100%;height:62px;margin-top:5px;border-radius:3px;background:#e9f2ff;color:#1f56a0}
+.notice{border-left:3px solid #3575ef;background:#f1f6ff;padding:8px 10px;font-size:12px;color:#324c70}
+.notice.warn{border-color:#de9d2c;background:#fff7e7;color:#744a11}
+summary{cursor:pointer;color:#293c56;font-weight:600}
+.queue-item{padding:9px 0;border-top:1px solid var(--line)}
+.record{border-top:1px solid var(--line);padding:9px 0}
+.detail-wrap{padding:24px;flex:1}
+.detail{max-width:820px;margin:auto;background:#fff;border:1px solid var(--line);border-radius:6px}
+.detail-head{padding:20px 24px;border-bottom:1px solid var(--line)}
+.detail-body{padding:20px 24px;display:grid;gap:18px}
+.detail-foot{border-top:1px solid var(--line);padding:12px 24px}
+.properties{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 20px}
+.properties div{min-width:0}
+.properties dt{font-size:12px;color:var(--muted);margin-bottom:4px}
+.properties dd{white-space:pre-wrap;overflow-wrap:anywhere}
+.properties .wide{grid-column:1/-1}
+.result-table{width:100%;border-collapse:collapse}
+.result-table td,.result-table th{text-align:left;border-bottom:1px solid var(--line);padding:9px}
+.result-table th{background:#f4f6fa;font-size:12px}
+.admin{flex:1;padding:16px;background:#f5f7fc}
+.admin-body{min-height:100%;padding:16px;background:white}
+.admin .cdp-table td,.admin .cdp-table th{padding:8px 10px}
+.admin .cdp-table small{display:block}
+.admin-crumb{color:var(--muted);font-size:12px}
+.admin-list-title{padding-bottom:10px;border-bottom:1px solid var(--line);color:var(--blue)}
+.admin-nav{padding:10px;border-radius:2px;font-size:13px;color:#536175}
+.admin-nav.active{background:#f2f3f5;color:var(--blue);font-weight:600}
+.cdp-drawer{width:min(780px,calc(100% - 212px))}
+.cdp-drawer .cdp-container-body{padding:16px 22px}
+.form-section{padding:0 0 15px;border-bottom:1px solid var(--line);margin-bottom:15px;display:grid;gap:10px}
+.form-section h3{font-size:14px}
+.form-field{display:grid;grid-template-columns:115px minmax(0,1fr);gap:12px;align-items:start}
+.form-field>.field-label{font-size:13px;color:var(--muted);padding-top:6px;text-align:right}
+.form-field textarea{height:66px}
+.mode-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-options label{display:flex;align-items:flex-start;gap:6px;border:1px solid var(--line);border-radius:4px;padding:9px;cursor:pointer}
+.mode-options label:has(input:checked){border-color:#78a4ff;background:#f5f8ff}
+.mode-options small{display:block;margin-top:3px}
+.switch-line{display:flex;align-items:center;gap:8px;padding-top:4px}
+.preview-message{background:#f5f8fc;border:1px solid var(--line);padding:10px;white-space:pre-wrap;overflow-wrap:anywhere}
+.toast{position:fixed;z-index:130;top:61px;left:50%;transform:translateX(-50%);background:#233751;color:white;padding:10px 16px;border-radius:5px;box-shadow:0 3px 15px #17253830;max-width:calc(100% - 32px)}
+dialog{border:1px solid var(--line);padding:0;color:var(--ink);box-shadow:0 12px 48px #23375130}
+dialog::backdrop{background:#16263b66}
+@media(max-width:1110px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.desktop{grid-template-columns:182px minmax(0,1fr)}.scene-panel{width:158px}.cdp-drawer{width:min(760px,calc(100% - 186px))}}
+@media(max-width:790px){.desktop{grid-template-columns:138px minmax(0,1fr)}.scene-panel{width:114px}.scene-panel svg{display:none}.chat-grid{grid-template-columns:minmax(150px,1fr) minmax(255px,50%)}.inbox-body,.detail-wrap{padding:12px}.cdp-drawer{width:calc(100% - 142px)}.form-field{grid-template-columns:88px minmax(0,1fr)}.mode-options{grid-template-columns:1fr}}
+/* 企业微信桌面演示外壳 */
+.desktop.wecom{grid-template: minmax(0,1fr) / 58px 248px minmax(0,1fr);color:#202328}
+.wecom .main,.wecom .chat{background:#fff}
+.wecom .main-head{height:58px;padding:0 19px;border-color:#ededee;color:#1d2024}
+.wecom .left{padding:0;overflow:hidden;border-color:#ededee;display:flex;flex-direction:column}
+.wecom .main-head h1{font-size:16px}
+.wecom .conv-list{padding:4px 5px 167px;overflow:auto}
+.wecom .conv{height:58px;margin:0;padding:8px 9px;gap:9px;border-radius:4px}
+.wecom .conv small,.wecom .conv-time{color:#8a8c90;font-size:11px}
+.wecom .conv[aria-current=true]{background:#4e90f5;color:white}
+.wecom .conv[aria-current=true] small,.wecom .conv[aria-current=true] .conv-time{color:#e4efff}
+.wecom .conv[aria-current=true] .wx-contact{color:#e1fff3}
+.wecom .conv .avatar{width:37px;height:37px}
+.wecom .conv strong{font-size:13px}
+.wecom .conv-placeholder{cursor:default;opacity:1}
+.wecom .conv-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wx-contact{color:#249257;font-weight:500;font-size:10px;margin-left:4px}
+.wx-rail{background:#dce2eb;display:flex;align-items:center;flex-direction:column;gap:14px;padding:10px 0;color:#677587}
+.wx-dots{display:flex;gap:4px}
+.wx-dots i{width:8px;height:8px;border-radius:50%;background:#fa625b}
+.wx-dots i:nth-child(2){background:#f6bc37}
+.wx-dots i:nth-child(3){background:#27c447}
+.wx-user{width:34px;height:34px;display:grid;place-items:center;background:#304665;color:white;border-radius:5px}
+.wx-tool{width:44px;text-align:center;font-size:10px;line-height:1.5;padding:5px 0}
+.wx-tool svg{display:block;margin:auto auto 3px}
+.wx-tool.current{background:#c6daf6;color:#196bcc;border-radius:5px}
+.wx-search{height:58px;flex:none;border-bottom:1px solid #f1f1f1;display:flex;align-items:center;gap:8px;padding:0 11px;color:#757b83}
+.wx-search span{background:#f1f2f3;border-radius:5px;height:29px;display:flex;align-items:center;padding:0 9px;font-size:12px;gap:5px}
+.wx-search svg{width:14px;height:14px}
+.wx-search .wx-plus{font-size:17px;justify-content:center;width:29px}
+.wx-app-avatar{background:#db302a;color:#fff;font-size:15px}
+.wx-files-avatar{background:#22b84f;color:white}
+.wx-team-avatar{background:#e9f3ff;color:#187bec}
+.wx-news-avatar{background:#f6ae12;color:white}
+.wx-avatar-wrap{position:relative;flex:none}
+.wx-unread{position:absolute;right:-4px;top:-4px;background:#ed514d;color:white;border-radius:10px;padding:0 4px;font-size:9px;border:1px solid white;min-width:15px;text-align:center}
+.wx-feed{flex:1;min-height:0;padding:14px 20px 22px;overflow:auto}
+.wx-messages{width:min(402px,100%);margin:0 auto;display:grid;gap:13px}
+.wx-message-time{text-align:center;color:#929498;font-size:11px}
+.wx-message{border:1px solid #ececee;border-radius:5px;background:#fff;overflow:hidden;line-height:1.45}
+.wx-message-body{padding:11px 15px 8px}
+.wx-message h2{font-size:15px;color:#17191c;margin-bottom:2px}
+.wx-message p{font-size:13px}
+.wx-message-alert h2{margin-bottom:10px}
+.wx-message-alert dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 5px;font-size:13px}
+.wx-message-alert dt,.wx-message-alert dd{margin:0}
+.wx-message-alert dd{overflow-wrap:anywhere}
+.wx-message-alert dd span{display:block}
+.wx-message-action{width:100%;display:flex;align-items:center;justify-content:space-between;border:0;border-top:1px solid #eeeeef;background:#fff;padding:7px 15px;text-align:left;font-size:13px}
+.wx-message-action:hover{background:#f3f7fd;color:#246bd0}
+.wx-message-action svg{width:13px;height:13px;color:#7a818c}
+.wx-history{margin-top:5px;padding:9px 0;border-top:1px solid #ededee;color:#666f7c;font-size:12px}
+.wx-history .wx-message{margin-top:8px}
+.wx-app-footer{flex:none;border-top:1px solid #ededee;padding:9px 16px;text-align:center;font-size:12px;color:#81848a}
+.wx-file-feed{padding:26px;text-align:center;color:#767b83}
+.wecom .chat-grid{grid-template-columns:minmax(0,1fr) clamp(300px,30vw,366px)}
+.wecom .chat-grid.is-collapsed{grid-template-columns:minmax(0,1fr)}
+.wecom .chat{border-color:#ededee}
+.wecom .transcript{gap:15px;padding:20px}
+.wecom .bubble{font-size:13px;border-color:#f0f0f1;background:#f4f5f6;padding:8px 11px}
+.wecom .sent .bubble{background:#cfeaff;border-color:#cfeaff}
+.wecom .composer{height:110px;padding:0 13px 10px;border-color:#ededee}
+.wx-composer-tools{display:flex;align-items:center;justify-content:space-between;height:38px;color:#666b71}
+.wx-composer-tools .icon-button{border:0;width:27px;height:27px;background:#f3f4f5}
+.wx-composer-tools .icon-button[aria-expanded=true]{background:#eaf3ff;color:#246bd0}
+.wx-composer-tools .icons{margin-bottom:0;gap:11px}
+.wx-current-heading h2{font-size:13px;white-space:nowrap}
+.wx-current-heading>.row{gap:5px;justify-content:flex-end}
+.wx-current-heading .wx-mention{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wx-current-heading .sub{white-space:nowrap}
+.wx-completed-group{padding:8px 0;border-bottom:1px solid #eef0f2}
+.wx-completed-group:last-child{border-bottom:0}
+.wx-completed-group ul{margin:4px 0 0;padding-left:16px;font-size:12px}
+.wx-mention{color:#18864b}
+.wx-message-compose{display:grid;gap:5px;padding-bottom:5px}
+.wx-draft-content{min-height:23px;max-height:105px}
+.wx-draft-item{padding:3px 4px;background:#f4f6f9;margin-bottom:3px;font-size:12px;overflow-wrap:anywhere}
+.wecom .composer{height:auto;min-height:110px}
+.composer:has(.wx-message-compose){height:auto;min-height:110px}
+.wecom .side-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;padding:4px 8px;align-content:start;border-color:#ededee}
+.wecom .side-tabs button,.wx-menu-label{min-width:0;border:0;border-radius:3px;background:white;padding:7px 0;text-align:center;font-size:12px;white-space:nowrap;color:#676b71}
+.wecom .side-tabs button[aria-selected=true]{background:#f0f2f4;color:#202328;font-weight:650}
+.wecom .side-tabs button[data-action=toggle-side]{color:#286fd0}
+.wecom .side-tabs .wx-menu-label:nth-child(10){visibility:hidden}
+.wx-pane-heading{padding:0 12px;border-bottom:1px solid #ededee;display:flex;align-items:center;gap:18px;flex:none}
+.wx-pane-heading button{border:0;background:white;color:#686d75;padding:9px 0 8px;font-size:12px;border-bottom:2px solid transparent}
+.wx-pane-heading button[aria-selected=true]{color:#2774df;border-color:#2774df;font-weight:650}
+.wecom .side-body{padding:11px}
+.wecom .side-foot{border-color:#ededee}
+.wx-task-card{min-width:0;border:1px solid #e7e7e9;border-radius:4px;padding:9px}
+.wx-task-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:10px}
+.wx-task-list h3{font-size:12px;color:#5d6674}
+.wx-todos{display:grid;gap:8px;margin-top:12px;min-width:0}
+.wx-todos h2{font-size:14px}
+.wx-current-task{padding:0;overflow:hidden}
+.wx-current-task>summary{display:flex;align-items:flex-start;gap:7px;padding:9px;list-style:none}
+.wx-current-task>summary::-webkit-details-marker{display:none}
+.wx-current-task>summary::before{content:"▸";color:#697789;margin-top:1px}
+.wx-current-task[open]>summary::before{content:"▾"}
+.wx-current-task[open]>summary{border-bottom:1px solid #eef0f2;background:#f8fafc}
+.wx-task-summary-line{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;gap:5px}
+.wx-task-summary-line .wx-task-name{white-space:normal;overflow-wrap:anywhere}
+.wx-time{font-size:11px;font-weight:400;color:#687587;white-space:nowrap}
+.wx-time.wx-overdue{color:#b02b36}
+.wx-task-summary-line .tag{font-size:10px;padding:1px 4px}
+.wx-task-summary-line .wx-task-name{font-size:12px}
+.wx-alert-line{display:flex;align-items:flex-start;min-width:0}
+.wx-alert-line>span{white-space:nowrap}
+.wx-alert-fields{margin-top:4px;color:#606b7b}
+.wx-inline-followup{display:grid;gap:7px;border-top:1px solid #e4eaf2;padding-top:10px}
+.wx-inline-followup textarea{min-height:80px}
+.wx-current-body{padding:8px 9px}
+.wx-object-list{border:1px solid #e7e7e9;border-radius:4px;padding:0 9px}
+.wx-todo-row{display:flex;align-items:flex-start;gap:8px;min-width:0;padding:8px 0;border-top:1px solid #eef0f2;font-size:12px}
+.wx-todo-row:first-child{border-top:0}
+.wx-todo-row small{display:block;overflow-wrap:anywhere}
+.wx-todo-row .cdp-button{height:26px;padding:0 10px;font-size:12px}
+.wx-overdue{color:#b02b36}
+.wx-alert-content{display:grid;gap:11px;font-size:12px}
+.wx-alert-content h3{font-size:12px;margin-bottom:4px}
+.wx-alert-content p{margin:0;overflow-wrap:anywhere}
+.wx-event-row{padding:7px;background:#f5f7fa;margin-top:5px;border-radius:3px}
+.wx-event-row strong{font-size:11px}
+.wx-event-row p{color:#606b7b}
+.wx-todo-summary{display:flex;align-items:baseline;gap:6px;margin-top:4px}
+.wx-todo-summary .wx-time{flex:none}
+.wx-todo-more{margin-top:5px}
+.wx-todo-more summary{color:var(--blue);font-size:11px;font-weight:500}
+.wx-todo-more[open] summary .more-label,.wx-todo-more:not([open]) summary .less-label{display:none}
+.wx-todo-empty{border:1px solid #e4edf8;background:#f5f9ff;border-radius:4px;padding:10px}
+.wx-todo-empty .cdp-button{font-size:12px}
+.wx-task-name{font-size:13px;font-weight:550}
+.wx-task-card .cdp-button{height:25px;padding:0 8px;font-size:11px}
+.wx-asset{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px;background:#f4f6f8;border-radius:3px;font-size:12px;min-width:0}
+.wx-asset .cdp-link{font-size:12px;flex:none;white-space:nowrap}
+.wx-asset .asset-label{text-align:left;color:#39434f;flex:1;min-width:0}
+.wx-asset svg{width:17px;height:17px;color:#1ea468}
+.wx-asset .tag{font-size:10px;padding:0 4px}
+.wx-progress{padding:9px;border:1px solid #ededee;border-radius:4px;margin-top:9px}
+.wx-progress progress{margin-top:6px;height:4px}
+.wecom .notice{margin-bottom:8px;font-size:11px}
+.wecom .box{border-color:#e7e7e9}
+.wecom .box summary{font-size:12px;font-weight:550}
+.wecom-scenes{bottom:9px;left:66px;width:232px;padding:6px}
+.wecom-scenes .rail-title{font-size:10px;margin-bottom:2px}
+.wecom-scenes .rail-action{padding:4px 7px;font-size:11px}
+.wecom-scenes .rail-action svg{width:14px;height:14px}
+@media(max-width:1080px){.desktop.wecom{grid-template-columns:52px 205px minmax(0,1fr)}.wecom-scenes{left:58px;width:193px}}
+@media(max-width:800px){.desktop.wecom{grid-template-columns:45px 156px minmax(0,1fr)}.wecom-scenes{left:49px;width:148px}.wecom .chat-grid{grid-template-columns:minmax(126px,1fr) minmax(250px,53%)}.wecom .conv-time{display:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="scene-panel" aria-label="原型场景" id="scenes"></nav>
+<div id="layer"></div>
+<dialog id="dialog" class="cdp-dialog"></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+  '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+})[c]);
+const paths = {
+  search:'M15 15l5 5 M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z',
+  chevron:'m9 5 7 7-7 7',
+  sidebar:'M3 5h18v14H3z M15 5v14',
+  grid:'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
+  bell:'M18 8a6 6 0 0 0-12 0c0 8-3 9-3 9h18s-3-1-3-9 M10 21h4',
+  chat:'M21 11a8 8 0 0 1-8 8H6l-3 2V8a5 5 0 0 1 5-5h5a8 8 0 0 1 8 8Z M8 10h8 M8 14h5',
+  list:'M8 5h13 M8 12h13 M8 19h13 M3 5h1 M3 12h1 M3 19h1',
+  back:'m12 5-7 7 7 7 M5 12h15', check:'m5 12 4 4L19 6',
+  clock:'M22 12a10 10 0 1 0-20 0 10 10 0 1 0 20 0 M12 6v6l4 2',
+  file:'M5 2h9l5 5v15H5z M14 2v6h5 M8 12h8 M8 16h8',
+  image:'M3 3h18v18H3z M3 17l5-5 4 4 3-3 6 6 M16 8h1',
+  link:'M10 13a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-2 2 M14 11a4 4 0 0 0-6 0l-4 4a4 4 0 0 0 6 6l2-2',
+  person:'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0 M4 21v-2a8 6 0 0 1 16 0v2',
+};
+const icon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name]}"/></svg>`;
+const btn = (text, action, id='', kind='') => `<button type="button" class="${kind === 'link' ? 'cdp-link' : 'cdp-button'+(kind ? ' cdp-button--'+kind : '')}" data-action="${action}" data-id="${esc(id)}"${text.startsWith('<svg')?' aria-label="返回"':''}>${text}</button>`;
+const tag = (text, tone='') => `<span class="tag ${tone}">${esc(text)}</span>`;
+const userName = '林顾问';
+const demoNow = new Date('2026-11-10T11:30:00+08:00');
+const formatDate = (time) => new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', dateStyle:'short', timeStyle:'short'}).format(time);
+const stamp = formatDate(demoNow);
+
+const additionalCustomers = [
+  ['wm-fang','方宁'],['wm-cheng','程可'],['wm-song','宋亦'],
+  ['wm-gu','顾晚'],['wm-ye','叶初'],['wm-xia','夏一'],
+];
+const contacts = {
+  ...Object.fromEntries(additionalCustomers.map(([id,name])=>[id,{name,initials:name[0],description:'企业微信客户 · 公寓咨询',hello:'您好，想了解一下公寓资料。'}])),
+
+  'wm-xu':{name:'许知远', initials:'许', description:'企业微信客户 · 英国留学租房', hello:'你好，我想了解一下学校附近的公寓。'},
+  'wm-zhou':{name:'周予安', initials:'周', description:'企业微信客户 · 新增咨询', hello:'好的，资料可以发我看看。'},
+  'wm-shen':{name:'沈嘉禾', initials:'沈', description:'企业微信客户 · 新增咨询', hello:'我准备明年入学，想先了解下。'},
+  'wm-he':{name:'何雨桐', initials:'何', description:'企业微信客户 · 公寓咨询', hello:'最近有新的公寓推荐吗？'},
+  'wm-lin':{name:'林奕辰', initials:'林', description:'企业微信客户 · 新增咨询', hello:'我主要想比较一下通勤时间。'},
+  'wm-lu':{name:'陆清妍', initials:'陆', description:'企业微信客户 · 已解除客户关系', hello:''},
+  'wm-su':{name:'苏澄', initials:'苏', description:'企业微信客户 · 咨询已结束', hello:'好的，我已经收到之前的资料了，谢谢。'},
+  'wr-manchester':{name:'曼城 26 秋租房群', initials:'曼', group:true, description:'外部客户群 · 38 人', hello:'群友：请问最近还有看房名额吗？'},
+  'wr-london':{name:'伦敦 26 秋公寓群', initials:'伦', group:true, description:'外部客户群 · 46 人', hello:'群友：期待本周的公寓清单。'},
+};
+const material = {
+  guide:{type:'文件', title:'留学生租房准备清单.pdf', meta:'PDF · 1.8 MB'},
+  image:{type:'图片', title:'11 月公寓精选.jpg', meta:'公寓精选 · 3 个热门地段'},
+  link:{type:'链接', title:'本周看房预约', meta:'查看可预约的看房时段'},
+};
+const item = (data, state='pending', failOnce=false) => ({
+  ...data,state,failOnce,sentAt:state==='sent'?new Date('2026-11-10T09:20:00+08:00'):null
+});
+const words = (title, meta, state) => item({type:'文本',title,meta},state);
+const object = (id, items, accessible=true) => ({id,items,accessible,skipped:false});
+const welcome = (state) => words('欢迎话术','您好，我是您的租房顾问。接下来我会为您介绍可选公寓和申请流程。',state);
+const groupGreeting = () => words('本周群公告','各位同学好，本周看房已开放预约。大家可查看时段并按需报名。');
+const tasks = [
+  {id:'single',type:'客户SOP',title:'新咨询客户首次跟进',description:'联系新咨询客户，介绍租房申请流程。',issued:'11-10 10:05',due:'11-10 18:00',objects:[
+    object('wm-xu',[welcome()]),
+  ]},
+  {id:'multi',type:'客户SOP',title:'11 月客户欢迎 SOP',description:'向新客户发送欢迎话术和公寓精选资料。',priority:2,issued:'11-10 09:40',due:'11-11 18:00',objects:[
+    object('wm-zhou',[welcome('sent')]),
+    object('wm-shen',[welcome(),item(material.image)]),
+    object('wm-he',[item(material.guide)]),
+    object('wm-lin',[item(material.link)]),
+    object('wm-xu',[welcome()]),
+  ]},
+  {id:'group',type:'群SOP',title:'本周公寓看房预约通知',description:'在客户群发布本周看房安排及预约入口。',issued:'11-10 09:10',due:'11-12 12:00',objects:[
+    object('wr-manchester',[groupGreeting(),item(material.link)]),
+    object('wr-london',[groupGreeting()]),
+  ]},
+  {id:'blocked',type:'客户SOP',title:'存量客户跟进提醒',description:'向存量咨询客户发送跟进话术。',issued:'11-09 15:30',due:'11-11 18:00',objects:[
+    object('wm-lu',[welcome()],false),
+  ]},
+  {id:'complete',type:'客户SOP',title:'已报名客户资料发送',description:'向已报名客户发送租房准备清单。',issued:'11-09 14:10',due:'11-10 18:00',objects:[
+    object('wm-xu',[item(material.guide,'sent')]),
+  ]},
+  {id:'retry',type:'客户SOP',title:'公寓精选资料补发',description:'为客户补发公寓精选图片及介绍。',issued:'11-10 09:30',due:'11-11 12:00',objects:[
+    object('wm-shen',[welcome(),item(material.image)]),
+  ]},
+  {id:'group-follow-up',type:'群SOP',title:'看房资料补充通知',description:'在客户群补充租房准备清单。',priority:2,issued:'11-10 08:50',due:'11-12 12:00',objects:[
+    object('wr-manchester',[item(material.guide)]),
+  ]},
+  {id:'brochure',type:'客户SOP',title:'发送公寓资料',description:'向咨询客户发送公寓资料。',issued:'11-10 08:30',due:'11-13 18:00',
+    objects:additionalCustomers.map(([id])=>object(id,[item(material.guide)]))},
+  {id:'alert-send',type:'预警任务',title:'群投诉后续处理通知',issued:'11-10 09:15',due:'11-11 09:15',objects:[
+    object('wr-manchester',[words('群内处理回执','大家好，收到反馈后我们正在核实问题，会在确认后同步处理结果。')]),
+  ]},
+];
+const finished = (obj) => obj.items.every((i) => i.state === 'sent');
+function objectStatus(obj) {
+  if (finished(obj)) return ['已完成','green'];
+  if (obj.skipped) return ['已跳过','amber'];
+  if (obj.items.some((i) => i.state === 'failed')) return ['执行失败','red'];
+  if (obj.items.some((i) => i.state === 'sent' || i.state === 'sending')) return ['执行中','blue'];
+  return ['待执行',''];
+}
+const doneCount = (task) => task.objects.filter(finished).length;
+const taskById = (id) => tasks.find((t) => t.id === id);
+const queueCount = (obj) => obj.items.filter((i) => i.state !== 'sent').length;
+const selectedTask = () => taskById(state.task);
+const avatar = (id) => `<span class="avatar${contacts[id].group ? ' group' : ''}">${contacts[id].initials}</span>`;
+
+const plans = [
+  {id:'quiet',title:'客户活跃异常提醒',kind:'客户',target:'wm-xu',condition:'连续 7 天未互动',mode:'notice',staff:userName,message:'客户连续 7 天未互动，请关注近期咨询情况。',ack:true,advice:'可结合客户的租房阶段决定是否跟进。'},
+  {id:'group-quiet',title:'客户群活跃度下降',kind:'客户群',target:'wr-london',condition:'近 3 天群消息少于 5 条',mode:'notice',staff:userName,message:'近期群活跃度下降，请关注社群情况。',ack:false,advice:''},
+  {id:'intent',title:'高意向客户未跟进预警',kind:'客户',target:'wm-he',condition:'高意向客户连续 3 天未跟进',mode:'handle',staff:userName,requirement:'联系客户，确认当前租房计划和下一步安排，并记录结果。',hasDue:true,hours:24,nudge:true,resultRequired:true},
+  {id:'complaint',title:'群内投诉关键词命中',kind:'客户群',target:'wr-manchester',condition:'群消息命中「投诉」',mode:'handle',staff:userName,requirement:'核实反馈并同步处理进展。',hasDue:true,hours:24,nudge:false,resultRequired:false},
+];
+function eventFromPlan(plan, id, at=demoNow, overrides={}) {
+  const deadline = plan.hasDue ? new Date(at.getTime()+Number(plan.hours)*3600000) : null;
+  return {...plan,planId:plan.id,id,at,deadline,pushed:true,viewed:false,confirmed:false,status:'pending',logs:[],...overrides};
+}
+const alerts = [
+  eventFromPlan(plans[0],'a-quiet',new Date('2026-11-10T10:30:00+08:00'),{actual:'过去 7 天未检测到客户回复',data:'近 7 天客户回复 0 条'}),
+  eventFromPlan(plans[1],'a-group',new Date('2026-11-10T10:20:00+08:00'),{viewed:true,actual:'近 3 天仅有 2 条群消息',data:'近 3 天群消息 2 条'}),
+  eventFromPlan(plans[2],'a-intent',new Date('2026-11-10T09:00:00+08:00'),{
+    deadline:new Date('2026-11-10T10:00:00+08:00'),priority:2,
+    hitSummary:'小程序浏览（3 次）',eventWindow:'近20分钟',
+    detailFields:[['房源名称','xxxx、xxxx'],['房型名称','xxxx、xxxxx']],
+    timeoutAt:'2026-10-24 18:20:11',
+    reminder:'【新客浏览房源提醒】客户近期已主动浏览房源，说明当前已有较明显的租房意向，建议结合客户学校、预算及入住时间进行针对性跟进。',
+    recommendedPhrase:'嗨～最近是在准备租房吗？\n可以告诉我学校、预算和入住时间，我帮你看看有哪些合适的房源～',
+    actual:'客户近期多次关注房型信息',data:'小程序浏览 3 次'
+  }),
+  eventFromPlan(plans[3],'a-complaint',new Date('2026-11-10T09:15:00+08:00'),{status:'done',closedAt:new Date('2026-11-10T10:12:00+08:00'),viewed:true,actual:'群消息命中「投诉」',data:'命中消息 1 条',logs:[{time:'2026-11-10 10:12',text:'已处理 · 线下跟进',note:'已向运营负责人核实并反馈。'}]}),
+  eventFromPlan(plans[3],'a-send',new Date('2026-11-10T10:50:00+08:00'),{title:'群投诉后续处理通知',explicitTask:'alert-send',actual:'群内投诉需同步处理进展',data:'命中消息 1 条',hitSummary:'群消息命中「投诉」（1次）',eventWindow:'近20分钟',
+    events:[{name:'群消息关键词命中',time:'10:50',fields:[['命中词','投诉'],['消息内容','入住遇到的问题还没有解决，我想投诉。'],['客户群','曼城 26 秋租房群']]}]}),
+];
+const handleStatus = {pending:['待处理','amber'],doing:['处理中','blue'],done:['已处理','green'],none:['无需处理','']};
+const alertById = (id) => alerts.find((a) => a.id === id);
+const isOpen = (a) => a.status === 'pending' || a.status === 'doing';
+const overdue = (a) => a.mode === 'handle' && a.deadline && demoNow > a.deadline && (isOpen(a) || a.closedAt > a.deadline);
+const alertBadge = (a) => a.mode === 'handle'
+  ? tag(...handleStatus[a.status])+(overdue(a) ? ' '+tag('已超期','red') : '')
+  : a.confirmed ? tag('已确认已阅','green') : a.viewed ? tag('已查看','green') : a.pushed ? tag('已推送','blue') : tag('已触发');
+const state = {view:'messages', task:'', contact:'', alert:'', menu:'资料', wecomChat:true, todoReturn:null, expandedTodo:null, followupId:null, followupFeedback:'', sopRead:false, sideOpen:true, othersExpanded:false, todoTab:'pending', openedQueue:false, openedRecords:false, note:'', draft:null};
+let noticeTimer;
+function feedback(message) {
+  clearTimeout(noticeTimer);
+  $('toast').textContent = message;
+  $('toast').hidden = false;
+  noticeTimer = setTimeout(() => { $('toast').hidden = true; }, 3200);
+}
+function go(view) {
+  $('toast').hidden = true;
+  state.view = view;
+  state.draft = null;
+  $('layer').innerHTML = '';
+  render();
+}
+function showResult(task, note='') {
+  state.task = task.id;
+  state.note = note;
+  go('result');
+}
+function enterObject(task, id, note='', showTodos=false) {
+  state.task = task?.id ?? '';
+  state.contact = id;
+  state.wecomChat = !task || task.type.endsWith('SOP');
+  state.menu = showTodos?'员工待办':state.wecomChat?'集客出发':'资料';
+  state.sideOpen = true;
+  state.othersExpanded = false;
+  state.todoTab = 'pending';
+  state.expandedTodo = null;
+  state.followupId = null;
+  state.followupFeedback = '';
+  state.note = note;
+  state.openedQueue = false;
+  state.openedRecords = false;
+  go('chat');
+}
+function openSop(id, following=false) {
+  const task = taskById(id);
+  const pending = task.objects.filter((obj) => !finished(obj));
+  const currentIndex = task.objects.findIndex((obj) => obj.id === state.contact);
+  const ordered = following ? [...task.objects.slice(currentIndex+1), ...task.objects.slice(0,currentIndex+1)].filter((obj) => !finished(obj)) : pending;
+  const inaccessible = [];
+  const next = ordered.find((obj) => {
+    if (obj.accessible) return true;
+    obj.skipped = true;
+    inaccessible.push(contacts[obj.id].name);
+    return false;
+  });
+  const note = inaccessible.length ? `已跳过不可访问的会话：${inaccessible.join('、')}。相关对象仍未完成。` : '';
+  if (next) enterObject(task,next.id,note);
+  else showResult(task, pending.length ? '当前没有可访问的待执行会话。' : '');
+}
+function openAlert(id, todoReturn=null, returnPage='alert-inbox') {
+  state.alertReturnPage=returnPage;
+  state.todoReturn = todoReturn;
+  state.alert = id;
+  alertById(id).viewed = true;
+  go('alert');
+}
+function openAlertChat(id, taskId='') {
+  const alert = alertById(id);
+  state.alert = id;
+  if (taskId) return openSop(taskId);
+  state.task = '';
+  state.wecomChat = false;
+  state.contact = alert.target;
+  state.menu = '资料';
+  state.note = '';
+  go('chat');
+}
+const app = $('app');
+const page = new URLSearchParams(location.search).get('page');
+
+
+function header(title, suffix='', prefix='') {
+  return `<header class="main-head"><div class="row">${prefix}<h1>${title}</h1></div><div class="row">${suffix}</div></header>`;
+}
+function properties(data) {
+  return `<dl class="properties">${data.map(([label,value,wide])=>`<div${wide ? ' class="wide"' : ''}><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl>`;
+}
+
+function taskCard(t) {
+  return `<article class="wx-message">
+    <div class="wx-message-body"><h2>${t.type}</h2>
+      <p>推送类型：员工待办</p><p>任务名称：${esc(t.title)}</p><p>${deadlineText(Date.parse('2026-'+t.due.replace(' ','T')+':00+08:00'))}</p>
+      <p>任务描述：${esc(t.description)}</p>
+    </div>
+    <button type="button" class="wx-message-action" data-action="open-sop" data-id="${t.id}">立即前往 ${icon('chevron')}</button>
+  </article>`;
+}
+function wxAlertCard(alert) {
+  return `<article class="wx-message wx-message-alert">
+    <div class="wx-message-body"><h2>${alert.kind==='客户群'?'群预警':'客户预警'}</h2>
+      <dl>
+        <dt>任务名称：</dt><dd>${esc(alert.title)}</dd>
+        <dt>命中事件：</dt><dd>${esc(alert.hitSummary??alert.condition)}</dd>
+        <dt>事件详情：</dt><dd>${alertDetailFields(alert).map(([label,value])=>`<span>${esc(label)}：${esc(value)}</span>`).join('')}</dd>
+        <dt>超时时间：</dt><dd>${esc(alert.timeoutAt??formatDate(alert.at)+':00')}</dd>
+        <dt>提醒内容：</dt><dd>${esc(alert.reminder??alert.requirement??alert.message)}</dd>
+        ${alert.recommendedPhrase?`<dt>推荐话术：</dt><dd>${esc(alert.recommendedPhrase)}</dd>`:''}
+      </dl>
+    </div>
+    <button type="button" class="wx-message-action" data-action="wx-alert" data-id="${alert.id}">立即前往 ${icon('chevron')}</button>
+  </article>`;
+}
+function inbox() {
+  return header('SOP','<span class="dim" aria-hidden="true">···</span>')+
+    `<section class="wx-feed"><div class="wx-messages">
+    ${tasks.slice(0,3).map(t=>`<div class="wx-message-time">11 月 10 日 ${t.issued.slice(-5)}</div>${taskCard(t)}`).join('')}
+    <div class="wx-message-time">11 月 10 日 ${formatDate(alertById('a-intent').at).slice(11)}</div>
+    ${wxAlertCard(alertById('a-intent'))}
+    ${wxAlertCard(alertById('a-send'))}
+    <details class="wx-history"><summary>其他 SOP 通知</summary>${tasks.slice(3).filter(t=>t.type.endsWith('SOP')).map(taskCard).join('')}</details>
+    </div></section><footer class="wx-app-footer">员工待办通知</footer>`;
+}
+function messages() {
+  return header('文件传输助手')+
+    `<div class="wx-file-feed"><p>可在这里传输文件或保存临时资料</p></div>`;
+}
+function wxRail() {
+  const items=[['chat','消息'],['file','文档'],['clock','日程'],['image','会议'],['grid','工作台'],['person','通讯录']];
+  return `<aside class="wx-rail" aria-label="企业微信导航"><div class="wx-dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="wx-user">林</span>
+    ${items.map(([glyph,label],i)=>`<div class="wx-tool${i===0?' current':''}">${icon(glyph)}${label}</div>`).join('')}
+  </aside>`;
+}
+function wxList() {
+  const chat=state.view==='chat', task=selectedTask();
+  const samples=['wm-shen','wm-he','wm-xu','wm-su','wr-manchester','wr-london'];
+  const clientIds=chat ? [...new Set([state.contact,...samples,...(task?.objects.filter(o=>o.accessible).map(o=>o.id)??[])])] : samples;
+  const active = state.view==='inbox' || state.view==='result';
+  const files = `<span class="avatar wx-files-avatar">${icon('file')}</span><span class="grow truncate"><strong class="conv-name">文件传输助手</strong><small>文件传输与资料保存</small></span>`;
+  const appIcon = `<span class="wx-avatar-wrap"><span class="avatar wx-app-avatar">S</span>${state.sopRead?'':'<span class="wx-unread">3</span>'}</span>`;
+  return `<aside class="left"><div class="wx-search"><span class="grow">${icon('search')} 搜索</span><span class="wx-plus">＋</span></div>
+    <div class="conv-list" aria-label="会话列表">
+    <button class="conv" data-action="scene" data-id="messages" aria-current="${state.view==='messages'}">${files}</button>
+    <div class="conv conv-placeholder"><span class="avatar wx-team-avatar">${icon('chat')}</span><span class="grow truncate"><strong class="conv-name">企业微信团队</strong><small>登录操作通知</small></span><span class="conv-time">刚刚</span></div>
+    <button class="conv" data-action="scene" data-id="inbox" aria-current="${active}">${appIcon}<span class="grow truncate"><strong class="conv-name">SOP</strong><small>客户 SOP / 群 SOP</small></span><span class="conv-time">10:05</span></button>
+    <div class="conv conv-placeholder"><span class="avatar wx-news-avatar">${icon('list')}</span><span class="grow truncate"><strong class="conv-name">行业资讯</strong><small>同事们在看</small></span><span class="conv-time">09:48</span></div>
+    ${clientIds.map(id=>{
+      const c=contacts[id], contents=`${avatar(id)}<span class="grow truncate"><strong class="conv-name">${esc(c.name)}${c.group?'':'<span class="wx-contact">@微信</span>'}</strong><small>${esc(c.hello)}</small></span>`;
+      return `<button class="conv" data-action="open-contact" data-id="${id}" aria-current="${chat&&id===state.contact}">${contents}</button>`;
+    }).join('')}
+    </div></aside>`;
+}
+
+
+function alertCard(a) {
+  return wxAlertCard(a);
+}
+function alertInbox() {
+  return header('预警通知', `<span class="sub">${icon('person')} ${userName}</span>`) +
+    `<div class="inbox-body scroll"><div class="feed">
+    <div class="section-head" id="alert-feed"><h2>预警通知</h2><small>客户及客户群</small></div>
+    <div class="cards">${alerts.slice().reverse().sort((a,b)=>b.at-a.at).map(alertCard).join('')}</div>
+    </div></div>`;
+}
+function sidebar() {
+  const admin = state.view==='plans';
+  if (admin) return `<div class="rail-title">运营管理</div><div class="admin-nav">企微运营</div><div class="admin-nav">${icon('bell')} 预警中心</div><div class="admin-nav active" style="padding-left:34px">预警计划</div>`;
+  if (state.view!=='chat') return `<div class="rail-title">企业微信 · 工作台</div>
+    <button class="conv" data-action="scene" data-id="inbox" aria-current="true"><span class="avatar">${icon('bell')}</span><span><strong>任务通知</strong><br><small>CDP 客户营销系统</small></span></button>`;
+  const t = selectedTask();
+  const ids = t ? t.objects.filter(o=>o.accessible).map(o=>o.id) : [state.contact];
+  return `<div class="rail-title">会话列表</div>
+    <button class="conv" data-action="scene" data-id="inbox"><span class="avatar">${icon('bell')}</span><span><strong>任务通知</strong><br><small>CDP</small></span></button>
+    ${ids.map(id=>`<button class="conv" data-action="switch" data-id="${id}" aria-current="${id===state.contact}" ${!t?'disabled':''}>
+      ${avatar(id)}<span class="truncate"><strong>${esc(contacts[id].name)}</strong><br><small>${contacts[id].group?'客户群':'企业微信客户'}</small></span></button>`).join('')}`;
+}
+function preview(i, expanded=false) {
+  if (i.type==='文本') return `<p>${esc(i.meta)}</p>`;
+  const art = i.type==='图片' ? `<svg class="material-image" viewBox="0 0 320 65" preserveAspectRatio="xMidYMid slice" role="img" aria-label="公寓精选示意图">
+    <rect width="320" height="65" fill="#dfebff"/><path d="M0 58 48 31 84 46 115 22 158 48 201 18 260 52 320 27V65H0Z" fill="#b7d1fc"/>
+    <rect x="137" y="13" width="41" height="52" fill="#4276bb"/><rect x="183" y="27" width="27" height="38" fill="#6997d3"/>
+    <path stroke="#e6f0fd" stroke-width="2" d="M144 22h27 M144 31h27 M144 40h27 M144 49h27 M189 36h14 M189 44h14 M189 52h14"/>
+    <circle cx="231" cy="14" r="7" fill="#fff4d6"/></svg>` : '';
+  return `<div class="attachment">${icon(({图片:'image',文件:'file',链接:'link'})[i.type])}<div><strong>${esc(i.title)}</strong><br><small>${esc(i.meta)}</small></div></div>${i.type==='图片' && expanded ? art : ''}`;
+}
+function tile(i, index) {
+  const names={sent:['已发送','green'],sending:['发送中','blue'],failed:['发送失败','red'],pending:['待发送','']};
+  return `<div class="content-tile">
+    <div class="row between" style="margin-bottom:7px"><strong>${i.type==='文本'?esc(i.title):i.type}</strong>${tag(...names[i.state])}</div>
+    ${preview(i)}
+    ${i.state==='failed'?'<p class="cdp-error">企微发送未成功，请重试。</p>':''}
+    <div class="row between" style="margin-top:8px">
+      ${btn('内容预览','preview',index,'link')}
+      ${i.state==='sent'?'<small>已计入当前对象进度</small>':i.state==='sending'?'<button class="cdp-button" disabled>发送中…</button>':btn(i.state==='failed'?'重试发送':'发送','send',index,'primary')}
+    </div>
+  </div>`;
+}
+function queueItem(obj, active) {
+  return `<div class="queue-item row between"><div class="grow">
+    <strong>${esc(contacts[obj.id].name)}</strong>${obj.id===active?' <small>当前会话</small>':''}
+    <div class="row"><small>${queueCount(obj)} 项待执行</small>${tag(...objectStatus(obj))}${!obj.accessible?'<small>会话不可访问</small>':''}</div></div>
+    ${obj.id===active?'':btn('前往执行','switch',obj.id,'link')}</div>`;
+}
+function employeePane(t,o) {
+  const done=doneCount(t), total=t.objects.length, remaining=t.objects.filter(obj=>!finished(obj));
+  return `<div class="side-body scroll stack" style="display:block" data-scroll="employee">
+    <section class="box summary-box stack">
+      <div class="row between"><h3>${esc(t.title)}</h3>${tag(t.type,'blue')}</div>
+      <div class="row between"><small>执行进度 ${done}/${total} 个对象已完成</small><strong>${Math.round(done/total*100)}%</strong></div>
+      <progress max="${total}" value="${done}" aria-label="任务执行进度"></progress>
+      <p class="sub">共 ${total} 个 · 已完成 ${done} 个 · 剩余 ${total-done} 个</p>
+    </section>
+    ${state.note?`<p class="notice warn" style="margin-top:10px">${esc(state.note)}</p>`:''}
+    <section style="margin-top:14px"><div class="row between"><h3>${esc(contacts[o.id].name)}</h3>${tag(...objectStatus(o))}</div>
+    <p class="sub">当前会话任务 · ${o.items.length - queueCount(o)}/${o.items.length} 项已发送</p>
+    ${o.items.map(tile).join('')}</section>
+    <details class="box" data-disclosure="openedQueue" style="margin-top:12px" ${state.openedQueue?'open':''}>
+      <summary>剩余待执行${t.type==='群SOP'?'客户群':t.type==='客户SOP'?'客户':'对象'} · ${remaining.length}</summary>
+      <div style="margin-top:8px">${remaining.length?remaining.map(obj=>queueItem(obj,o.id)).join(''):'<small>无剩余对象</small>'}</div>
+    </details>
+    <details class="box" data-disclosure="openedRecords" style="margin-top:8px" ${state.openedRecords?'open':''}>
+      <summary>查看已完成记录 · ${done}</summary>
+      <div style="margin-top:8px">${done?t.objects.filter(finished).map(obj=>`<p class="queue-item row between"><span>${esc(contacts[obj.id].name)}</span>${tag('已完成','green')}</p>`).join(''):'<small>暂无已完成记录</small>'}</div>
+    </details>
+    <p class="sub" style="margin-top:9px">发送为原型模拟。会话内发送需接入企微能力。</p>
+    </div>
+    ${finished(o)?`<footer class="side-foot stack">${done===total?'<p class="sub" style="color:#19764d">本次任务已全部完成</p>':''}
+      ${done===total?btn('查看完成结果','result',t.id,'primary'):
+        remaining.some(obj=>obj.accessible)?btn('执行下一位','next',t.id,'primary'):btn('查看任务结果','next',t.id,'primary')}
+      ${done<total && remaining.some(obj=>obj.accessible)?'<small>跨会话唤起为模拟，需验证企微侧边栏能力。</small>':''}
+    </footer>`:''}`;
+}
+
+function conversationSops(id) {
+  return tasks.filter(t=>t.type.endsWith('SOP')).flatMap(task=>{
+    const obj=task.objects.find(candidate=>candidate.id===id && candidate.accessible);
+    return obj?[{task,obj}]:[];
+  });
+}
+function wxAsset(i,index,busy,taskId) {
+  const names={sent:['已发送','green'],sending:['发送中','blue'],failed:['发送失败','red'],pending:['待发送','']};
+  const glyph={文本:'file',图片:'image',文件:'file',链接:'link'}[i.type];
+  return `<div class="wx-asset">
+    ${icon(glyph)}
+    <button type="button" class="cdp-link asset-label truncate" data-action="preview" data-id="${index}" data-task="${taskId}" title="预览：${esc(i.title)}">【${i.type}】${esc(i.type==='文本'?i.meta:i.title)}</button>
+    ${i.state==='sent'||i.state==='sending'?tag(...names[i.state]):`<button type="button" class="cdp-link" data-action="send" data-id="${index}" data-task="${taskId}" ${busy?'disabled':''}>${i.state==='failed'?'重试':'发送'}</button>`}
+  </div>${i.state==='failed'?'<p class="cdp-error">发送失败，请重试。</p>':''}`;
+}
+
+function employeeTodoEntries() {
+  const sopEntries=tasks.filter(t=>t.type.endsWith('SOP')).flatMap(task=>{
+    const due=Date.parse(`2026-${task.due.replace(' ','T')}:00+08:00`);
+    const type=task.type==='群SOP'?'群 SOP':'客户 SOP';
+    return task.objects.map(obj=>({
+      key:task.id,id:obj.id,title:task.title,type,due,priority:task.priority??1,
+      issuedOn:'2026-'+task.issued.slice(0,5),completedAt:finished(obj)?Math.max(...obj.items.map(i=>i.sentAt??0)):null,
+      done:finished(obj),staged:obj.items.every(i=>i.state==='sent'||(i.state!=='failed'&&stagedMessages(obj.id).some(entry=>entry.item===i))),
+      accessible:obj.accessible,task,obj
+    }));
+  });
+  const alertEntries=alerts.filter(a=>a.staff===userName).map(alert=>({
+    key:alert.id,id:alert.target,title:alert.title,type:alert.kind==='客户群'?'群预警':'客户预警',due:alert.deadline?.getTime()??Infinity,
+    issuedOn:formatDate(alert.at).slice(0,10),completedAt:alert.closedAt?.getTime(),
+    priority:alert.priority??1,
+    done:!isOpen(alert),accessible:true,alert
+  }));
+  return [...sopEntries,...alertEntries];
+}
+const demoClockStarted=Date.now();
+function taskClockNow() {
+  return demoNow.getTime()+Date.now()-demoClockStarted;
+}
+function deadlineText(due) {
+  if(!Number.isFinite(due)) return '无时限';
+  const seconds=Math.floor((due-taskClockNow())/1000);
+  if(seconds<=0) return '已超时';
+  const pad=n=>String(n).padStart(2,'0');
+  return Math.floor(seconds/86400)+'天 '+pad(Math.floor(seconds/3600)%24)+':'+pad(Math.floor(seconds/60)%60)+':'+pad(seconds%60);
+}
+function taskTime(due) {
+  return `<span class="wx-time ${deadlineText(due)==='已超时'?'wx-overdue':''}" data-task-time="${due}">${deadlineText(due)}</span>`;
+}
+function updateTaskTimes() {
+  document.querySelectorAll('[data-task-time]').forEach(element=>{
+    const text=deadlineText(Number(element.dataset.taskTime));
+    element.textContent=text;
+    element.classList.toggle('wx-overdue',text==='已超时');
+  });
+}
+function alertDetailFields(alert) {
+  return alert.detailFields??alert.events?.flatMap(event=>event.fields)??[['触发结果',alert.actual]];
+}
+function wxAlertContent(alert) {
+  const editing=state.followupId===alert.id;
+  const hit=alert.eventWindow?`${alert.eventWindow}内${alert.hitSummary??alert.condition}`:alert.hitSummary??alert.condition;
+  return `<div class="wx-alert-content">
+    <div class="wx-alert-line"><span>命中事件：</span><div class="grow"><p>${esc(hit)}</p>
+      <div class="wx-alert-fields">${alertDetailFields(alert).map(([label,value])=>`<p>${esc(label)}：${esc(value)}</p>`).join('')}</div>
+    </div></div>
+    <div class="wx-alert-line"><span>提醒内容：</span><p class="grow">${esc(alert.reminder??alert.requirement??alert.message)}</p></div>
+    ${alert.recommendedPhrase?`<div class="wx-alert-line"><span>推荐话术：</span><p class="grow" style="white-space:pre-wrap">${esc(alert.recommendedPhrase)}</p></div>`:''}
+    ${editing?`<form class="wx-inline-followup" data-followup-form="${alert.id}">
+      <label for="visit-feedback">跟进反馈</label>
+      <textarea id="visit-feedback" class="cdp-control" placeholder="填写本次跟进情况（选填）">${esc(state.followupFeedback)}</textarea>
+      <div class="cdp-actions">${btn('取消','cancel-visit')}<button type="submit" class="cdp-button cdp-button--primary">提交</button></div>
+    </form>`:`<div class="cdp-actions">${btn('完成跟进','confirm-visit',alert.id,'primary')}</div>`}
+  </div>`;
+}
+function wxTodoCard(entry,expanded) {
+  const {key,title,type,due,done,task,obj,alert}=entry;
+  
+  const content=alert?wxAlertContent(alert)
+    : `<div class="row between"><span style="font-size:12px">${done?'当前会话内容已发送':'点击发送可将素材填入消息框'}</span>
+       ${!done&&obj.items.length>1?obj.sending?'<button type="button" class="cdp-button" disabled>发送中…</button>':btn('一键发送','send-all',task.id,'plain'):''}</div>
+       ${obj.items.map((i,index)=>wxAsset(i,index,obj.sending,task.id)).join('')}`;
+  return `<details class="wx-task-card wx-current-task" name="${done?'wx-record-cards':'wx-todo-cards'}" ${done?'':`data-todo-key="${key}"`}
+      ${alert?`data-alert-todo="${key}"`:`data-sop="${key}"`} ${expanded?'open':''}>
+    <summary>
+      <div class="wx-task-summary-line grow">${tag(type,'blue')}<strong class="wx-task-name">${esc(title)}</strong>${taskTime(due)}</div>
+    </summary>
+    <div class="wx-current-body">${content}</div>
+  </details>`;
+}
+function otherTodoObjects(entries) {
+  const groups=new Map();
+  for(const entry of entries) {
+    if(!entry.accessible||entry.id===state.contact) continue;
+    if(!groups.has(entry.id)) groups.set(entry.id,{id:entry.id,entries:[],due:Infinity,priority:0});
+    const group=groups.get(entry.id);
+    group.entries.push(entry);
+    group.due=Math.min(group.due,entry.due);
+    group.priority=Math.max(group.priority,entry.priority);
+  }
+  return [...groups.values()].sort((a,b)=>
+    Number(b.due<demoNow)-Number(a.due<demoNow) || a.due-b.due || b.priority-a.priority ||
+    b.entries.length-a.entries.length || contacts[a.id].name.localeCompare(contacts[b.id].name,'zh-CN')
+  );
+}
+function wxObjectRow({id,entries}) {
+  const ordered=entries.slice().sort((a,b)=>a.due-b.due);
+  const key='todo-summary-'+id;
+  const summary=entry=>{
+    return `<div class="wx-todo-summary">
+      <span class="grow" style="overflow-wrap:anywhere" title="${esc(entry.title)}">${esc(entry.title)}</span>
+      ${taskTime(entry.due)}
+    </div>`;
+  };
+  return `<div class="wx-todo-row" data-todo-object="${id}">
+    <div class="grow">
+      <strong class="wx-mention">@${esc(contacts[id].name)}</strong>
+      ${ordered.slice(0,2).map(summary).join('')}
+      ${ordered.length>2?`<details class="wx-todo-more" data-disclosure="${key}" ${state[key]?'open':''}>
+        <summary><span class="more-label">另有 ${ordered.length-2} 项</span><span class="less-label">收起</span></summary>
+        ${ordered.slice(2).map(summary).join('')}
+      </details>`:''}
+    </div>
+    ${btn('前往','open-contact',id)}
+  </div>`;
+}
+function wxCompletedToday(entries) {
+  const groups=new Map();
+  for(const entry of entries) {
+    if(!groups.has(entry.id)) groups.set(entry.id,[]);
+    groups.get(entry.id).push(entry);
+  }
+  return groups.size?`<div class="wx-object-list">${[...groups].map(([id,tasks])=>`<section class="wx-completed-group" data-completed-object="${id}">
+    <strong class="wx-mention">@${esc(contacts[id].name)}</strong>
+    <ul>${tasks.map(entry=>`<li>${esc(entry.title)}${entry.alert?.logs.at(-1)?.note?`<p class="sub">跟进反馈：${esc(entry.alert.logs.at(-1).note)}</p>`:''}</li>`).join('')}</ul>
+  </section>`).join('')}</div>`:'<p class="sub">今日暂无已完成任务。</p>';
+}
+function wxTaskPane() {
+  const today=formatDate(demoNow).slice(0,10);
+  const all=employeeTodoEntries();
+  const entries=all.filter(e=>e.issuedOn===today&&!e.done&&!e.staged);
+  const completed=all.filter(e=>e.done&&e.completedAt&&formatDate(new Date(e.completedAt)).slice(0,10)===today);
+  const showingCompleted=state.todoTab==='completed';
+  const tabs=`<div class="wx-pane-heading" role="tablist" aria-label="今日待办">
+    <button type="button" role="tab" aria-selected="${!showingCompleted}" data-action="todo-tab" data-id="pending">今日未完成</button>
+    <button type="button" role="tab" aria-selected="${showingCompleted}" data-action="todo-tab" data-id="completed">今日已完成</button>
+  </div>`;
+  if(showingCompleted) return tabs+`<div class="side-body scroll" data-scroll="employee">${wxCompletedToday(completed)}</div>`;
+  const pending=entries.filter(e=>e.id===state.contact&&e.accessible)
+    .sort((a,b)=>(Number.isFinite(b.due)?b.due:0)-(Number.isFinite(a.due)?a.due:0));
+  const groups=otherTodoObjects(entries);
+  const next=pending.length?null:groups[0];
+  const noun=contacts[state.contact].group?'群':'客户';
+  const selected=state.expandedTodo===''?'':(pending.find(e=>e.key===state.expandedTodo)??pending[0])?.key;
+  const shown=state.othersExpanded?groups:groups.slice(0,10);
+  return tabs+`<div class="side-body scroll" data-scroll="employee">
+      ${state.note?`<p class="notice warn">${esc(state.note)}</p>`:''}
+      <section class="wx-task-list" aria-label="当前${noun}待办" style="margin-top:0">
+        <div class="row between wx-current-heading"><h2>当前${noun}待办</h2>
+          <div class="row"><strong class="wx-mention">@${esc(contacts[state.contact].name)}</strong><span class="sub">剩余${pending.length}个任务</span></div></div>
+        ${pending.length?pending.map(entry=>wxTodoCard(entry,entry.key===selected)).join(''):
+        `<div class="wx-todo-empty"><strong>当前${noun}没有待办</strong>
+          ${next?`<div class="row between" style="margin-top:6px"><small>${esc(contacts[next.id].name)}</small>
+            ${btn(contacts[next.id].group?'前往下一群':'前往下一位客户','open-contact',next.id,'primary')}</div>`:
+            '<p class="sub" style="margin-top:4px">暂无其他可前往的待办会话。</p>'}</div>`}
+      </section>
+      <section class="wx-todos" aria-label="其他客户/群待办">
+        <div class="row between"><h2>其他客户/群待办</h2><span class="sub">剩余${groups.reduce((sum,g)=>sum+g.entries.length,0)}个任务</span></div>
+        ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:'<p class="sub">暂无其他客户或群待办。</p>'}
+        ${groups.length>10?btn(state.othersExpanded?'收起':'展开其余 '+(groups.length-10)+' 个客户/群','toggle-others','','link'):''}
+      </section>
+    </div>`;
+}
+
+function wxChatView() {
+  const c=contacts[state.contact];
+  const assignments=conversationSops(state.contact);
+  const alertObjects=alerts.filter(a=>a.target===state.contact&&a.explicitTask)
+    .flatMap(a=>taskById(a.explicitTask)?.objects.filter(o=>o.id===state.contact)??[]);
+  const sent=[...assignments.map(({obj})=>obj),...alertObjects].flatMap(obj=>obj.items.filter(i=>i.state==='sent'))
+    .sort((a,b)=>(a.sentOrder??0)-(b.sentOrder??0));
+  const menus=['集客出发','CRM 画像','员工待办','回访列表','收起','租客实拍','小程序','对接话术','一客一码','','灵犀测试','自定义'];
+  const active=state.menu==='员工待办';
+  return header(esc(c.name)+(c.group?'':' <span class="wx-contact">@微信</span>'),`<span class="dim" aria-hidden="true">${icon('person')}　···</span>`)+
+    `<div class="chat-grid ${state.sideOpen?'':'is-collapsed'}"><section class="chat" aria-label="聊天窗口">
+      <div class="transcript scroll" data-scroll="chat">
+        <div class="timestamp">11 月 10 日 · 09:18</div>
+        <div class="bubble-row">${avatar(state.contact)}<div class="bubble">${esc(c.hello)}</div></div>
+        <div class="bubble-row sent"><div class="bubble">${c.group?'同学们好，新的看房安排稍后同步。':'您好，我整理一下资料发给您。'}</div><span class="avatar">林</span></div>
+        ${sent.map(i=>`<div class="bubble-row sent"><div class="bubble">${preview(i,true)}</div><span class="avatar">林</span></div>`).join('')}
+      </div>
+      <div class="composer"><div class="wx-composer-tools"><div class="icons">${icon('image')}${icon('file')}${icon('link')}</div>
+        <button type="button" class="icon-button" aria-label="聊天侧边栏" title="聊天侧边栏" aria-expanded="${state.sideOpen}" data-action="toggle-side">${icon('sidebar')}</button>
+      </div>${messageComposer()}</div>
+    </section>${state.sideOpen?`<aside class="side" aria-label="聊天侧边栏">
+      <div class="side-tabs" aria-label="企微侧边栏菜单">
+      ${menus.map(menu=>menu==='员工待办'||menu==='集客出发'
+        ? `<button type="button" aria-selected="${state.menu===menu}" data-action="menu" data-id="${menu}">${menu}</button>`
+        : menu==='收起'?'<button type="button" data-action="toggle-side">收起⌃</button>'
+        : `<span class="wx-menu-label">${menu}</span>`).join('')}
+      </div>
+      ${active?wxTaskPane():`<div class="side-body scroll">
+        <div class="box row">${avatar(state.contact)}<div><h3>${esc(c.name)}</h3><small>${esc(c.description)}</small></div></div>
+        <p class="sub" style="margin-top:9px">切换「员工待办」可查看今日待办。</p>
+      </div>`}
+    </aside>`:''}</div>`;
+}
+
+
+function chatView() {
+  const contact=contacts[state.contact], t=selectedTask(), o=t?.objects.find(x=>x.id===state.contact);
+  const origin=t && t.id!=='alert-send'?'inbox':'alert';
+  const tabs=['资料','员工待办','素材库'];
+  return header(esc(contact.name),`<span class="sub">${esc(contact.description)}</span>`,btn(icon('back'),origin==='inbox'?'scene':'open-alert',origin==='inbox'?'inbox':state.alert,'link')) +
+    `<div class="chat-grid"><section class="chat" aria-label="聊天窗口">
+      <div class="transcript scroll" data-scroll="chat"><div class="timestamp">11 月 10 日 · 09:18</div>
+      <div class="bubble-row">${avatar(state.contact)}<div class="bubble">${esc(contact.hello)}</div></div>
+      <div class="bubble-row sent"><div class="bubble">${contact.group?'同学们好，新的看房安排稍后同步。':'您好，我看到了。我整理一下资料发给您。'}</div><span class="avatar">林</span></div>
+      ${o?o.items.filter(i=>i.state==='sent').map(i=>`<div class="bubble-row sent"><div class="bubble">${preview(i,true)}</div><span class="avatar">林</span></div>`).join(''):''}</div>
+      <div class="composer"><div class="icons">${icon('image')}${icon('file')}${icon('link')}</div>${messageComposer()}</div>
+    </section><aside class="side" aria-label="聊天侧边栏">
+      <div class="side-tabs" role="tablist" aria-label="企微侧边栏菜单">${tabs.map(tab=>`<button type="button" role="tab" aria-selected="${state.menu===tab}" data-action="menu" data-id="${tab}">${tab}</button>`).join('')}</div>
+      ${state.menu==='员工待办' && o ? employeePane(t,o) : `<div class="side-body scroll stack" style="align-content:start">
+        <div class="box row">${avatar(state.contact)}<div><h3>${esc(contact.name)}</h3><small>${esc(contact.description)}</small></div></div>
+        ${state.note?`<p class="notice warn">${esc(state.note)}</p>`:''}
+        <p class="notice">${o?'当前默认打开第一个菜单「资料」。请手动切换至「员工待办」执行本次任务。':'本次会话没有绑定发送任务。'}</p>
+      </div>`}
+    </aside></div>`;
+}
+function resultView() {
+  const t=selectedTask(), done=doneCount(t), total=t.objects.length, skipped=t.objects.filter(o=>o.skipped && !finished(o)).length;
+  const records = `<table class="result-table"><thead><tr><th>执行对象</th><th>已发送 / 全部</th><th>执行结果</th></tr></thead><tbody>
+    ${t.objects.map(o=>`<tr><td>${esc(contacts[o.id].name)}</td><td>${o.items.length-queueCount(o)} / ${o.items.length}</td><td>${tag(...objectStatus(o))}${!o.accessible?' <small>会话不可访问</small>':''}</td></tr>`).join('')}
+    </tbody></table>`;
+  return header('任务执行结果', '',btn(icon('back'),'scene','inbox','link')) +
+    `<div class="detail-wrap scroll"><article class="detail">
+    <div class="detail-head"><div class="row" style="margin-bottom:7px">${tag(t.type,'blue')}${tag(done===total?'已全部完成':'有对象未完成',done===total?'green':'amber')}</div>
+    <h1>${esc(t.title)}</h1><p class="sub">${done===total?'本次任务已全部完成':`剩余 ${total-done} 个对象待处理，其中 ${skipped} 个已跳过。`}</p></div>
+    <div class="detail-body">
+    ${state.note?`<p class="notice warn">${esc(state.note)}</p>`:''}
+    <div class="row between" style="background:#f5f8fc;padding:12px 16px">${[['执行对象',total],['成功完成',done],['未完成',total-done],['已跳过',skipped]].map(([name,n])=>`<div><small>${name}</small><h2>${n}</h2></div>`).join('')}</div>
+    ${state.note?`<details class="box"><summary>查看任务详情</summary>${records}</details>`:records}</div>
+    <div class="detail-foot cdp-actions">${btn(t.id==='alert-send'?'返回处理详情':'返回通知',t.id==='alert-send'?'open-alert':'scene',t.id==='alert-send'?state.alert:'inbox','primary')}</div></article></div>`;
+}
+
+
+function alertView() {
+  const a=alertById(state.alert), handling=a.mode==='handle';
+  const fields = [
+    [a.kind,contacts[a.target].name],['预警触发时间',formatDate(a.at)],
+    ['触发条件',a.condition],['相关业务数据',a.data],
+    ['实际触发原因',a.actual,true],
+  ];
+  if (handling) fields.push(['处理员工',a.staff],['处理期限',deadlineText(a.deadline?.getTime()??Infinity)],['处理要求',a.requirement,true]);
+  else {
+    fields.push(['预警说明',a.message,true]);
+    if(a.advice) fields.push(['处理建议',a.advice,true]);
+  }
+  const returnAction=state.todoReturn?'todo-return':'scene';
+  return header(handling?'预警处理详情':'预警详情','',btn(icon('back'),returnAction,state.alertReturnPage,'link'))+
+    `<div class="detail-wrap scroll"><article class="detail">
+      <div class="detail-head"><div class="row" style="margin-bottom:8px">${tag((a.kind==='客户群'?'群预警':'客户预警')+' · '+(handling?'需处理':'仅提醒'),handling?'amber':'blue')}${alertBadge(a)}</div><h1>${esc(a.title)}</h1></div>
+      <div class="detail-body">${properties(fields)}
+        ${handling ? `<section><h3 style="margin-bottom:8px">处理记录</h3>${a.logs.length ? a.logs.map(log=>`<div class="record"><div class="row between"><strong>${esc(log.text)}</strong><small>${log.time}</small></div><p style="white-space:pre-wrap;overflow-wrap:anywhere">${esc(log.note)}</p></div>`).join('') : '<p class="sub">暂无处理记录</p>'}</section>` : ''}
+        ${a.explicitTask && isOpen(a) ? `<div class="notice row between"><span>此预警关联会话发送任务</span>${btn('前往员工待办','alert-send',a.id,'link')}</div>` : ''}
+      </div>
+      <div class="detail-foot cdp-actions">${btn('关闭',returnAction,state.alertReturnPage)}${btn('前往'+(a.kind==='客户群'?'客户群':'客户')+'会话','alert-chat',a.id)}
+      ${handling && isOpen(a) ? (a.status==='pending'?btn('标记处理中','handle','doing'):'')+btn('标记无需处理','handle','none')+btn('标记已处理','handle','done','primary') : ''}
+      ${!handling && a.ack && !a.confirmed ? btn('确认已阅','ack',a.id,'primary') : ''}</div>
+    </article></div>`;
+}
+function planList() {
+  const modeStats = (plan) => {
+    const events = alerts.filter(a=>a.planId===plan.id);
+    const notices = events.filter(a=>a.mode==='notice');
+    const work = events.filter(a=>a.mode==='handle');
+    const n = (set, test) => set.filter(test).length;
+    const ackEvents = notices.filter(a=>a.ack);
+    return {
+      total:events.length,
+      notice: !notices.length && plan.mode!=='notice' ? '—' :
+        `<div>推送 ${n(notices,a=>a.pushed)} · 查看 ${n(notices,a=>a.viewed)}</div>${ackEvents.length || (plan.mode==='notice' && plan.ack)?`<small>确认已阅 ${n(ackEvents,a=>a.confirmed)} / ${ackEvents.length}</small>`:''}`,
+      handle: !work.length && plan.mode!=='handle' ? '—' :
+        `<div>待处理 ${n(work,a=>a.status==='pending')} · 处理中 ${n(work,a=>a.status==='doing')}</div>
+         <small>已处理 ${n(work,a=>a.status==='done')} · 无需处理 ${n(work,a=>a.status==='none')} · 超期 ${n(work,overdue)}</small>`,
+    };
+  };
+  return header('预警计划',`<span class="sub">${icon('person')} 运营管理员</span>`,`<span class="admin-crumb">预警中心 /</span>`)+
+    `<div class="admin scroll"><div class="admin-body">
+      <h2 class="admin-list-title">全部计划</h2><div class="cdp-toolbar">${btn('创建预警计划','edit-plan','','primary')}<small>共 ${plans.length} 个计划</small></div>
+      <div class="cdp-table-wrap"><table class="cdp-table"><thead><tr>
+      <th>预警计划名称</th><th>执行对象</th><th>预警处理方式</th><th>触发次数</th><th>消息查看情况</th><th>处理统计</th><th>操作</th>
+      </tr></thead><tbody>${plans.map(p=>{
+        const s=modeStats(p);
+        return `<tr><td><span class="cdp-ellipsis" title="${esc(p.title)}">${esc(p.title)}</span></td><td>${p.kind}</td>
+          <td>${p.mode==='notice'?tag('仅提醒','blue'):tag('需处理','amber')}</td>
+          <td>${s.total}</td><td>${s.notice}</td><td>${s.handle}</td>
+          <td>${btn('编辑','edit-plan',p.id,'link')}　${btn('模拟触发','trigger',p.id,'link')}</td></tr>`;
+      }).join('')}</tbody></table></div></div></div>`;
+}
+function field(label,name,element,required=false) {
+  return `<div class="form-field"><label for="${name}" class="field-label${required?' cdp-required':''}">${label}</label><div>${element}</div></div>`;
+}
+function input(name,value,attrs='') {
+  return `<input id="${name}" name="${name}" class="cdp-control" value="${esc(value)}" ${attrs}>`;
+}
+function textArea(name,value,attrs='') {
+  return `<textarea id="${name}" name="${name}" class="cdp-control" ${attrs}>${esc(value)}</textarea>`;
+}
+function switchField(name,checked,label) {
+  return `<label class="switch-line" for="${name}"><input type="checkbox" role="switch" id="${name}" name="${name}" ${checked?'checked':''}>${label}</label>`;
+}
+function selectField(name,list,value,attrs='') {
+  return `<select id="${name}" name="${name}" class="cdp-control" ${attrs}>${list.map(([id,label])=>`<option value="${esc(id)}" ${id===value?'selected':''}>${esc(label)}</option>`).join('')}</select>`;
+}
+const targets = Object.entries(contacts).filter(([id])=>id!=='wm-lu');
+function targetOptions(kind) {
+  return targets.filter(([,contact])=>Boolean(contact.group)===(kind==='客户群')).map(([id,contact])=>[id,contact.name]);
+}
+function openPlan(id) {
+  state.draft = plans.find(p=>p.id===id) ?? {id:'',title:'',kind:'客户',target:'wm-xu',condition:'',mode:'notice',staff:userName,message:'',ack:false,advice:'',requirement:'',hasDue:false,hours:24,nudge:false,resultRequired:false};
+  $('scenes').querySelector('[aria-current="true"]')?.setAttribute('aria-current','false');
+  $('scenes').querySelector('[data-id="config"]').setAttribute('aria-current','true');
+  const p=state.draft;
+  $('layer').innerHTML=`<div class="cdp-overlay"><form id="plan-form" class="cdp-drawer" aria-label="预警计划配置">
+    <header class="cdp-container-head"><h2>${p.id?'编辑预警计划':'创建预警计划'}</h2><button class="cdp-close" type="button" data-action="close-plan" aria-label="关闭">×</button></header>
+    <div class="cdp-container-body">
+      <section class="form-section"><h3>基础信息</h3>
+      ${field('预警名称','title',input('title',p.title,'required placeholder="请输入预警名称"'),true)}
+      ${field('受众类型','kind',selectField('kind',[['客户','客户'],['客户群','客户群']],p.kind),true)}
+      ${field('执行对象','target',selectField('target',targetOptions(p.kind),p.target),true)}
+      ${field('触发条件','condition',input('condition',p.condition,'required placeholder="例如：连续 7 天未互动"'),true)}
+      </section>
+      <section class="form-section"><h3>预警处理方式</h3>
+        <div class="mode-options">
+          <label><input type="radio" name="mode" value="notice" ${p.mode==='notice'?'checked':''}><span><strong>仅提醒</strong><small>向员工推送预警详情，不生成待处理事项。</small></span></label>
+          <label><input type="radio" name="mode" value="handle" ${p.mode==='handle'?'checked':''}><span><strong>需处理</strong><small>生成待处理事项，员工反馈处理结果。</small></span></label>
+        </div>
+      </section>
+      <section class="form-section" id="notice-fields"><h3>员工通知</h3>
+      ${field('预警通知对象','notifyStaff',input('notifyStaff',p.staff,'required'),true)}
+      ${field('通知内容','message',textArea('message',p.message,'required placeholder="填写员工收到的预警说明"'),true)}
+      ${field('处理建议','advice',input('advice',p.advice,'placeholder="选填"'))}
+      ${field('确认已阅','ack',switchField('ack',p.ack,'要求员工确认已阅'))}
+      ${field('消息内容预览','message-preview','<div class="preview-message" id="message-preview"></div>')}
+      </section>
+      <section class="form-section" id="handle-fields"><h3>处理要求</h3>
+      ${field('处理员工','handleStaff',input('handleStaff',p.staff,'required'),true)}
+      ${field('处理要求说明','requirement',textArea('requirement',p.requirement,'required placeholder="例如：电话联系客户并记录结果"'),true)}
+      ${field('处理期限','hasDue',switchField('hasDue',p.hasDue,'设置处理期限'))}
+      <div class="stack" id="due-fields">
+      ${field('触发后时限','hours',input('hours',p.hours??24,'type="number" required min="1" step="1" aria-describedby="hours-label"')+'<small id="hours-label">单位：小时</small>',true)}
+      ${field('超期提醒','nudge',switchField('nudge',p.nudge,'处理超期时提醒员工'))}
+      </div>
+      ${field('处理结果','resultRequired',switchField('resultRequired',p.resultRequired,'标记已处理时必须填写处理结果'))}
+      </section>
+    </div>
+    <footer class="cdp-container-foot">${btn('取消','close-plan')}<button type="submit" class="cdp-button cdp-button--primary">保存配置</button></footer>
+  </form></div>`;
+  updatePlan();
+  $('plan-form').addEventListener('input',event=>{
+    if(event.target.id==='kind') {
+      $('target').replaceChildren(...targetOptions($('kind').value).map(([id,label])=>new Option(label,id)));
+    }
+    updatePlan();
+  });
+  $('plan-form').addEventListener('submit',savePlan);
+}
+function updatePlan() {
+  const form = $('plan-form');
+  const notify = form.elements.mode.value==='notice';
+  const toggle = (id,visible) => {
+    const group = $(id);
+    group.hidden = !visible;
+    group.querySelectorAll('input,textarea').forEach(control=>{control.disabled=!visible;});
+  };
+  toggle('notice-fields',notify);
+  toggle('handle-fields',!notify);
+  toggle('due-fields',!notify && $('hasDue').checked);
+  $('message-preview').textContent = ($('title').value.trim() || '预警名称') + '\n' +
+    contacts[$('target').value].name + '\n' + ($('message').value.trim() || '通知内容') + '\n查看详情';
+}
+function requireText(input) {
+  if(input.value.trim()) return true;
+  input.setCustomValidity('请填写此项');
+  input.reportValidity();
+  input.setCustomValidity('');
+  return false;
+}
+function savePlan(event) {
+  event.preventDefault();
+  const form = event.currentTarget, mode=form.elements.mode.value;
+  const get = (id) => $(id).value.trim();
+  const fields = ['title','condition',...(mode==='notice'?['notifyStaff','message']:['handleStaff','requirement'])];
+  if (!fields.every(id=>requireText($(id)))) return;
+  const data = {id:state.draft.id||'plan-'+(plans.length+1),title:get('title'),kind:get('kind'),target:get('target'),condition:get('condition'),mode};
+  if (mode==='notice') Object.assign(data,{staff:get('notifyStaff'),message:get('message'),ack:$('ack').checked,advice:get('advice')});
+  else {
+    const hasDue=$('hasDue').checked;
+    Object.assign(data,{staff:get('handleStaff'),requirement:get('requirement'),hasDue,hours:hasDue?Number(get('hours')):null,nudge:hasDue&&$('nudge').checked,resultRequired:$('resultRequired').checked});
+  }
+  const index=plans.findIndex(p=>p.id===data.id);
+  if (index===-1) plans.unshift(data);
+  else plans[index]=data;
+  go('plans');
+  feedback('预警计划已保存');
+}
+function triggerPlan(id) {
+  const plan=plans.find(p=>p.id===id);
+  const a=eventFromPlan(plan,'a-demo-'+alerts.length,demoNow,{actual:plan.condition,data:'模拟命中 1 次'});
+  alerts.push(a);
+  go('alert-inbox');
+  app.querySelector('#alert-feed').scrollIntoView({block:'start'});
+  feedback('已生成模拟预警通知');
+}
+function openDialog(title,body,foot) {
+  $('dialog').innerHTML=`<header class="cdp-container-head"><h2>${title}</h2><button type="button" data-action="close-dialog" class="cdp-close" aria-label="关闭">×</button></header><div class="cdp-container-body">${body}</div><footer class="cdp-container-foot">${foot}</footer>`;
+  $('dialog').showModal();
+}
+function handleAction(status,id=state.alert) {
+  const a=alertById(id);
+  if(!a||!isOpen(a)) return;
+  if (status==='doing') {
+    if (a.status==='pending') {
+      a.status=status;
+      a.logs.push({time:stamp,text:'标记处理中',note:''});
+      render();
+      feedback('已标记处理中');
+    }
+    return;
+  }
+  const resolved=status==='done', required=!resolved||a.resultRequired;
+  openDialog(resolved?'标记已处理':'标记无需处理',
+    `<form id="handle-form" class="stack">
+      ${resolved?field('处理方式','resolution',selectField('resolution',[['','请选择'],['电话联系','电话联系'],['线下跟进','线下跟进'],['企微联系','企微联系'],['其他','其他']],'','required'),true):''}
+      ${field(resolved?'处理结果':'无需处理原因','resolutionNote',textArea('resolutionNote','','placeholder="填写处理说明"'+(required?' required':'')),required)}
+    </form>`,btn('取消','close-dialog')+'<button class="cdp-button cdp-button--primary" type="submit" form="handle-form">提交</button>');
+  $('handle-form').addEventListener('submit',event=>{
+    event.preventDefault();
+    if(required && !requireText($('resolutionNote'))) return;
+    if(!isOpen(a)) return $('dialog').close();
+    a.status=status;
+    a.closedAt=demoNow;
+    a.logs.push({time:stamp,text:resolved?'已处理 · '+$('resolution').value:'无需处理',note:$('resolutionNote').value.trim()});
+    $('dialog').close();
+    render();
+    feedback(resolved?'处理结果已记录':'已标记无需处理');
+  });
+}
+
+
+const sopScenes = [
+  ['inbox','SOP 通知','bell'],['single','单客户 SOP','person'],['continuous','多客户连续执行','chat'],['group','群 SOP','list'],['empty-chat','无待办会话','chat'],
+];
+const alertScenes = [
+  ['inbox','SOP 通知','bell'],['alert-inbox','预警通知','chat'],['plans','预警计划与统计','list'],['config','预警计划配置','grid'],
+];
+function render(keepScroll=false) {
+  const scroll = keepScroll ? [...app.querySelectorAll('[data-scroll]')].map(e=>[e.dataset.scroll,e.scrollTop]) : [];
+  const task=selectedTask();
+  const wecom=['messages','inbox'].includes(state.view) ||
+    (state.view==='chat' && state.wecomChat) || (state.view==='result' && task?.type.endsWith('SOP'));
+  const views={messages,inbox,'alert-inbox':alertInbox,chat:wecom?wxChatView:chatView,result:resultView,alert:alertView,plans:planList};
+  const admin=state.view==='plans';
+  const current=wecom ? (state.view==='chat' ? (task?.id==='multi'?'continuous':task?.id ?? (state.contact==='wm-su'?'empty-chat':'')) : 'inbox') :
+    admin ? (state.draft?'config':'plans') : 'alert-inbox';
+  app.innerHTML=`<div class="desktop${wecom?' wecom':''}">
+    ${wecom?wxRail()+wxList():`<header class="brand"><div class="row"><span class="logo">${icon(admin?'grid':'chat')}</span><strong>${admin?'CDP 客户营销系统':'企业微信'}</strong><span class="divider"></span><span class="brand-meta">${admin?'运营管理':'CDP 任务通知'}</span></div><span class="brand-meta">${admin?'管理端':'员工端'}</span></header>
+    <aside class="left">${sidebar()}</aside>`}
+    <main class="main">${views[state.view]()}</main>
+    </div>`;
+  $('scenes').classList.toggle('wecom-scenes',wecom);
+  $('scenes').innerHTML='<div class="rail-title">原型场景</div>'+(wecom?sopScenes:alertScenes).map(([id,label,symbol])=>`<button type="button" class="rail-action" data-action="scene" data-id="${id}" aria-current="${id===current}">${icon(symbol)}${label}</button>`).join('');
+  for(const [key,value] of scroll) {
+    const element=app.querySelector('[data-scroll="'+key+'"]');
+    if(element) element.scrollTop=value;
+  }
+  const transcript=app.querySelector('[data-scroll="chat"]');
+  if(transcript) transcript.scrollTop=transcript.scrollHeight;
+}
+function scene(id) {
+  if($('dialog').open) $('dialog').close();
+  if(id==='continuous' || id==='single' || id==='group') return openSop(id==='continuous'?'multi':id);
+  if(id==='employee-todos') return enterObject(taskById('multi'),'wm-shen','',true);
+  if(id==='customer-alert'||id==='group-alert') {
+    const alert=alertById(id==='customer-alert'?'a-intent':'a-send');
+    enterObject(null,alert.target,'',true);
+    state.expandedTodo=alert.id;
+    render();
+    return;
+  }
+  if(id==='empty-chat') return enterObject(null,'wm-su','',true);
+  if(id==='reminder' || id==='handling') return openAlert(id==='reminder'?'a-quiet':'a-intent');
+  if(id==='result') return showResult(taskById('complete'));
+  if(id==='config') {
+    go('plans');
+    return openPlan('');
+  }
+  if(id==='messages'||id==='plans'||id==='alert-inbox') return go(id);
+  state.sopRead=true;
+  go('inbox');
+}
+function currentObject(task=selectedTask()) {
+  return task?.objects.find(o=>o.id===state.contact);
+}
+function switchObject(id) {
+  const task=selectedTask();
+  const obj=task?.objects.find(o=>o.id===id);
+  if(!obj || id===state.contact) return;
+  if(!obj.accessible) {
+    obj.skipped=true;
+    state.note=`${contacts[id].name}的会话不可访问，已跳过，任务仍未完成。`;
+    render(true);
+    return;
+  }
+  enterObject(task,id);
+}
+const drafts=new Map();
+const submitting=new Set();
+function stagedMessages(id=state.contact) {
+  return (drafts.get(id)??[]).filter(({item})=>item.state!=='sent');
+}
+function messageComposer() {
+  const draft=stagedMessages();
+  const busy=submitting.has(state.contact);
+  return `<div class="wx-message-compose" aria-label="消息框">
+    <div class="wx-draft-content scroll">${draft.length?draft.map(({item})=>`
+      <div class="wx-draft-item">${preview(item)}</div>`).join(''):'<small>消息框</small>'}</div>
+    ${draft.some(({item})=>item.state==='failed')?'<p class="cdp-error">发送失败，可再次点击发送。</p>':''}
+    <div class="cdp-actions"><button type="button" class="cdp-button cdp-button--primary" data-action="submit-message" ${!draft.length||busy?'disabled':''}>${busy?'发送中…':'发送'}</button></div>
+  </div>`;
+}
+function stageMessages(indexes,task=selectedTask()) {
+  const obj=currentObject(task);
+  if(!obj?.accessible||submitting.has(state.contact)) return;
+  const draft=stagedMessages();
+  const requested=indexes??obj.items.map((_,i)=>i);
+  for(const index of requested) {
+    const item=obj.items[index];
+    if(item&&['pending','failed'].includes(item.state)&&!draft.some(entry=>entry.item===item)) draft.push({item,index,task});
+  }
+  if(!indexes) {
+    const ordered=draft.filter(entry=>entry.task===task).sort((a,b)=>a.index-b.index);
+    for(let i=0;i<draft.length;i++) {
+      if(draft[i].task===task) draft[i]=ordered.shift();
+    }
+  }
+  drafts.set(state.contact,draft);
+  if(!indexes) state.expandedTodo=null;
+  render(Boolean(indexes));
+}
+async function submitMessages() {
+  const contact=state.contact, draft=stagedMessages(contact);
+  if(!draft.length||submitting.has(contact)) return;
+  submitting.add(contact);
+  try {
+    for(const {index,task} of draft) {
+      if(state.view!=='chat'||state.contact!==contact) break;
+      if(!await sendItems([index],task)) break;
+    }
+  } finally {
+    const remaining=stagedMessages(contact);
+    if(remaining.length) drafts.set(contact,remaining);
+    else drafts.delete(contact);
+    submitting.delete(contact);
+    if(state.view==='chat'&&state.contact===contact) render(true);
+  }
+}
+let sentOrder=0;
+async function sendItems(indexes,task=selectedTask()) {
+  const obj=currentObject(task), contact=state.contact, queue=selectedTask();
+  const inConversation=()=>state.view==='chat'&&state.contact===contact;
+  const inContext=()=>inConversation()&&selectedTask()===queue;
+  if(!inContext() || !obj?.accessible || obj.sending) return;
+  const selected=indexes?indexes.map(index=>obj.items[index]):obj.items;
+  const items=selected.filter(i=>i && ['pending','failed'].includes(i.state));
+  if(!items.length) return;
+  obj.sending=true;
+  let failed=false;
+  for(const i of items) {
+    if(!inContext()) break;
+    i.state='sending';
+    render(true);
+    await new Promise(resolve=>setTimeout(resolve,280));
+    failed=i.failOnce;
+    i.failOnce=false;
+    i.state=failed?'failed':'sent';
+    if(!failed) {
+      i.sentOrder=++sentOrder;
+      i.sentAt=demoNow;
+    }
+    if(failed) break;
+  }
+  obj.sending=false;
+  if(finished(obj)) {
+    for(const alert of alerts.filter(a=>a.explicitTask===task.id&&a.target===contact&&isOpen(a))) {
+      alert.status='done';
+      alert.closedAt=demoNow;
+      alert.logs.push({time:stamp,text:'已处理 · 企微联系',note:'已发送预警话术。'});
+    }
+  }
+  if(state.draft) return;
+  if(inConversation()) {
+    render(true);
+    const nextPrompt=app.querySelector('.wx-todo-empty');
+    if(nextPrompt) nextPrompt.closest('[data-scroll]').scrollTop=0;
+  } else if(state.view==='inbox' || (state.view==='result' && selectedTask()===task)) render();
+  return !failed;
+}
+const actions = {
+  scene, 'open-sop':openSop, 'open-alert':openAlert, switch:switchObject,
+  'open-contact':id=>{
+    if(state.view==='chat' && state.contact===id) return;
+    const task=state.view==='chat'?selectedTask():null;
+    enterObject(task?.objects.some(obj=>obj.id===id&&obj.accessible)?task:null,id);
+  },
+  'alert-phrase':id=>stageMessages(null,taskById(alertById(id).explicitTask)),
+  'wx-alert':id=>{
+    const alert=alertById(id);
+    alert.viewed=true;
+    enterObject(null,alert.target);
+  },
+  'confirm-visit':id=>{
+    const alert=alertById(id);
+    if(!isOpen(alert)) return;
+    state.followupId=id;
+    state.followupFeedback='';
+    render(true);
+    app.querySelector('[data-followup-form]')?.scrollIntoView({block:'nearest'});
+    $('visit-feedback')?.focus();
+  },
+  'cancel-visit':()=>{
+    state.followupId=null;
+    state.followupFeedback='';
+    render(true);
+  },
+  'submit-visit':id=>{
+    const alert=alertById(id);
+    if(state.followupId!==id) return;
+    if(isOpen(alert)) {
+      alert.status='done';
+      alert.closedAt=demoNow;
+      alert.logs.push({time:stamp,text:'完成跟进',note:state.followupFeedback.trim()});
+    }
+    state.followupId=null;
+    state.followupFeedback='';
+    render(true);
+  },
+  'todo-alert':id=>openAlert(id,{task:selectedTask(),contact:state.contact}),
+  'todo-return':()=>{
+    const source=state.todoReturn;
+    state.todoReturn=null;
+    if(source) enterObject(source.task,source.contact,'',true);
+  },
+  send:(index,taskId)=>stageMessages([Number(index)],taskById(taskId)),
+  'send-all':taskId=>stageMessages(null,taskById(taskId)),
+  'submit-message':submitMessages,
+  'toggle-side':()=>{state.sideOpen=!state.sideOpen;render();},
+  'toggle-others':()=>{
+    state.othersExpanded=!state.othersExpanded;
+    render(true);
+  },
+  'todo-tab':id=>{state.todoTab=id;render();},
+  menu:tab=>{state.menu=tab;render();},
+  next:id=>openSop(id,true), result:id=>showResult(taskById(id)),
+  preview:(index,taskId)=>{
+    const i=currentObject(taskById(taskId)).items[index];
+    openDialog('内容预览',preview(i,true),btn('关闭','close-dialog'));
+  },
+  'close-dialog':()=>$('dialog').close(),
+  'edit-plan':openPlan,
+  'close-plan':()=>go('plans'),
+  trigger:triggerPlan,
+  'alert-chat':id=>openAlertChat(id),
+  'alert-send':id=>openAlertChat(id,alertById(id).explicitTask),
+  handle:handleAction,
+  ack:id=>{
+    const a=alertById(id);
+    a.confirmed=true;
+    render();
+    feedback('已确认已阅');
+  },
+};
+document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-action]');
+  if(button && !button.disabled) actions[button.dataset.action]?.(button.dataset.id,button.dataset.task);
+});
+document.addEventListener('input',event=>{
+  if(event.target.id==='visit-feedback') state.followupFeedback=event.target.value;
+});
+document.addEventListener('submit',event=>{
+  const form=event.target.closest('[data-followup-form]');
+  if(form) {
+    event.preventDefault();
+    actions['submit-visit'](form.dataset.followupForm);
+  }
+});
+document.addEventListener('toggle',event=>{
+  const {target}=event;
+  if(!target.isConnected) return;
+  if(target.dataset.disclosure) state[target.dataset.disclosure]=target.open;
+  if(target.dataset.todoKey) {
+    state.expandedTodo=app.querySelector('[data-todo-key][open]')?.dataset.todoKey??'';
+  }
+},true);
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape' && state.draft && !$('dialog').open) go('plans');
+});
+scene(page || 'inbox');
+setInterval(updateTaskTimes,1000);
+
+</script>
+</body>
+</html>
