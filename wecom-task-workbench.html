@@ -929,13 +929,12 @@ function wxTaskPane() {
           <div class="row"><strong class="wx-mention">@${esc(contacts[state.contact].name)}</strong><span class="sub">剩余${pending.length}个任务</span></div></div>
         ${pending.length?pending.map(entry=>wxTodoCard(entry,entry.key===selected)).join(''):
         `<div class="wx-todo-empty"><strong>当前没有待办</strong>
-          ${next?`<div class="row between" style="margin-top:6px"><small>${esc(contacts[next.id].name)}</small>
-            ${btn(contacts[next.id].group?'前往下一群':'前往下一位客户','open-contact',next.id,'primary')}</div>`:
-            '<p class="sub" style="margin-top:4px">暂无其他可前往的待办会话。</p>'}</div>`}
+          ${next?`<div class="cdp-actions" style="margin-top:6px">
+            ${btn('前往下一个','open-contact',next.id,'primary')}</div>`:''}</div>`}
       </section>
       <section class="wx-todos" aria-label="剩余待办">
         <div class="row between"><h2>剩余待办</h2><span class="sub">剩余${groups.reduce((sum,g)=>sum+g.entries.length,0)}个任务</span></div>
-        ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:'<p class="sub">暂无其他客户或群待办。</p>'}
+        ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:`<p class="sub">${pending.length?'其他待办已处理完，继续加油！':'待办都处理完啦，辛苦了！'}</p>`}
         ${groups.length>10?btn(state.othersExpanded?'收起':'展开其余 '+(groups.length-10)+' 个客户/群','toggle-others','','link'):''}
       </section>
     </div>`;
