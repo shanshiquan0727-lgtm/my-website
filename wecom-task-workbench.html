@@ -507,8 +507,13 @@ const alerts = [
     actual:'客户近期多次关注房型信息',data:'小程序浏览 3 次'
   }),
   eventFromPlan(plans[3],'a-complaint',new Date('2026-11-10T09:15:00+08:00'),{status:'done',closedAt:new Date('2026-11-10T10:12:00+08:00'),viewed:true,actual:'群消息命中「投诉」',data:'命中消息 1 条',logs:[{time:'2026-11-10 10:12',text:'已处理 · 线下跟进',note:'已向运营负责人核实并反馈。'}]}),
-  eventFromPlan(plans[3],'a-send',new Date('2026-11-10T10:50:00+08:00'),{title:'群投诉后续处理通知',explicitTask:'alert-send',actual:'群内投诉需同步处理进展',data:'命中消息 1 条',hitSummary:'群消息命中「投诉」（1次）',eventWindow:'近20分钟',
-    events:[{name:'群消息关键词命中',time:'10:50',fields:[['命中词','投诉'],['消息内容','入住遇到的问题还没有解决，我想投诉。'],['客户群','曼城 26 秋租房群']]}]}),
+  eventFromPlan(plans[3],'a-send',new Date('2026-11-10T10:50:00+08:00'),{
+    title:'社群存在商机触发',condition:'关键词命中',actual:'该群有商机被激活',
+    data:'关键词命中，去重人数 1',hitSummary:'关键词命中',
+    detailFields:[['关键词','xxxx、xxxx、xxxx、xxx、xxxxx、xxxx、xxxx、xxxx（去重人数：1）']],
+    reminder:'注意！该群有商机被激活，请迅速查看响应！',
+    recommendedPhrase:'xxxxxxxxxxxxxxxxxxxxxxx'
+  }),
 ];
 const handleStatus = {pending:['待处理','amber'],doing:['处理中','blue'],done:['已处理','green'],none:['无需处理','']};
 const alertById = (id) => alerts.find((a) => a.id === id);
@@ -841,7 +846,8 @@ function wxTodoCard(entry,expanded) {
   const {key,title,type,due,done,task,obj,alert}=entry;
   
   const content=alert?wxAlertContent(alert)
-    : `<div class="row between"><span style="font-size:12px">${done?'当前会话内容已发送':'点击发送可将素材填入消息框'}</span>
+    : `${task.description?`<p class="sub" style="margin-bottom:8px;white-space:pre-wrap;overflow-wrap:anywhere">任务描述：${esc(task.description)}</p>`:''}
+       <div class="row between"><span style="font-size:12px">${done?'当前会话内容已发送':'请将以下素材按顺序发送'}</span>
        ${!done&&obj.items.length>1?obj.sending?'<button type="button" class="cdp-button" disabled>发送中…</button>':btn('一键发送','send-all',task.id,'plain'):''}</div>
        ${obj.items.map((i,index)=>wxAsset(i,index,obj.sending,task.id)).join('')}`;
   return `<details class="wx-task-card wx-current-task" name="${done?'wx-record-cards':'wx-todo-cards'}" ${done?'':`data-todo-key="${key}"`}
@@ -914,22 +920,21 @@ function wxTaskPane() {
     .sort((a,b)=>(Number.isFinite(b.due)?b.due:0)-(Number.isFinite(a.due)?a.due:0));
   const groups=otherTodoObjects(entries);
   const next=pending.length?null:groups[0];
-  const noun=contacts[state.contact].group?'群':'客户';
   const selected=state.expandedTodo===''?'':(pending.find(e=>e.key===state.expandedTodo)??pending[0])?.key;
   const shown=state.othersExpanded?groups:groups.slice(0,10);
   return tabs+`<div class="side-body scroll" data-scroll="employee">
       ${state.note?`<p class="notice warn">${esc(state.note)}</p>`:''}
-      <section class="wx-task-list" aria-label="当前${noun}待办" style="margin-top:0">
-        <div class="row between wx-current-heading"><h2>当前${noun}待办</h2>
+      <section class="wx-task-list" aria-label="当前待办" style="margin-top:0">
+        <div class="row between wx-current-heading"><h2>当前待办</h2>
           <div class="row"><strong class="wx-mention">@${esc(contacts[state.contact].name)}</strong><span class="sub">剩余${pending.length}个任务</span></div></div>
         ${pending.length?pending.map(entry=>wxTodoCard(entry,entry.key===selected)).join(''):
-        `<div class="wx-todo-empty"><strong>当前${noun}没有待办</strong>
+        `<div class="wx-todo-empty"><strong>当前没有待办</strong>
           ${next?`<div class="row between" style="margin-top:6px"><small>${esc(contacts[next.id].name)}</small>
             ${btn(contacts[next.id].group?'前往下一群':'前往下一位客户','open-contact',next.id,'primary')}</div>`:
             '<p class="sub" style="margin-top:4px">暂无其他可前往的待办会话。</p>'}</div>`}
       </section>
-      <section class="wx-todos" aria-label="其他客户/群待办">
-        <div class="row between"><h2>其他客户/群待办</h2><span class="sub">剩余${groups.reduce((sum,g)=>sum+g.entries.length,0)}个任务</span></div>
+      <section class="wx-todos" aria-label="剩余待办">
+        <div class="row between"><h2>剩余待办</h2><span class="sub">剩余${groups.reduce((sum,g)=>sum+g.entries.length,0)}个任务</span></div>
         ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:'<p class="sub">暂无其他客户或群待办。</p>'}
         ${groups.length>10?btn(state.othersExpanded?'收起':'展开其余 '+(groups.length-10)+' 个客户/群','toggle-others','','link'):''}
       </section>
