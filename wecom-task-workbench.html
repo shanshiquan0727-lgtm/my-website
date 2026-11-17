@@ -217,7 +217,7 @@ dialog::backdrop{background:#16263b66}
 .wecom .main-head{height:58px;padding:0 19px;border-color:#ededee;color:#1d2024}
 .wecom .left{padding:0;overflow:hidden;border-color:#ededee;display:flex;flex-direction:column}
 .wecom .main-head h1{font-size:16px}
-.wecom .conv-list{padding:4px 5px 167px;overflow:auto}
+.wecom .conv-list{padding:4px 5px 224px;overflow:auto}
 .wecom .conv{height:58px;margin:0;padding:8px 9px;gap:9px;border-radius:4px}
 .wecom .conv small,.wecom .conv-time{color:#8a8c90;font-size:11px}
 .wecom .conv[aria-current=true]{background:#4e90f5;color:white}
@@ -441,7 +441,7 @@ const tasks = [
   {id:'single',type:'客户SOP',title:'新咨询客户首次跟进',description:'联系新咨询客户，介绍租房申请流程。',issued:'11-10 10:05',due:'11-10 18:00',objects:[
     object('wm-xu',[welcome()]),
   ]},
-  {id:'multi',type:'客户SOP',title:'11 月客户欢迎 SOP',description:'向新客户发送欢迎话术和公寓精选资料。',priority:2,issued:'11-10 09:40',due:'11-11 18:00',objects:[
+  {id:'multi',type:'客户SOP',title:'11月新客欢迎与英国留学生租房需求确认及公寓精选资料发送SOP',description:'向新客户发送欢迎话术和公寓精选资料。',priority:2,issued:'11-10 09:40',due:'11-11 18:00',objects:[
     object('wm-zhou',[welcome('sent')]),
     object('wm-shen',[welcome(),item(material.image)]),
     object('wm-he',[item(material.guide)]),
@@ -522,7 +522,7 @@ const overdue = (a) => a.mode === 'handle' && a.deadline && demoNow > a.deadline
 const alertBadge = (a) => a.mode === 'handle'
   ? tag(...handleStatus[a.status])+(overdue(a) ? ' '+tag('已超期','red') : '')
   : a.confirmed ? tag('已确认已阅','green') : a.viewed ? tag('已查看','green') : a.pushed ? tag('已推送','blue') : tag('已触发');
-const state = {view:'messages', task:'', contact:'', alert:'', menu:'资料', wecomChat:true, todoReturn:null, expandedTodo:null, followupId:null, followupFeedback:'', sopRead:false, sideOpen:true, othersExpanded:false, todoTab:'pending', openedQueue:false, openedRecords:false, note:'', draft:null};
+const state = {view:'messages', activeScene:'inbox', demoEmpty:false, task:'', contact:'', alert:'', menu:'资料', wecomChat:true, todoReturn:null, expandedTodo:null, followupId:null, followupFeedback:'', sopRead:false, sideOpen:true, othersExpanded:false, todoTab:'pending', openedQueue:false, openedRecords:false, note:'', draft:null};
 let noticeTimer;
 let transitionTimer;
 function feedback(message) {
@@ -561,6 +561,8 @@ function enterObject(task, id, note='', showTodos=false) {
   go('chat');
 }
 function openConversationFromNotice(task,id,note='') {
+  state.demoEmpty=false;
+  state.activeScene=task?(task.type==='群SOP'?'group':task.id==='multi'?'continuous':'single'):(contacts[id].group?'group-alert':'customer-alert');
   const target={task,id,note};
   state.transition=target;
   go('opening');
@@ -907,7 +909,7 @@ function wxCompletedToday(entries) {
 }
 function wxTaskPane() {
   const today=formatDate(demoNow).slice(0,10);
-  const all=employeeTodoEntries();
+  const all=state.demoEmpty?[]:employeeTodoEntries();
   const entries=all.filter(e=>e.issuedOn===today&&!e.done&&!e.staged);
   const completed=all.filter(e=>e.done&&e.completedAt&&formatDate(new Date(e.completedAt)).slice(0,10)===today);
   const showingCompleted=state.todoTab==='completed';
@@ -935,7 +937,7 @@ function wxTaskPane() {
       <section class="wx-todos" aria-label="剩余待办">
         <div class="row between"><h2>剩余待办</h2><span class="sub">剩余${groups.reduce((sum,g)=>sum+g.entries.length,0)}个任务</span></div>
         ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:`<p class="sub">${pending.length?'其他待办已处理完，继续加油！':'待办都处理完啦，辛苦了！'}</p>`}
-        ${groups.length>10?btn(state.othersExpanded?'收起':'展开其余 '+(groups.length-10)+' 个客户/群','toggle-others','','link'):''}
+        ${groups.length>10?btn(state.othersExpanded?'收起':'展示其余客户/群','toggle-others','','link'):''}
       </section>
     </div>`;
 }
@@ -1218,11 +1220,15 @@ function handleAction(status,id=state.alert) {
 
 
 const sopScenes = [
-  ['inbox','SOP 通知','bell'],['single','单客户 SOP','person'],['continuous','多客户连续执行','chat'],['group','群 SOP','list'],['empty-chat','无待办会话','chat'],
+  ['inbox','SOP通知','bell'],
+  ['single','客户SOP','person'],
+  ['group','群SOP','list'],
+  ['customer-alert','客户预警','bell'],
+  ['group-alert','群预警','bell'],
+  ['continuous','多客户连续执行','chat'],
+  ['empty-chat','无待办会话','chat'],
 ];
-const alertScenes = [
-  ['inbox','SOP 通知','bell'],['alert-inbox','预警通知','chat'],['plans','预警计划与统计','list'],['config','预警计划配置','grid'],
-];
+const alertScenes = sopScenes;
 function render(keepScroll=false) {
   if(state.view==='opening') {
     app.innerHTML=`<div class="desktop wecom">${wxRail()}${wxList()}<main class="main">${inbox()}</main></div>`+openingView();
@@ -1236,8 +1242,7 @@ function render(keepScroll=false) {
     (state.view==='chat' && state.wecomChat) || (state.view==='result' && task?.type.endsWith('SOP'));
   const views={messages,inbox,'alert-inbox':alertInbox,chat:wecom?wxChatView:chatView,result:resultView,alert:alertView,plans:planList};
   const admin=state.view==='plans';
-  const current=wecom ? (state.view==='chat' ? (task?.id==='multi'?'continuous':task?.id ?? (state.contact==='wm-su'?'empty-chat':'')) : 'inbox') :
-    admin ? (state.draft?'config':'plans') : 'alert-inbox';
+  const current=state.activeScene??'inbox';
   app.innerHTML=`<div class="desktop${wecom?' wecom':''}">
     ${wecom?wxRail()+wxList():`<header class="brand"><div class="row"><span class="logo">${icon(admin?'grid':'chat')}</span><strong>${admin?'CDP 客户营销系统':'企业微信'}</strong><span class="divider"></span><span class="brand-meta">${admin?'运营管理':'CDP 任务通知'}</span></div><span class="brand-meta">${admin?'管理端':'员工端'}</span></header>
     <aside class="left">${sidebar()}</aside>`}
@@ -1254,7 +1259,11 @@ function render(keepScroll=false) {
 }
 function scene(id) {
   if($('dialog').open) $('dialog').close();
-  if(id==='continuous' || id==='single' || id==='group') return openSop(id==='continuous'?'multi':id);
+  state.demoEmpty=id==='empty-chat';
+  state.activeScene=id==='employee-todos'?'continuous':sopScenes.some(([key])=>key===id)?id:'inbox';
+  if(id==='single') return enterObject(taskById('single'),'wm-xu','',true);
+  if(id==='group') return enterObject(taskById('group'),'wr-manchester','',true);
+  if(id==='continuous') return enterObject(taskById('multi'),'wm-shen','',true);
   if(id==='employee-todos') return enterObject(taskById('multi'),'wm-shen','',true);
   if(id==='customer-alert'||id==='group-alert') {
     const alert=alertById(id==='customer-alert'?'a-intent':'a-send');
