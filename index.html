@@ -282,6 +282,7 @@
         }
 
         function fileTitle(filename) {
+            if (filename === "wecom-task-workbench.html") return "企微执行链路优化";
             return filename
                 .replace(/\.html$/i, "")
                 .replace(/[-_]+/g, " ")
