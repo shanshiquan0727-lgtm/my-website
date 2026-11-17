@@ -217,7 +217,7 @@ dialog::backdrop{background:#16263b66}
 .wecom .main-head{height:58px;padding:0 19px;border-color:#ededee;color:#1d2024}
 .wecom .left{padding:0;overflow:hidden;border-color:#ededee;display:flex;flex-direction:column}
 .wecom .main-head h1{font-size:16px}
-.wecom .conv-list{padding:4px 5px 224px;overflow:auto}
+.wecom .conv-list{padding:4px 5px 250px;overflow:auto}
 .wecom .conv{height:58px;margin:0;padding:8px 9px;gap:9px;border-radius:4px}
 .wecom .conv small,.wecom .conv-time{color:#8a8c90;font-size:11px}
 .wecom .conv[aria-current=true]{background:#4e90f5;color:white}
@@ -411,6 +411,8 @@ const stamp = formatDate(demoNow);
 const additionalCustomers = [
   ['wm-fang','方宁'],['wm-cheng','程可'],['wm-song','宋亦'],
   ['wm-gu','顾晚'],['wm-ye','叶初'],['wm-xia','夏一'],
+  ['wm-tang','唐悦'],['wm-luo','罗安'],['wm-yu','余晴'],
+  ['wm-qiao','乔宁'],['wm-jiang','江禾'],['wm-zhao','赵然'],
 ];
 const contacts = {
   ...Object.fromEntries(additionalCustomers.map(([id,name])=>[id,{name,initials:name[0],description:'企业微信客户 · 公寓咨询',hello:'您好，想了解一下公寓资料。'}])),
@@ -466,6 +468,21 @@ const tasks = [
   ]},
   {id:'brochure',type:'客户SOP',title:'发送公寓资料',description:'向咨询客户发送公寓资料。',issued:'11-10 08:30',due:'11-13 18:00',
     objects:additionalCustomers.map(([id])=>object(id,[item(material.guide)]))},
+  {id:'needs-confirm',type:'客户SOP',title:'英国留学生学校周边公寓需求确认与预算及入住时间资料补充提醒',description:'确认学校、预算与入住时间，提供符合需求的公寓资料。',issued:'11-10 10:55',due:'11-11 17:00',objects:[
+    object('wm-shen',[words('需求确认','可以告诉我学校、预算和入住时间，我帮您筛选合适的公寓。')]),
+    object('wm-xu',[item(material.guide)])
+  ]},
+  {id:'viewing-slots',type:'客户SOP',title:'本周可预约看房时段',description:'请客户确认可参加的看房时段。',issued:'11-10 10:35',due:'11-11 15:00',objects:[
+    object('wm-shen',[item(material.link)]),object('wm-xu',[item(material.link)])
+  ]},
+  {id:'application-guide',type:'客户SOP',title:'申请材料准备指引',description:'提供租房申请材料清单。',issued:'11-10 10:15',due:'11-12 18:00',objects:[
+    object('wm-shen',[item(material.guide)]),object('wm-xu',[item(material.guide)])
+  ]},
+  ...[
+    ['group-viewing','群看房时段补充','10:40',material.link],
+    ['group-checklist','群申请材料清单','10:20',material.guide],
+    ['group-selection','群公寓精选资料','10:00',material.image]
+  ].map(([id,title,time,content])=>({id,type:'群SOP',title,description:'为群内同学补充租房参考信息。',issued:'11-10 '+time,due:'11-12 16:00',objects:[object('wr-london',[item(content)])]})),
   {id:'alert-send',type:'预警任务',title:'群投诉后续处理通知',issued:'11-10 09:15',due:'11-11 09:15',objects:[
     object('wr-manchester',[words('群内处理回执','大家好，收到反馈后我们正在核实问题，会在确认后同步处理结果。')]),
   ]},
@@ -497,7 +514,7 @@ function eventFromPlan(plan, id, at=demoNow, overrides={}) {
 const alerts = [
   eventFromPlan(plans[0],'a-quiet',new Date('2026-11-10T10:30:00+08:00'),{actual:'过去 7 天未检测到客户回复',data:'近 7 天客户回复 0 条'}),
   eventFromPlan(plans[1],'a-group',new Date('2026-11-10T10:20:00+08:00'),{viewed:true,actual:'近 3 天仅有 2 条群消息',data:'近 3 天群消息 2 条'}),
-  eventFromPlan(plans[2],'a-intent',new Date('2026-11-10T09:00:00+08:00'),{
+  eventFromPlan(plans[2],'a-intent',new Date('2026-11-10T11:15:00+08:00'),{
     deadline:new Date('2026-11-10T10:00:00+08:00'),priority:2,
     hitSummary:'小程序浏览（3 次）',eventWindow:'近20分钟',
     detailFields:[['房源名称','xxxx、xxxx'],['房型名称','xxxx、xxxxx']],
@@ -515,6 +532,14 @@ const alerts = [
     recommendedPhrase:'xxxxxxxxxxxxxxxxxxxxxxx'
   }),
 ];
+alerts.push(eventFromPlan(plans[2],'a-shen-active',new Date('2026-11-10T11:00:00+08:00'),{
+  target:'wm-shen',title:'新客浏览房源提醒',condition:'近20分钟内浏览小程序',
+  hitSummary:'浏览小程序（3次）',eventWindow:'近20分钟',
+  detailFields:[['房源名称','xxxx、xxxx'],['房型名称','xxxx、xxxxx']],
+  actual:'新客主动浏览房源',data:'浏览小程序 3 次',
+  reminder:'【新客浏览房源提醒】客户近期已主动浏览房源，说明当前已有较明显的租房意向，建议结合客户学校、预算及入住时间进行针对性跟进。',
+  recommendedPhrase:'嗨～最近是在准备租房吗？\n可以告诉我学校、预算和入住时间，我帮你看看有哪些合适的房源～'
+}));
 const handleStatus = {pending:['待处理','amber'],doing:['处理中','blue'],done:['已处理','green'],none:['无需处理','']};
 const alertById = (id) => alerts.find((a) => a.id === id);
 const isOpen = (a) => a.status === 'pending' || a.status === 'doing';
@@ -522,7 +547,7 @@ const overdue = (a) => a.mode === 'handle' && a.deadline && demoNow > a.deadline
 const alertBadge = (a) => a.mode === 'handle'
   ? tag(...handleStatus[a.status])+(overdue(a) ? ' '+tag('已超期','red') : '')
   : a.confirmed ? tag('已确认已阅','green') : a.viewed ? tag('已查看','green') : a.pushed ? tag('已推送','blue') : tag('已触发');
-const state = {view:'messages', activeScene:'inbox', demoEmpty:false, task:'', contact:'', alert:'', menu:'资料', wecomChat:true, todoReturn:null, expandedTodo:null, followupId:null, followupFeedback:'', sopRead:false, sideOpen:true, othersExpanded:false, todoTab:'pending', openedQueue:false, openedRecords:false, note:'', draft:null};
+const state = {view:'messages', activeScene:'inbox', demoEmpty:false, demoCurrentOnly:false, task:'', contact:'', alert:'', menu:'资料', wecomChat:true, todoReturn:null, expandedTodo:null, followupId:null, followupFeedback:'', sopRead:false, sideOpen:true, currentLimit:3, objectLimit:10, summaryLimits:{}, todoTab:'pending', openedQueue:false, openedRecords:false, note:'', draft:null};
 let noticeTimer;
 let transitionTimer;
 function feedback(message) {
@@ -550,7 +575,9 @@ function enterObject(task, id, note='', showTodos=false) {
   state.wecomChat = !task || task.type.endsWith('SOP');
   state.menu = showTodos?'员工待办':state.wecomChat?'集客出发':'资料';
   state.sideOpen = true;
-  state.othersExpanded = false;
+  state.currentLimit=3;
+  state.objectLimit=10;
+  state.summaryLimits={};
   state.todoTab = 'pending';
   state.expandedTodo = null;
   state.followupId = null;
@@ -562,6 +589,7 @@ function enterObject(task, id, note='', showTodos=false) {
 }
 function openConversationFromNotice(task,id,note='') {
   state.demoEmpty=false;
+  state.demoCurrentOnly=false;
   state.activeScene=task?(task.type==='群SOP'?'group':task.id==='multi'?'continuous':'single'):(contacts[id].group?'group-alert':'customer-alert');
   const target={task,id,note};
   state.transition=target;
@@ -791,14 +819,14 @@ function employeeTodoEntries() {
     const type=task.type==='群SOP'?'群 SOP':'客户 SOP';
     return task.objects.map(obj=>({
       key:task.id,id:obj.id,title:task.title,type,due,priority:task.priority??1,
-      issuedOn:'2026-'+task.issued.slice(0,5),completedAt:finished(obj)?Math.max(...obj.items.map(i=>i.sentAt??0)):null,
+      issuedAt:Date.parse('2026-'+task.issued.replace(' ','T')+':00+08:00'),issuedOn:'2026-'+task.issued.slice(0,5),completedAt:finished(obj)?Math.max(...obj.items.map(i=>i.sentAt??0)):null,
       done:finished(obj),staged:obj.items.every(i=>i.state==='sent'||(i.state!=='failed'&&stagedMessages(obj.id).some(entry=>entry.item===i))),
       accessible:obj.accessible,task,obj
     }));
   });
   const alertEntries=alerts.filter(a=>a.staff===userName).map(alert=>({
     key:alert.id,id:alert.target,title:alert.title,type:alert.kind==='客户群'?'群预警':'客户预警',due:alert.deadline?.getTime()??Infinity,
-    issuedOn:formatDate(alert.at).slice(0,10),completedAt:alert.closedAt?.getTime(),
+    issuedAt:alert.at.getTime(),issuedOn:formatDate(alert.at).slice(0,10),completedAt:alert.closedAt?.getTime(),
     priority:alert.priority??1,
     done:!isOpen(alert),accessible:true,alert
   }));
@@ -877,7 +905,7 @@ function otherTodoObjects(entries) {
 }
 function wxObjectRow({id,entries}) {
   const ordered=entries.slice().sort((a,b)=>a.due-b.due);
-  const key='todo-summary-'+id;
+  const limit=state.summaryLimits[id]??3;
   const summary=entry=>{
     return `<div class="wx-todo-summary">
       <span class="grow" style="overflow-wrap:anywhere" title="${esc(entry.title)}">${esc(entry.title)}</span>
@@ -887,11 +915,11 @@ function wxObjectRow({id,entries}) {
   return `<div class="wx-todo-row" data-todo-object="${id}">
     <div class="grow">
       <strong class="wx-mention">@${esc(contacts[id].name)}</strong>
-      ${ordered.slice(0,2).map(summary).join('')}
-      ${ordered.length>2?`<details class="wx-todo-more" data-disclosure="${key}" ${state[key]?'open':''}>
-        <summary><span class="more-label">另有 ${ordered.length-2} 项</span><span class="less-label">收起</span></summary>
-        ${ordered.slice(2).map(summary).join('')}
-      </details>`:''}
+      ${ordered.slice(0,limit).map(summary).join('')}
+      <div class="row" style="margin-top:5px">
+        ${ordered.length>limit?btn('展开下'+Math.min(3,ordered.length-limit)+'个任务','more-summary',id,'link'):''}
+        ${limit>3?btn('收起','collapse-summary',id,'link'):''}
+      </div>
     </div>
     ${btn('前往','open-contact',id)}
   </div>`;
@@ -909,7 +937,7 @@ function wxCompletedToday(entries) {
 }
 function wxTaskPane() {
   const today=formatDate(demoNow).slice(0,10);
-  const all=state.demoEmpty?[]:employeeTodoEntries();
+  const all=state.demoEmpty?[]:employeeTodoEntries().filter(entry=>!state.demoCurrentOnly||entry.id===state.contact);
   const entries=all.filter(e=>e.issuedOn===today&&!e.done&&!e.staged);
   const completed=all.filter(e=>e.done&&e.completedAt&&formatDate(new Date(e.completedAt)).slice(0,10)===today);
   const showingCompleted=state.todoTab==='completed';
@@ -919,25 +947,32 @@ function wxTaskPane() {
   </div>`;
   if(showingCompleted) return tabs+`<div class="side-body scroll" data-scroll="employee">${wxCompletedToday(completed)}</div>`;
   const pending=entries.filter(e=>e.id===state.contact&&e.accessible)
-    .sort((a,b)=>(Number.isFinite(b.due)?b.due:0)-(Number.isFinite(a.due)?a.due:0));
+    .sort((a,b)=>Number(Boolean(a.alert))-Number(Boolean(b.alert))||b.issuedAt-a.issuedAt);
   const groups=otherTodoObjects(entries);
   const next=pending.length?null:groups[0];
   const selected=state.expandedTodo===''?'':(pending.find(e=>e.key===state.expandedTodo)??pending[0])?.key;
-  const shown=state.othersExpanded?groups:groups.slice(0,10);
+  const shown=groups.slice(0,state.objectLimit);
   return tabs+`<div class="side-body scroll" data-scroll="employee">
       ${state.note?`<p class="notice warn">${esc(state.note)}</p>`:''}
       <section class="wx-task-list" aria-label="当前待办" style="margin-top:0">
         <div class="row between wx-current-heading"><h2>当前待办</h2>
           <div class="row"><strong class="wx-mention">@${esc(contacts[state.contact].name)}</strong><span class="sub">剩余${pending.length}个任务</span></div></div>
-        ${pending.length?pending.map(entry=>wxTodoCard(entry,entry.key===selected)).join(''):
+        ${pending.length?pending.slice(0,state.currentLimit).map(entry=>wxTodoCard(entry,entry.key===selected)).join(''):
         `<div class="wx-todo-empty"><strong>当前没有待办</strong>
           ${next?`<div class="cdp-actions" style="margin-top:6px">
             ${btn('前往下一个','open-contact',next.id,'primary')}</div>`:''}</div>`}
+      <div class="row">
+        ${pending.length>state.currentLimit?btn('展开下'+Math.min(3,pending.length-state.currentLimit)+'个任务','more-current','','link'):''}
+        ${state.currentLimit>3?btn('收起','collapse-current','','link'):''}
+      </div>
       </section>
       <section class="wx-todos" aria-label="剩余待办">
         <div class="row between"><h2>剩余待办</h2><span class="sub">剩余${groups.reduce((sum,g)=>sum+g.entries.length,0)}个任务</span></div>
-        ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:`<p class="sub">${pending.length?'其他待办已处理完，继续加油！':'待办都处理完啦，辛苦了！'}</p>`}
-        ${groups.length>10?btn(state.othersExpanded?'收起':'展示其余客户/群','toggle-others','','link'):''}
+        ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:`<p class="sub">${pending.length?'其他待办已处理完，继续加油！':'全部待办都处理完啦，辛苦了！'}</p>`}
+        <div class="row">
+          ${groups.length>state.objectLimit?btn('展示下'+Math.min(3,groups.length-state.objectLimit)+'个客户/群','more-objects','','link'):''}
+          ${state.objectLimit>10?btn('收起','collapse-objects','','link'):''}
+        </div>
       </section>
     </div>`;
 }
@@ -1227,6 +1262,7 @@ const sopScenes = [
   ['group-alert','群预警','bell'],
   ['continuous','多客户连续执行','chat'],
   ['empty-chat','无待办会话','chat'],
+  ['current-only','仅当前有待办','person'],
 ];
 const alertScenes = sopScenes;
 function render(keepScroll=false) {
@@ -1260,6 +1296,7 @@ function render(keepScroll=false) {
 function scene(id) {
   if($('dialog').open) $('dialog').close();
   state.demoEmpty=id==='empty-chat';
+  state.demoCurrentOnly=id==='current-only';
   state.activeScene=id==='employee-todos'?'continuous':sopScenes.some(([key])=>key===id)?id:'inbox';
   if(id==='single') return enterObject(taskById('single'),'wm-xu','',true);
   if(id==='group') return enterObject(taskById('group'),'wr-manchester','',true);
@@ -1273,6 +1310,7 @@ function scene(id) {
     return;
   }
   if(id==='empty-chat') return enterObject(null,'wm-su','',true);
+  if(id==='current-only') return enterObject(taskById('single'),'wm-xu','',true);
   if(id==='reminder' || id==='handling') return openAlert(id==='reminder'?'a-quiet':'a-intent');
   if(id==='result') return showResult(taskById('complete'));
   if(id==='config') {
@@ -1439,10 +1477,12 @@ const actions = {
   'send-all':taskId=>stageMessages(null,taskById(taskId)),
   'submit-message':submitMessages,
   'toggle-side':()=>{state.sideOpen=!state.sideOpen;render();},
-  'toggle-others':()=>{
-    state.othersExpanded=!state.othersExpanded;
-    render(true);
-  },
+  'more-current':()=>{state.currentLimit+=3;render(true);},
+  'collapse-current':()=>{state.currentLimit=3;state.expandedTodo=null;render(true);},
+  'more-summary':id=>{state.summaryLimits[id]=(state.summaryLimits[id]??3)+3;render(true);},
+  'collapse-summary':id=>{state.summaryLimits[id]=3;render(true);},
+  'more-objects':()=>{state.objectLimit+=3;render(true);},
+  'collapse-objects':()=>{state.objectLimit=10;render(true);},
   'todo-tab':id=>{state.todoTab=id;render();},
   menu:tab=>{state.menu=tab;render();},
   next:id=>openSop(id,true), result:id=>showResult(taskById(id)),
