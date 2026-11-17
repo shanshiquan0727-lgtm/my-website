@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>企微任务通知与预警处理 · CDP 交互原型</title>
+<title>企微执行链路优化</title>
 <style>
 /* 公共视觉基准。按需使用组件，不代表需要在页面加入对应功能。 */
 :root {
@@ -329,6 +329,12 @@ dialog::backdrop{background:#16263b66}
 .wx-todo-row small{display:block;overflow-wrap:anywhere}
 .wx-todo-row .cdp-button{height:26px;padding:0 10px;font-size:12px}
 .wx-overdue{color:#b02b36}
+.opening-page{height:100vh;background:#f5f7fa;display:flex;flex-direction:column}
+.opening-head{height:52px;padding:15px 22px;background:white;border-bottom:1px solid #e4eaf2;font-weight:600}
+.opening-content{flex:1;display:grid;place-content:center;text-align:center;gap:12px;padding:24px}
+.opening-content h1{font-size:18px;overflow-wrap:anywhere}
+.opening-spinner{width:30px;height:30px;margin:0 auto 8px;border:3px solid #dce8fc;border-top-color:#165dff;border-radius:50%;animation:opening-spin .8s linear infinite}
+@keyframes opening-spin{to{transform:rotate(360deg)}}
 .wx-alert-content{display:grid;gap:11px;font-size:12px}
 .wx-alert-content h3{font-size:12px;margin-bottom:4px}
 .wx-alert-content p{margin:0;overflow-wrap:anywhere}
@@ -509,6 +515,7 @@ const alertBadge = (a) => a.mode === 'handle'
   : a.confirmed ? tag('已确认已阅','green') : a.viewed ? tag('已查看','green') : a.pushed ? tag('已推送','blue') : tag('已触发');
 const state = {view:'messages', task:'', contact:'', alert:'', menu:'资料', wecomChat:true, todoReturn:null, expandedTodo:null, followupId:null, followupFeedback:'', sopRead:false, sideOpen:true, othersExpanded:false, todoTab:'pending', openedQueue:false, openedRecords:false, note:'', draft:null};
 let noticeTimer;
+let transitionTimer;
 function feedback(message) {
   clearTimeout(noticeTimer);
   $('toast').textContent = message;
@@ -516,6 +523,7 @@ function feedback(message) {
   noticeTimer = setTimeout(() => { $('toast').hidden = true; }, 3200);
 }
 function go(view) {
+  clearTimeout(transitionTimer);
   $('toast').hidden = true;
   state.view = view;
   state.draft = null;
@@ -543,6 +551,21 @@ function enterObject(task, id, note='', showTodos=false) {
   state.openedRecords = false;
   go('chat');
 }
+function openConversationFromNotice(task,id,note='') {
+  const target={task,id,note};
+  state.transition=target;
+  go('opening');
+  transitionTimer=setTimeout(()=>{
+    if(state.view==='opening'&&state.transition===target) enterObject(task,id,note);
+  },1200);
+}
+function openingView() {
+  const name=contacts[state.transition.id].name;
+  return `<div class="opening-page"><header class="opening-head">员工待办</header>
+    <main class="opening-content" role="status"><div class="opening-spinner" aria-hidden="true"></div>
+      <h1>正在打开${esc(name)}的会话…</h1><p class="sub">请稍候，将自动进入企业微信聊天</p>
+    </main></div>`;
+}
 function openSop(id, following=false) {
   const task = taskById(id);
   const pending = task.objects.filter((obj) => !finished(obj));
@@ -556,7 +579,10 @@ function openSop(id, following=false) {
     return false;
   });
   const note = inaccessible.length ? `已跳过不可访问的会话：${inaccessible.join('、')}。相关对象仍未完成。` : '';
-  if (next) enterObject(task,next.id,note);
+  if (next) {
+    if(following) enterObject(task,next.id,note);
+    else openConversationFromNotice(task,next.id,note);
+  }
   else showResult(task, pending.length ? '当前没有可访问的待执行会话。' : '');
 }
 function openAlert(id, todoReturn=null, returnPage='alert-inbox') {
@@ -1190,6 +1216,12 @@ const alertScenes = [
   ['inbox','SOP 通知','bell'],['alert-inbox','预警通知','chat'],['plans','预警计划与统计','list'],['config','预警计划配置','grid'],
 ];
 function render(keepScroll=false) {
+  if(state.view==='opening') {
+    app.innerHTML=openingView();
+    $('scenes').classList.add('wecom-scenes');
+    $('scenes').innerHTML='<div class="rail-title">原型场景</div>'+sopScenes.map(([id,label,symbol])=>`<button type="button" class="rail-action" data-action="scene" data-id="${id}">${icon(symbol)}${label}</button>`).join('');
+    return;
+  }
   const scroll = keepScroll ? [...app.querySelectorAll('[data-scroll]')].map(e=>[e.dataset.scroll,e.scrollTop]) : [];
   const task=selectedTask();
   const wecom=['messages','inbox'].includes(state.view) ||
@@ -1352,7 +1384,7 @@ const actions = {
   'wx-alert':id=>{
     const alert=alertById(id);
     alert.viewed=true;
-    enterObject(null,alert.target);
+    openConversationFromNotice(null,alert.target);
   },
   'confirm-visit':id=>{
     const alert=alertById(id);
