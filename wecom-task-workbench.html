@@ -329,12 +329,16 @@ dialog::backdrop{background:#16263b66}
 .wx-todo-row small{display:block;overflow-wrap:anywhere}
 .wx-todo-row .cdp-button{height:26px;padding:0 10px;font-size:12px}
 .wx-overdue{color:#b02b36}
-.opening-page{height:100vh;background:#f5f7fa;display:flex;flex-direction:column}
-.opening-head{height:52px;padding:15px 22px;background:white;border-bottom:1px solid #e4eaf2;font-weight:600}
+.opening-host{position:fixed;inset:0 0 0 306px;display:grid;place-items:center;padding:24px;pointer-events:none;z-index:80}
+.opening-page{width:min(620px,100%);height:min(380px,calc(100vh - 100px));background:white;display:flex;flex-direction:column;border:1px solid #d9dfe8;border-radius:6px;box-shadow:0 10px 40px #25354a30;pointer-events:auto;overflow:hidden}
+.opening-head{height:42px;padding:9px 14px;background:#f6f7f8;border-bottom:1px solid #e4eaf2;display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.opening-head button{border:0;background:none;color:#7a818b;font-size:18px;cursor:pointer}
 .opening-content{flex:1;display:grid;place-content:center;text-align:center;gap:12px;padding:24px}
-.opening-content h1{font-size:18px;overflow-wrap:anywhere}
+.opening-content h1{font-size:15px;overflow-wrap:anywhere}
 .opening-spinner{width:30px;height:30px;margin:0 auto 8px;border:3px solid #dce8fc;border-top-color:#165dff;border-radius:50%;animation:opening-spin .8s linear infinite}
 @keyframes opening-spin{to{transform:rotate(360deg)}}
+@media(max-width:1080px){.opening-host{left:257px}}
+@media(max-width:800px){.opening-host{left:201px;padding:16px}}
 .wx-alert-content{display:grid;gap:11px;font-size:12px}
 .wx-alert-content h3{font-size:12px;margin-bottom:4px}
 .wx-alert-content p{margin:0;overflow-wrap:anywhere}
@@ -560,11 +564,11 @@ function openConversationFromNotice(task,id,note='') {
   },1200);
 }
 function openingView() {
-  const name=contacts[state.transition.id].name;
-  return `<div class="opening-page"><header class="opening-head">员工待办</header>
+  return `<div class="opening-host"><div class="opening-page" role="dialog" aria-label="员工待办 H5">
+    <header class="opening-head"><span class="wx-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>员工待办</span><button type="button" aria-label="关闭过渡页" data-action="scene" data-id="inbox">×</button></header>
     <main class="opening-content" role="status"><div class="opening-spinner" aria-hidden="true"></div>
-      <h1>正在打开${esc(name)}的会话…</h1><p class="sub">请稍候，将自动进入企业微信聊天</p>
-    </main></div>`;
+      <h1>正在打开客户或群的会话…</h1>
+    </main></div></div>`;
 }
 function openSop(id, following=false) {
   const task = taskById(id);
@@ -662,7 +666,7 @@ function wxList() {
   const chat=state.view==='chat', task=selectedTask();
   const samples=['wm-shen','wm-he','wm-xu','wm-su','wr-manchester','wr-london'];
   const clientIds=chat ? [...new Set([state.contact,...samples,...(task?.objects.filter(o=>o.accessible).map(o=>o.id)??[])])] : samples;
-  const active = state.view==='inbox' || state.view==='result';
+  const active = ['inbox','result','opening'].includes(state.view);
   const files = `<span class="avatar wx-files-avatar">${icon('file')}</span><span class="grow truncate"><strong class="conv-name">文件传输助手</strong><small>文件传输与资料保存</small></span>`;
   const appIcon = `<span class="wx-avatar-wrap"><span class="avatar wx-app-avatar">S</span>${state.sopRead?'':'<span class="wx-unread">3</span>'}</span>`;
   return `<aside class="left"><div class="wx-search"><span class="grow">${icon('search')} 搜索</span><span class="wx-plus">＋</span></div>
@@ -1217,7 +1221,7 @@ const alertScenes = [
 ];
 function render(keepScroll=false) {
   if(state.view==='opening') {
-    app.innerHTML=openingView();
+    app.innerHTML=`<div class="desktop wecom">${wxRail()}${wxList()}<main class="main">${inbox()}</main></div>`+openingView();
     $('scenes').classList.add('wecom-scenes');
     $('scenes').innerHTML='<div class="rail-title">原型场景</div>'+sopScenes.map(([id,label,symbol])=>`<button type="button" class="rail-action" data-action="scene" data-id="${id}">${icon(symbol)}${label}</button>`).join('');
     return;
