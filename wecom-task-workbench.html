@@ -485,8 +485,8 @@ const selectedTask = () => taskById(state.task);
 const avatar = (id) => `<span class="avatar${contacts[id].group ? ' group' : ''}">${contacts[id].initials}</span>`;
 
 const plans = [
-  {id:'quiet',title:'客户活跃异常提醒',kind:'客户',target:'wm-xu',condition:'连续 7 天未互动',mode:'notice',staff:userName,message:'客户连续 7 天未互动，请关注近期咨询情况。',ack:true,advice:'可结合客户的租房阶段决定是否跟进。'},
-  {id:'group-quiet',title:'客户群活跃度下降',kind:'客户群',target:'wr-london',condition:'近 3 天群消息少于 5 条',mode:'notice',staff:userName,message:'近期群活跃度下降，请关注社群情况。',ack:false,advice:''},
+  {id:'quiet',title:'客户活跃异常提醒',kind:'客户',target:'wm-xu',condition:'连续 7 天未互动',mode:'notice',staff:userName,message:'客户连续 7 天未互动，请关注近期咨询情况。',hasDue:true,hours:24,ack:true,advice:'可结合客户的租房阶段决定是否跟进。'},
+  {id:'group-quiet',title:'客户群活跃度下降',kind:'客户群',target:'wr-london',condition:'近 3 天群消息少于 5 条',mode:'notice',staff:userName,message:'近期群活跃度下降，请关注社群情况。',hasDue:true,hours:24,ack:false,advice:''},
   {id:'intent',title:'高意向客户未跟进预警',kind:'客户',target:'wm-he',condition:'高意向客户连续 3 天未跟进',mode:'handle',staff:userName,requirement:'联系客户，确认当前租房计划和下一步安排，并记录结果。',hasDue:true,hours:24,nudge:true,resultRequired:true},
   {id:'complaint',title:'群内投诉关键词命中',kind:'客户群',target:'wr-manchester',condition:'群消息命中「投诉」',mode:'handle',staff:userName,requirement:'核实反馈并同步处理进展。',hasDue:true,hours:24,nudge:false,resultRequired:false},
 ];
