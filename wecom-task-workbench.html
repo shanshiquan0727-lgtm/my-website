@@ -417,10 +417,10 @@ const additionalCustomers = [
 const contacts = {
   ...Object.fromEntries(additionalCustomers.map(([id,name])=>[id,{name,initials:name[0],description:'企业微信客户 · 公寓咨询',hello:'您好，想了解一下公寓资料。'}])),
 
-  'wm-xu':{name:'许知远', initials:'许', description:'企业微信客户 · 英国留学租房', hello:'你好，我想了解一下学校附近的公寓。'},
+  'wm-xu':{name:'许知远', initials:'许', phone:'13800000001', description:'企业微信客户 · 英国留学租房', hello:'你好，我想了解一下学校附近的公寓。'},
   'wm-zhou':{name:'周予安', initials:'周', description:'企业微信客户 · 新增咨询', hello:'好的，资料可以发我看看。'},
-  'wm-shen':{name:'沈嘉禾', initials:'沈', description:'企业微信客户 · 新增咨询', hello:'我准备明年入学，想先了解下。'},
-  'wm-he':{name:'何雨桐', initials:'何', description:'企业微信客户 · 公寓咨询', hello:'最近有新的公寓推荐吗？'},
+  'wm-shen':{name:'沈嘉禾', initials:'沈', phone:'13800000002', description:'企业微信客户 · 新增咨询', hello:'我准备明年入学，想先了解下。'},
+  'wm-he':{name:'何雨桐', initials:'何', phone:'13800000003', description:'企业微信客户 · 公寓咨询', hello:'最近有新的公寓推荐吗？'},
   'wm-lin':{name:'林奕辰', initials:'林', description:'企业微信客户 · 新增咨询', hello:'我主要想比较一下通勤时间。'},
   'wm-lu':{name:'陆清妍', initials:'陆', description:'企业微信客户 · 已解除客户关系', hello:''},
   'wm-su':{name:'苏澄', initials:'苏', description:'企业微信客户 · 咨询已结束', hello:'好的，我已经收到之前的资料了，谢谢。'},
@@ -858,8 +858,10 @@ function alertDetailFields(alert) {
 }
 function wxAlertContent(alert) {
   const editing=state.followupId===alert.id;
+  const phone=contacts[alert.target].phone;
   const hit=alert.eventWindow?`${alert.eventWindow}内${alert.hitSummary??alert.condition}`:alert.hitSummary??alert.condition;
   return `<div class="wx-alert-content">
+    ${alert.kind==='客户'?`<div class="wx-alert-line"><span>手机号：</span><div class="row grow"><span>${esc(phone??'暂无手机号')}</span>${phone?btn('复制','copy-phone',alert.target,'link'):''}</div></div>`:''}
     <div class="wx-alert-line"><span>命中事件：</span><div class="grow"><p>${esc(hit)}</p>
       <div class="wx-alert-fields">${alertDetailFields(alert).map(([label,value])=>`<p>${esc(label)}：${esc(value)}</p>`).join('')}</div>
     </div></div>
@@ -1429,6 +1431,38 @@ async function sendItems(indexes,task=selectedTask()) {
   return !failed;
 }
 const actions = {
+  'copy-phone':async id=>{
+    const phone=contacts[id]?.phone;
+    const button=[...app.querySelectorAll('[data-action="copy-phone"]')].find(element=>element.dataset.id===id);
+    if(!phone||!button) return;
+    button.disabled=true;
+    let copied=false;
+    try {
+      await navigator.clipboard.writeText(phone);
+      copied=true;
+    } catch {
+      const focused=document.activeElement;
+      const text=document.createElement('textarea');
+      text.value=phone;
+      text.readOnly=true;
+      text.style.cssText='position:fixed;opacity:0;pointer-events:none';
+      document.body.append(text);
+      try {
+        text.select();
+        copied=document.execCommand('copy');
+      } catch {
+        copied=false;
+      } finally {
+        text.remove();
+        focused?.focus();
+      }
+    } finally {
+      if(button.isConnected) {
+        button.disabled=false;
+        button.textContent=copied?'已复制':'请手动复制';
+      }
+    }
+  },
   scene, 'open-sop':openSop, 'open-alert':openAlert, switch:switchObject,
   'open-contact':id=>{
     if(state.view==='chat' && state.contact===id) return;
