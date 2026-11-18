@@ -919,7 +919,7 @@ function wxObjectRow({id,entries}) {
       <strong class="wx-mention">@${esc(contacts[id].name)}</strong>
       ${ordered.slice(0,limit).map(summary).join('')}
       <div class="row" style="margin-top:5px">
-        ${ordered.length>limit?btn('展开下'+Math.min(3,ordered.length-limit)+'个任务','more-summary',id,'link'):''}
+        ${ordered.length>limit?btn('展开','more-summary',id,'link'):''}
         ${limit>3?btn('收起','collapse-summary',id,'link'):''}
       </div>
     </div>
@@ -964,7 +964,7 @@ function wxTaskPane() {
           ${next?`<div class="cdp-actions" style="margin-top:6px">
             ${btn('前往下一个','open-contact',next.id,'primary')}</div>`:''}</div>`}
       <div class="row">
-        ${pending.length>state.currentLimit?btn('展开下'+Math.min(3,pending.length-state.currentLimit)+'个任务','more-current','','link'):''}
+        ${pending.length>state.currentLimit?btn('展开','more-current','','link'):''}
         ${state.currentLimit>3?btn('收起','collapse-current','','link'):''}
       </div>
       </section>
@@ -972,7 +972,7 @@ function wxTaskPane() {
         <div class="row between"><h2>剩余待办</h2><span class="sub">剩余${groups.reduce((sum,g)=>sum+g.entries.length,0)}个任务</span></div>
         ${groups.length?`<div class="wx-object-list">${shown.map(wxObjectRow).join('')}</div>`:`<p class="sub">${pending.length?'其他待办已处理完，继续加油！':'全部待办都处理完啦，辛苦了！'}</p>`}
         <div class="row">
-          ${groups.length>state.objectLimit?btn('展示下'+Math.min(3,groups.length-state.objectLimit)+'个客户/群','more-objects','','link'):''}
+          ${groups.length>state.objectLimit?btn('展开','more-objects','','link'):''}
           ${state.objectLimit>10?btn('收起','collapse-objects','','link'):''}
         </div>
       </section>
