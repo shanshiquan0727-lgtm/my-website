@@ -244,6 +244,7 @@
             { name: "任务结果标签.html", type: "file", createdAt: "2026-09-01T00:00:00Z" },
             { name: "会话行为标签接入公共条件.html", type: "file", createdAt: "2026-07-16T05:39:02Z" },
             { name: "归因分析.html", type: "file", createdAt: "2026-08-13T00:00:00Z" },
+            {"name": "房源话术接入.html", "type": "file"},
             { name: "标签同步.html", type: "file", createdAt: "2026-06-17T08:14:33Z" },
             { name: "楼书实拍批量创建CDP素材-交互原型.html", type: "file", createdAt: "2026-08-08T08:45:45Z" },
             { name: "群标签手动创建-交互原型.html", type: "file", createdAt: "2026-07-09T01:31:57Z" },
@@ -291,7 +292,7 @@
 
         function prototypeHref(filename) {
             const path = [REPO.pathPrefix, filename].filter(Boolean).join("/");
-            return encodeURI(path);
+            return encodeURI(path) + (filename === "房源话术接入.html" ? "?page=property-library" : "");
         }
 
         function monthKey(createdAt) {
