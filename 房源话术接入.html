@@ -1815,9 +1815,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 .wecom-message.is-out{flex-direction:row-reverse}
 .wecom-bubble{padding:12px 16px;max-width:min(85%,560px);background:white;border:1px solid var(--cdp-border);border-radius:4px;white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}
 .wecom-message.is-out .wecom-bubble{background:#dceeff;border-color:#dceeff}
-.wecom-compose{height:160px;flex-shrink:0;border-top:1px solid var(--cdp-border);padding:16px 24px;color:#9aa5b4}
+.wecom-compose{display:flex;flex-direction:column;gap:8px;height:160px;flex-shrink:0;border-top:1px solid var(--cdp-border);padding:16px 24px;color:#9aa5b4}
 .wecom-compose-tools{display:flex;gap:22px;align-items:center;color:#768294;font-size:20px}
-.wecom-compose-blank{height:60px}
+.wecom-compose-blank{flex:1;min-height:0;overflow:auto;outline:none;color:var(--cdp-text);font-size:13px;line-height:20px}
+.wecom-draft-item{white-space:pre-wrap;overflow-wrap:anywhere}
+.wecom-draft-item+.wecom-draft-item{margin-top:8px}
+.wecom-draft-item .wecom-attachment{max-width:300px}
 .wecom-side{border-left:1px solid var(--cdp-border);display:flex;flex-direction:column;min-width:0;overflow:hidden;position:relative;background:white}
 .wecom-shortcuts{padding:16px 16px 8px;display:flex;flex-wrap:wrap;gap:18px 20px;font-size:12px;color:#7b828d;flex-shrink:0}
 .wecom-shortcuts-more{padding:0 16px 12px;color:var(--cdp-primary);font-size:12px}
@@ -1859,7 +1862,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 .wecom-star[aria-pressed=true]{color:#ff9700}
 .wecom-card-path{font-size:11px;color:var(--cdp-muted);font-weight:400;line-height:1.7;margin:6px 0 0;overflow-wrap:anywhere}
 .wecom-card-content{padding:12px 0;border-top:1px solid var(--cdp-border);border-bottom:1px solid var(--cdp-border);margin:12px 0}
-.wecom-card-body{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;color:var(--cdp-text);font-size:13px;line-height:1.9;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}
+.wecom-card-body{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:var(--cdp-text);font-size:13px;line-height:1.9;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text}
 .wecom-card-body.is-expanded{display:block}
 .wecom-card-expand{display:block;margin:6px 0 0 auto;font-size:12px!important}
 .wecom-card-actions{display:flex;align-items:center;gap:8px}
@@ -1938,9 +1941,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 .wecom-card-meta .wecom-source-badge{font-size:10px;padding:0 4px;line-height:17px;margin:0}
 .wecom-script-card>.wecom-card-path{font-size:11px;margin:5px 0 0;line-height:16px;white-space:normal;overflow-wrap:anywhere}
 .wecom-card-content{padding:0 0 7px;margin:7px 0;border-top:0;border-bottom:1px solid var(--cdp-border)}
-.wecom-card-body{display:block;font-size:13px;line-height:20px;max-height:60px}
+.wecom-card-body{display:block;font-size:13px;line-height:20px;max-height:40px}
 .wecom-card-body.is-expanded{max-height:none}
-.wecom-card-expand{display:inline;margin:0 0 0 4px;padding:0;font-size:12px!important;line-height:20px;white-space:nowrap;vertical-align:baseline}
+.wecom-card-expand{display:inline;margin:0 0 0 4px;padding:0;font-size:12px!important;line-height:20px;height:20px;white-space:nowrap;vertical-align:top;box-sizing:border-box}
 .wecom-card-actions{justify-content:space-between;min-height:26px;gap:8px}
 .wecom-card-actions>.cdp-link{font-size:12px}
 .wecom-card-actions .cdp-button{flex:0 0 auto;margin-left:auto;height:26px;min-width:84px;padding:0 20px;font-size:12px}
@@ -2004,7 +2007,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <div class="wecom-message"><span class="wecom-avatar blue">李</span><div class="wecom-bubble">想先看看墨尔本市中心的公寓，暂时还没确定预算。</div></div>
       <div class="wecom-message is-out"><span class="wecom-avatar">顾</span><div class="wecom-bubble">好的，我帮你看看适合的房源。</div></div>
     </div>
-    <div class="wecom-compose" aria-hidden="true"><div class="wecom-compose-tools"><span>☺</span><span>✂</span><span>▧</span><span>▤</span><span>▱</span></div><div class="wecom-compose-blank"></div></div>
+    <div class="wecom-compose"><div class="wecom-compose-tools"><span>☺</span><span>✂</span><span>▧</span><span>▤</span><span>▱</span></div><div class="wecom-compose-blank" id="housing-chat-draft" role="textbox" aria-label="聊天输入框" aria-multiline="true" contenteditable="true"></div></div>
   </section>
   <aside class="wecom-side" aria-label="企微话术侧边栏">
     <div class="wecom-shortcuts"><span>集客出发</span><span>对接列表</span><span>分配列表</span><span>异常对接</span></div>
@@ -2152,150 +2155,250 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     {id:'campus-group',name:'社群校代话术',children:[{id:'campus',name:'校代合作沟通'}]}
   ];
   const regularScripts=[
-    {
-        "id": "enterprise-201",
-        "source": "enterprise",
-        "groupId": "room",
-        "title": "都有哪些房型？面积、厨房和卫浴该怎么比较？附房型示意图和申请材料清单",
-        "body": "选房时可以先把卧室面积、卫浴使用方式、厨房位置和收纳空间放在一起比较。房型名称相近，也不代表实际布局相同；我把需要核对的要点、户型示意图和申请材料清单一起发给你，方便你与家人讨论。\n\n你更在意独立做饭，还是希望和室友共用客厅？也可以把学校校区、预计入住日期和预算告诉我，我再帮你核对对应房型。示意图仅用于理解布局，具体面积与配置以实际房间资料为准。",
-        "tags": [
-            "房型对比",
-            "高频咨询"
-        ],
-        "status": "up",
-        "contents": [
-            {
-                "type": "text",
-                "text": "选房时可以先把卧室面积、卫浴使用方式、厨房位置和收纳空间放在一起比较。房型名称相近，也不代表实际布局相同；我把需要核对的要点、户型示意图和申请材料清单一起发给你，方便你与家人讨论。"
-            },
-            {
-                "type": "text",
-                "text": "你更在意独立做饭，还是希望和室友共用客厅？也可以把学校校区、预计入住日期和预算告诉我，我再帮你核对对应房型。示意图仅用于理解布局，具体面积与配置以实际房间资料为准。"
-            },
-            {
-                "type": "image",
-                "name": "房型布局示意图.png",
-                "size": "186 KB",
-                "src": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20240%20160%22%3E%3Crect%20width%3D%22240%22%20height%3D%22160%22%20fill%3D%22%23eef3f9%22%2F%3E%3Cpath%20d%3D%22M25%2020h190v119H25z%22%20fill%3D%22white%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M158%2020v63h57M25%20106h54v33%22%20fill%3D%22none%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%223%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2240%22%20width%3D%2265%22%20height%3D%2245%22%20rx%3D%223%22%20fill%3D%22%23d6e5f8%22%20stroke%3D%22%2387a5cf%22%2F%3E%3Crect%20x%3D%2248%22%20y%3D%2245%22%20width%3D%2216%22%20height%3D%2235%22%20rx%3D%223%22%20fill%3D%22white%22%2F%3E%3Crect%20x%3D%22174%22%20y%3D%2229%22%20width%3D%2231%22%20height%3D%2224%22%20fill%3D%22%23f3e6d1%22%2F%3E%3Crect%20x%3D%22126%22%20y%3D%22100%22%20width%3D%2265%22%20height%3D%2218%22%20fill%3D%22%23e0e9f2%22%2F%3E%3Ctext%20x%3D%22120%22%20y%3D%22153%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2210%22%20fill%3D%22%237c8da5%22%3E%E6%88%B7%E5%9E%8B%E7%A4%BA%E6%84%8F%E5%9B%BE%3C%2Ftext%3E%3C%2Fsvg%3E"
-            },
-            {
-                "type": "pdf",
-                "name": "租房申请材料清单.pdf",
-                "size": "1.2 MB"
-            }
-        ]
-    },
-    {
-        "id": "enterprise-202",
-        "source": "enterprise",
-        "groupId": "booking",
-        "title": "申请资料准备提醒",
-        "body": "确定房型后，我们可以一起核对申请材料和合同安排。你可以先准备好护照及学校相关材料，具体要求以公寓当期政策为准。\n\n如果有暂时无法提供的资料，也可以先告诉我，我帮你核对提交时间。\n\n如果暂时无法提供某项资料，先告诉我具体情况，我会向公寓核对可接受的提交安排。收到合同后，也请一起检查房型、日期、金额及办理节点，确认信息一致再按文件要求处理。",
-        "tags": [
-            "申请材料",
-            "预订跟进"
-        ],
-        "status": "up",
-        "contents": [
-            {
-                "type": "text",
-                "text": "确定房型后，我们可以一起核对申请材料和合同安排。你可以先准备好护照及学校相关材料，具体要求以公寓当期政策为准。\n\n如果有暂时无法提供的资料，也可以先告诉我，我帮你核对提交时间。"
-            },
-            {
-                "type": "text",
-                "text": "如果暂时无法提供某项资料，先告诉我具体情况，我会向公寓核对可接受的提交安排。收到合同后，也请一起检查房型、日期、金额及办理节点，确认信息一致再按文件要求处理。"
-            }
-        ]
-    },
-    {
-        "id": "enterprise-203",
-        "source": "enterprise",
-        "groupId": "prepare",
-        "title": "入住前准备清单与抵达办理说明",
-        "body": "",
-        "tags": [
-            "入住准备"
-        ],
-        "status": "up",
-        "contents": [
-            {
-                "type": "image",
-                "name": "入住前准备清单示意图.png",
-                "size": "248 KB",
-                "src": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20240%20160%22%3E%3Crect%20width%3D%22240%22%20height%3D%22160%22%20fill%3D%22%23eef3f9%22%2F%3E%3Cpath%20d%3D%22M25%2020h190v119H25z%22%20fill%3D%22white%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M158%2020v63h57M25%20106h54v33%22%20fill%3D%22none%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%223%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2240%22%20width%3D%2265%22%20height%3D%2245%22%20rx%3D%223%22%20fill%3D%22%23d6e5f8%22%20stroke%3D%22%2387a5cf%22%2F%3E%3Crect%20x%3D%2248%22%20y%3D%2245%22%20width%3D%2216%22%20height%3D%2235%22%20rx%3D%223%22%20fill%3D%22white%22%2F%3E%3Crect%20x%3D%22174%22%20y%3D%2229%22%20width%3D%2231%22%20height%3D%2224%22%20fill%3D%22%23f3e6d1%22%2F%3E%3Crect%20x%3D%22126%22%20y%3D%22100%22%20width%3D%2265%22%20height%3D%2218%22%20fill%3D%22%23e0e9f2%22%2F%3E%3Ctext%20x%3D%22120%22%20y%3D%22153%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2210%22%20fill%3D%22%237c8da5%22%3E%E6%88%B7%E5%9E%8B%E7%A4%BA%E6%84%8F%E5%9B%BE%3C%2Ftext%3E%3C%2Fsvg%3E"
-            },
-            {
-                "type": "pdf",
-                "name": "抵达与办理入住说明.pdf",
-                "size": "860 KB"
-            }
-        ]
-    },
-    {
-        "id": "enterprise-204",
-        "source": "enterprise",
-        "groupId": "support",
-        "title": "抵达后的入住沟通",
-        "body": "抵达后如果需要核对入住地点或办理流程，可以把公寓发来的通知给我，我们一起确认。如遇房间设施问题，建议先拍照记录，再按公寓提供的渠道反馈。",
-        "tags": [
-            "入住准备"
-        ],
-        "status": "up"
-    },
-    {
-        "id": "personal-301",
-        "source": "personal",
-        "title": "入住前行程跟进",
-        "body": "Hi～最近开始准备出发了吗？机票、签证和行李安排得怎么样？\n\n你可以把预计到达时间告诉我，我们再一起核对入住办理安排。如果航班调整，也记得同步一下，方便及时核对公寓的办理时段。",
-        "tags": [
-            "入住准备",
-            "行程跟进"
-        ],
-        "status": "up"
-    },
-    {
-        "id": "personal-302",
-        "source": "personal",
-        "title": "客户需求再次确认",
-        "body": "我再和你确认一下，目前主要考虑学校附近、独立卫浴的房间，对吗？你也可以补充预计入住时间和预算，我再帮你缩小选择范围。",
-        "tags": [
-            "需求沟通"
-        ],
-        "status": "up"
-    },
-    {
-        "id": "enterprise-205",
-        "source": "enterprise",
-        "groupId": "brand-intro",
-        "title": "首次触达与品牌介绍",
-        "body": "你好，我是你的租房顾问。你可以先告诉我学校、校区、预计入住时间和预算，我会帮你整理适合的房源，并把需要核对的信息逐项说明，方便你比较和选择。",
-        "tags": [
-            "需求沟通"
-        ],
-        "status": "up"
-    },
-    {
-        "id": "enterprise-206",
-        "source": "enterprise",
-        "groupId": "invite",
-        "title": "邀请进群了解房源与入住准备",
-        "body": "我可以邀请你加入对应地区的咨询群，方便一起了解房型、申请流程和入住准备。你先告诉我学校及预计入住时间，我再核对适合你的群，避免加入不相关的信息渠道。",
-        "tags": [
-            "需求沟通"
-        ],
-        "status": "up"
-    },
-    {
-        "id": "enterprise-207",
-        "source": "enterprise",
-        "groupId": "campus",
-        "title": "校代合作需求初步沟通",
-        "body": "可以先介绍一下你所在的学校、主要服务的同学群体，以及希望了解的合作事项。我会把需要对齐的信息整理好，再安排后续沟通。",
-        "tags": [
-            "需求沟通"
-        ],
-        "status": "up"
-    }
+  {
+    "id": "enterprise-208",
+    "source": "enterprise",
+    "groupId": "room",
+    "title": "预算与入住时间确认",
+    "body": "方便告诉我预算和预计入住时间吗？",
+    "tags": [
+      "高频咨询"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "text",
+        "text": "方便告诉我预算和预计入住时间吗？"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-209",
+    "source": "enterprise",
+    "groupId": "room",
+    "title": "房型、面积和厨房怎么比较？",
+    "body": "可以先从房间面积、卫浴和厨房的使用方式来比较。相近的房型名称不一定代表相同布局，建议结合对应房间的户型图和当期配置逐项核对。你可以告诉我学校校区、预计入住日期和预算，以及是否需要独立做饭，我会按这些条件帮你整理适合的选项，并确认具体费用和合同安排。",
+    "tags": [
+      "高频咨询"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "text",
+        "text": "可以先从房间面积、卫浴和厨房的使用方式来比较。相近的房型名称不一定代表相同布局，建议结合对应房间的户型图和当期配置逐项核对。你可以告诉我学校校区、预计入住日期和预算，以及是否需要独立做饭，我会按这些条件帮你整理适合的选项，并确认具体费用和合同安排。"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-210",
+    "source": "enterprise",
+    "groupId": "room",
+    "title": "选房建议与申请安排",
+    "body": "可以先从房间面积、卫浴和厨房的使用方式来比较。相近的房型名称不一定代表相同布局，建议结合对应房间的户型图和当期配置逐项核对。你可以告诉我学校校区、预计入住日期和预算，以及是否需要独立做饭，我会按这些条件帮你整理适合的选项，并确认具体费用和合同安排。\n\n确定意向房型后，我们再核对申请材料、合同起止时间、付款节点和入住办理要求。如果某项材料暂时无法提供，请先告诉我具体情况，我会向公寓确认提交安排。正式提交前，我们会一起检查房型、日期和金额是否一致，最终以公寓确认的文件为准。",
+    "tags": [
+      "高频咨询"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "text",
+        "text": "可以先从房间面积、卫浴和厨房的使用方式来比较。相近的房型名称不一定代表相同布局，建议结合对应房间的户型图和当期配置逐项核对。你可以告诉我学校校区、预计入住日期和预算，以及是否需要独立做饭，我会按这些条件帮你整理适合的选项，并确认具体费用和合同安排。"
+      },
+      {
+        "type": "text",
+        "text": "确定意向房型后，我们再核对申请材料、合同起止时间、付款节点和入住办理要求。如果某项材料暂时无法提供，请先告诉我具体情况，我会向公寓确认提交安排。正式提交前，我们会一起检查房型、日期和金额是否一致，最终以公寓确认的文件为准。"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-211",
+    "source": "enterprise",
+    "groupId": "room",
+    "title": "申请说明与材料清单",
+    "body": "确定意向房型后，我们再核对申请材料、合同起止时间、付款节点和入住办理要求。如果某项材料暂时无法提供，请先告诉我具体情况，我会向公寓确认提交安排。正式提交前，我们会一起检查房型、日期和金额是否一致，最终以公寓确认的文件为准。",
+    "tags": [
+      "高频咨询"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "text",
+        "text": "确定意向房型后，我们再核对申请材料、合同起止时间、付款节点和入住办理要求。如果某项材料暂时无法提供，请先告诉我具体情况，我会向公寓确认提交安排。正式提交前，我们会一起检查房型、日期和金额是否一致，最终以公寓确认的文件为准。"
+      },
+      {
+        "type": "pdf",
+        "name": "租房申请材料清单.pdf",
+        "size": "1.2 MB"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-212",
+    "source": "enterprise",
+    "groupId": "room",
+    "title": "户型图发你参考",
+    "body": "这张户型图发你参考，我们再一起核对具体配置。",
+    "tags": [
+      "高频咨询"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "text",
+        "text": "这张户型图发你参考，我们再一起核对具体配置。"
+      },
+      {
+        "type": "image",
+        "name": "房型布局示意图.png",
+        "size": "186 KB",
+        "src": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20240%20160%22%3E%3Crect%20width%3D%22240%22%20height%3D%22160%22%20fill%3D%22%23eef3f9%22%2F%3E%3Cpath%20d%3D%22M25%2020h190v119H25z%22%20fill%3D%22white%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M158%2020v63h57M25%20106h54v33%22%20fill%3D%22none%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%223%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2240%22%20width%3D%2265%22%20height%3D%2245%22%20rx%3D%223%22%20fill%3D%22%23d6e5f8%22%20stroke%3D%22%2387a5cf%22%2F%3E%3Crect%20x%3D%2248%22%20y%3D%2245%22%20width%3D%2216%22%20height%3D%2235%22%20rx%3D%223%22%20fill%3D%22white%22%2F%3E%3Crect%20x%3D%22174%22%20y%3D%2229%22%20width%3D%2231%22%20height%3D%2224%22%20fill%3D%22%23f3e6d1%22%2F%3E%3Crect%20x%3D%22126%22%20y%3D%22100%22%20width%3D%2265%22%20height%3D%2218%22%20fill%3D%22%23e0e9f2%22%2F%3E%3Ctext%20x%3D%22120%22%20y%3D%22153%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2210%22%20fill%3D%22%237c8da5%22%3E%E6%88%B7%E5%9E%8B%E7%A4%BA%E6%84%8F%E5%9B%BE%3C%2Ftext%3E%3C%2Fsvg%3E"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-201",
+    "source": "enterprise",
+    "groupId": "room",
+    "title": "都有哪些房型？面积、厨房和卫浴该怎么比较？附房型示意图和申请材料清单",
+    "body": "选房时可以先把卧室面积、卫浴使用方式、厨房位置和收纳空间放在一起比较。房型名称相近，也不代表实际布局相同；我把需要核对的要点、户型示意图和申请材料清单一起发给你，方便你与家人讨论。\n\n你更在意独立做饭，还是希望和室友共用客厅？也可以把学校校区、预计入住日期和预算告诉我，我再帮你核对对应房型。示意图仅用于理解布局，具体面积与配置以实际房间资料为准。",
+    "tags": [
+      "房型对比",
+      "高频咨询"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "text",
+        "text": "选房时可以先把卧室面积、卫浴使用方式、厨房位置和收纳空间放在一起比较。房型名称相近，也不代表实际布局相同；我把需要核对的要点、户型示意图和申请材料清单一起发给你，方便你与家人讨论。"
+      },
+      {
+        "type": "text",
+        "text": "你更在意独立做饭，还是希望和室友共用客厅？也可以把学校校区、预计入住日期和预算告诉我，我再帮你核对对应房型。示意图仅用于理解布局，具体面积与配置以实际房间资料为准。"
+      },
+      {
+        "type": "image",
+        "name": "房型布局示意图.png",
+        "size": "186 KB",
+        "src": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20240%20160%22%3E%3Crect%20width%3D%22240%22%20height%3D%22160%22%20fill%3D%22%23eef3f9%22%2F%3E%3Cpath%20d%3D%22M25%2020h190v119H25z%22%20fill%3D%22white%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M158%2020v63h57M25%20106h54v33%22%20fill%3D%22none%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%223%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2240%22%20width%3D%2265%22%20height%3D%2245%22%20rx%3D%223%22%20fill%3D%22%23d6e5f8%22%20stroke%3D%22%2387a5cf%22%2F%3E%3Crect%20x%3D%2248%22%20y%3D%2245%22%20width%3D%2216%22%20height%3D%2235%22%20rx%3D%223%22%20fill%3D%22white%22%2F%3E%3Crect%20x%3D%22174%22%20y%3D%2229%22%20width%3D%2231%22%20height%3D%2224%22%20fill%3D%22%23f3e6d1%22%2F%3E%3Crect%20x%3D%22126%22%20y%3D%22100%22%20width%3D%2265%22%20height%3D%2218%22%20fill%3D%22%23e0e9f2%22%2F%3E%3Ctext%20x%3D%22120%22%20y%3D%22153%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2210%22%20fill%3D%22%237c8da5%22%3E%E6%88%B7%E5%9E%8B%E7%A4%BA%E6%84%8F%E5%9B%BE%3C%2Ftext%3E%3C%2Fsvg%3E"
+      },
+      {
+        "type": "pdf",
+        "name": "租房申请材料清单.pdf",
+        "size": "1.2 MB"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-202",
+    "source": "enterprise",
+    "groupId": "booking",
+    "title": "申请资料准备提醒",
+    "body": "确定房型后，我们可以一起核对申请材料和合同安排。你可以先准备好护照及学校相关材料，具体要求以公寓当期政策为准。\n\n如果有暂时无法提供的资料，也可以先告诉我，我帮你核对提交时间。\n\n如果暂时无法提供某项资料，先告诉我具体情况，我会向公寓核对可接受的提交安排。收到合同后，也请一起检查房型、日期、金额及办理节点，确认信息一致再按文件要求处理。",
+    "tags": [
+      "申请材料",
+      "预订跟进"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "text",
+        "text": "确定房型后，我们可以一起核对申请材料和合同安排。你可以先准备好护照及学校相关材料，具体要求以公寓当期政策为准。\n\n如果有暂时无法提供的资料，也可以先告诉我，我帮你核对提交时间。"
+      },
+      {
+        "type": "text",
+        "text": "如果暂时无法提供某项资料，先告诉我具体情况，我会向公寓核对可接受的提交安排。收到合同后，也请一起检查房型、日期、金额及办理节点，确认信息一致再按文件要求处理。"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-203",
+    "source": "enterprise",
+    "groupId": "prepare",
+    "title": "入住前准备清单与抵达办理说明",
+    "body": "",
+    "tags": [
+      "入住准备"
+    ],
+    "status": "up",
+    "contents": [
+      {
+        "type": "image",
+        "name": "入住前准备清单示意图.png",
+        "size": "248 KB",
+        "src": "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20240%20160%22%3E%3Crect%20width%3D%22240%22%20height%3D%22160%22%20fill%3D%22%23eef3f9%22%2F%3E%3Cpath%20d%3D%22M25%2020h190v119H25z%22%20fill%3D%22white%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22M158%2020v63h57M25%20106h54v33%22%20fill%3D%22none%22%20stroke%3D%22%237089ad%22%20stroke-width%3D%223%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2240%22%20width%3D%2265%22%20height%3D%2245%22%20rx%3D%223%22%20fill%3D%22%23d6e5f8%22%20stroke%3D%22%2387a5cf%22%2F%3E%3Crect%20x%3D%2248%22%20y%3D%2245%22%20width%3D%2216%22%20height%3D%2235%22%20rx%3D%223%22%20fill%3D%22white%22%2F%3E%3Crect%20x%3D%22174%22%20y%3D%2229%22%20width%3D%2231%22%20height%3D%2224%22%20fill%3D%22%23f3e6d1%22%2F%3E%3Crect%20x%3D%22126%22%20y%3D%22100%22%20width%3D%2265%22%20height%3D%2218%22%20fill%3D%22%23e0e9f2%22%2F%3E%3Ctext%20x%3D%22120%22%20y%3D%22153%22%20text-anchor%3D%22middle%22%20font-family%3D%22sans-serif%22%20font-size%3D%2210%22%20fill%3D%22%237c8da5%22%3E%E6%88%B7%E5%9E%8B%E7%A4%BA%E6%84%8F%E5%9B%BE%3C%2Ftext%3E%3C%2Fsvg%3E"
+      },
+      {
+        "type": "pdf",
+        "name": "抵达与办理入住说明.pdf",
+        "size": "860 KB"
+      }
+    ]
+  },
+  {
+    "id": "enterprise-204",
+    "source": "enterprise",
+    "groupId": "support",
+    "title": "抵达后的入住沟通",
+    "body": "抵达后如果需要核对入住地点或办理流程，可以把公寓发来的通知给我，我们一起确认。如遇房间设施问题，建议先拍照记录，再按公寓提供的渠道反馈。",
+    "tags": [
+      "入住准备"
+    ],
+    "status": "up"
+  },
+  {
+    "id": "personal-301",
+    "source": "personal",
+    "title": "入住前行程跟进",
+    "body": "Hi～最近开始准备出发了吗？机票、签证和行李安排得怎么样？\n\n你可以把预计到达时间告诉我，我们再一起核对入住办理安排。如果航班调整，也记得同步一下，方便及时核对公寓的办理时段。",
+    "tags": [
+      "入住准备",
+      "行程跟进"
+    ],
+    "status": "up"
+  },
+  {
+    "id": "personal-302",
+    "source": "personal",
+    "title": "客户需求再次确认",
+    "body": "我再和你确认一下，目前主要考虑学校附近、独立卫浴的房间，对吗？你也可以补充预计入住时间和预算，我再帮你缩小选择范围。",
+    "tags": [
+      "需求沟通"
+    ],
+    "status": "up"
+  },
+  {
+    "id": "enterprise-205",
+    "source": "enterprise",
+    "groupId": "brand-intro",
+    "title": "首次触达与品牌介绍",
+    "body": "你好，我是你的租房顾问。你可以先告诉我学校、校区、预计入住时间和预算，我会帮你整理适合的房源，并把需要核对的信息逐项说明，方便你比较和选择。",
+    "tags": [
+      "需求沟通"
+    ],
+    "status": "up"
+  },
+  {
+    "id": "enterprise-206",
+    "source": "enterprise",
+    "groupId": "invite",
+    "title": "邀请进群了解房源与入住准备",
+    "body": "我可以邀请你加入对应地区的咨询群，方便一起了解房型、申请流程和入住准备。你先告诉我学校及预计入住时间，我再核对适合你的群，避免加入不相关的信息渠道。",
+    "tags": [
+      "需求沟通"
+    ],
+    "status": "up"
+  },
+  {
+    "id": "enterprise-207",
+    "source": "enterprise",
+    "groupId": "campus",
+    "title": "校代合作需求初步沟通",
+    "body": "可以先介绍一下你所在的学校、主要服务的同学群体，以及希望了解的合作事项。我会把需要对齐的信息整理好，再安排后续沟通。",
+    "tags": [
+      "需求沟通"
+    ],
+    "status": "up"
+  }
 ];
   regularScripts.forEach(s=>scriptById.set(s.id,s));
   const sourceNames={enterprise:'通用话术',personal:'个人话术',property:'房源话术'};
@@ -2385,21 +2488,29 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const path=showPath&&(s.source==='property'||state.sideTab==='favorites'&&s.source==='enterprise')?scriptPath(s):'',fav=state.favorites.has(s.id),items=contentItems(s),multiple=items.length>1,expanded=state.contentGroupsExpanded.has(s.id),visible=expanded?items:items.slice(0,1),hasText=items.some(item=>item.type==='text');
     let content=visible.map((item,index)=>messageItemHTML(s,item,index,expanded,multiple)).join('');
     const tags=s.source!=='property'&&(s.tags||[]).length?'<span class="wecom-custom-tags" aria-label="自定义标签">'+s.tags.map(customTagHTML).join('')+'</span>':'';
-    return '<article class="wecom-script-card" data-script-id="'+esc(s.id)+'"><div class="wecom-card-title"><strong title="'+esc(s.title)+'">'+esc(s.title)+'</strong><button type="button" class="wecom-star" data-housing-favorite="'+esc(s.id)+'" aria-label="'+(fav?'取消收藏':'收藏')+esc(s.title)+'" aria-pressed="'+fav+'">'+(fav?'★':'☆')+'</button></div><div class="wecom-card-meta"><span class="wecom-source-badge" data-source="'+s.source+'">'+sourceNames[s.source]+'</span>'+tags+'</div>'+(path?'<div class="wecom-card-path">'+esc(path)+'</div>':'')+'<div class="wecom-card-content">'+content+'</div><div class="wecom-card-actions">'+(hasText?'<button type="button" class="cdp-link" data-housing-copy="'+esc(s.id)+'">复制</button>':'')+'<button type="button" class="cdp-button cdp-button--primary" data-housing-send="'+esc(s.id)+'" title="'+(multiple?'按原顺序发送该标题下全部'+items.length+'条内容':'发送完整内容')+'">发送</button></div></article>';
+    return '<article class="wecom-script-card" data-script-id="'+esc(s.id)+'"><div class="wecom-card-title"><strong title="'+esc(s.title)+'">'+esc(s.title)+'</strong><button type="button" class="wecom-star" data-housing-favorite="'+esc(s.id)+'" aria-label="'+(fav?'取消收藏':'收藏')+esc(s.title)+'" aria-pressed="'+fav+'">'+(fav?'★':'☆')+'</button></div><div class="wecom-card-meta"><span class="wecom-source-badge" data-source="'+s.source+'">'+sourceNames[s.source]+'</span>'+tags+'</div>'+(path?'<div class="wecom-card-path">'+esc(path)+'</div>':'')+'<div class="wecom-card-content">'+content+'</div><div class="wecom-card-actions">'+(hasText?'<button type="button" class="cdp-link" data-housing-copy="'+esc(s.id)+'">复制</button>':'')+'<button type="button" class="cdp-button cdp-button--primary" data-housing-send="'+esc(s.id)+'" title="'+(multiple?'按原顺序回填该标题下全部'+items.length+'条内容':'回填完整内容到聊天输入框')+'">发送</button></div></article>';
   }
   function measureCardText(){
     $('housing-side-tree').querySelectorAll('.wecom-text-item').forEach(item=>{
       const body=item.querySelector('.wecom-card-body'),text=item.querySelector('.wecom-body-text'),button=item.querySelector('button');
       if(!button||!body.getBoundingClientRect().width)return;
-      const key=item.dataset.textKey,split=key.lastIndexOf('::'),s=scriptById.get(key.slice(0,split)),entry=contentItems(s)[Number(key.slice(split+2))],multiple=contentItems(s).length>1;
+      const key=item.dataset.textKey,split=key.lastIndexOf('::'),s=scriptById.get(key.slice(0,split)),entry=contentItems(s)[Number(key.slice(split+2))];
       if(body.classList.contains('is-expanded')){text.textContent=entry.text;button.hidden=false;return;}
-      const raw=entry.text.replace(/\s+/g,' ');text.textContent=raw;button.hidden=true;
-      const overflow=body.scrollHeight>60;
-      if(!multiple&&!overflow)return;
+      const lineHeight=parseFloat(getComputedStyle(body).lineHeight),raw=entry.text.replace(/\s+/g,' ');
+      body.style.maxHeight=(lineHeight*2)+'px';text.textContent=raw;button.hidden=true;
+      // Count rendered line positions, not scrollHeight: inline controls can inflate line boxes.
+      const fitsTwoLines=()=>{
+        const rects=Array.from(text.getClientRects()).filter(r=>r.width>0&&r.height>0);
+        if(!rects.length)return true;
+        const firstTop=rects[0].top;
+        if(rects.some(r=>r.top-firstTop>=lineHeight*1.5))return false;
+        return button.hidden||button.getBoundingClientRect().top-body.getBoundingClientRect().top<lineHeight*1.5;
+      };
+      if(fitsTwoLines()&&contentItems(s).length===1)return;
       button.hidden=false;
-      if(body.scrollHeight<=60)return;
+      if(fitsTwoLines())return;
       const chars=Array.from(raw);let low=0,high=chars.length;
-      while(low<high){const mid=Math.ceil((low+high)/2);text.textContent=chars.slice(0,mid).join('')+'…';if(body.scrollHeight<=60)low=mid;else high=mid-1;}
+      while(low<high){const mid=Math.ceil((low+high)/2);text.textContent=chars.slice(0,mid).join('')+'…';if(fitsTwoLines())low=mid;else high=mid-1;}
       text.textContent=chars.slice(0,low).join('').trimEnd()+'…';
     });
   }
@@ -2622,21 +2733,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   }
   function sendScript(id){
     const s=scriptById.get(id);if(!s)return;if(s.status!=='up'){toast('话术已下架，请刷新后重试');return;}
-    const items=contentItems(s);
-    items.forEach((item,index)=>{
-      const row=document.createElement('div');row.className='wecom-message is-out';row.dataset.sentScript=id;row.dataset.sentIndex=String(index);
-      const avatar=document.createElement('span');avatar.className='wecom-avatar';avatar.textContent='顾';
-      const bubble=document.createElement('div');bubble.className='wecom-bubble';
-      if(item.type==='text')bubble.textContent=item.text;
-      else if(item.type==='image'){const img=document.createElement('img');img.className='wecom-chat-image';img.src=item.src;img.alt=item.name;bubble.append(img);}
-      else {bubble.classList.add('wecom-chat-attachment');bubble.innerHTML=attachmentHTML(item,true);}
-      row.append(avatar,bubble);$('housing-chat-messages').append(row);
+    const draft=$('housing-chat-draft'),fragment=document.createDocumentFragment();
+    contentItems(s).forEach((item,index)=>{
+      const row=document.createElement('div');row.className='wecom-draft-item';row.dataset.scriptId=id;row.dataset.contentIndex=String(index);
+      if(item.type==='text')row.textContent=item.text;
+      else row.innerHTML=attachmentHTML(item,false);
+      fragment.append(row);
     });
-    if(s.source==='property'){
-      const employee=dataEmployees[propertyById.get(s.propertyId).countryId==='AU'?1:0];
-      housingSendEvents.push({scriptId:id,date:'2026-11-20',time:'2026-11-20 10:30',employeeId:employee.id,employee:employee.name,department:employee.department,type:'customer',targetId:'c0',target:'李同学',owner:''});
-    }
-    $('housing-chat-messages').scrollTop=$('housing-chat-messages').scrollHeight;toast(items.length>1?'已按顺序发送全部'+items.length+'条内容':'已发送到当前会话');
+    draft.append(fragment);draft.scrollTop=draft.scrollHeight;draft.focus({preventScroll:true});
+    toast('已回填到聊天输入框');
   }
   const regularPage=document.querySelector('#page-scripts .script-page');
   regularPage.id='housing-original-script-page';
